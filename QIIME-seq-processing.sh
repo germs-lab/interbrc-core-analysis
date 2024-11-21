@@ -15,11 +15,9 @@ module purge
 module load Conda/3                                                 ### load necessary modules.
 conda activate qiime2-amplicon-2024.10 
 
-import_dir=/mnt/scratch/kristybr/raw_seqs                           # Directory for sequence imports (large number of small files)
-dir=/mnt/research/EvansLab/Brandon/inter_BRC_microbiome/raw_seqs    # Directory for filtering and taxonomy 
-cd $import_dir                                                      ### change to the directory where your code is located.
-
-srun -n 26  job_name.sh                                             ### call your executable. (use srun instead of mpirun.)
+input_dir=/mnt/research/EvansLab/Brandon/inter_BRC_merge/qiime_output
+cd $input_dir
+srun -n 26  dada2_script.sh                                             ### call your executable. (use srun instead of mpirun.)
 
 
 
@@ -108,46 +106,55 @@ done
 module load Conda/3
 conda activate qiime2-amplicon-2024.10 
 
-import_dir=/mnt/scratch/kristybr/raw_seqs
-cd $import_dir   
+input_dir=/mnt/research/EvansLab/Brandon/inter_BRC_microbiome/raw_seqs/
+output_dir=/mnt/research/EvansLab/Brandon/inter_BRC_microbiome/qiime_output/
+cd $input_dir   
 
 ## Import demultiplexed, paired-end reads using PairedEndFastqManifestPhred33V2
 # Convert UTF-8 .csv manifest file into a tab-delimited text file 
-# sed 's/\,/\t/g' manifest_file.csv > manifest_file.txt
+# sed 's/\,/\t/g' manifest_file_glbrc.csv > manifest_file_glbrc.txt
+# sed 's/\,/\t/g' manifest_file_cabbi.csv > manifest_file_cabbi.txt
 
-qiime tools import --type 'SampleData[PairedEndSequencesWithQuality]' \
- --input-path $import_dir/manifest_file.txt \
- --output-path interbrc_pe_demux.qza \
- --input-format PairedEndFastqManifestPhred33V2
+# Re-locate TEMP directory to the EvansLab cluster, ensuring space is not ran out during the qiime2 job
+ export TMPDIR=/mnt/research/EvansLab/Brandon/inter_BRC_microbiome/temp_files/
 
+# Import each dataset separately with PairedEndFastqManifestPhred33V2
+qiime tools import --type 'SampleData[PairedEndSequencesWithQuality]' --input-path $input_dir/manifest.txt --output-path $output_dir/interbrc_pe_demux.qza --input-format PairedEndFastqManifestPhred33V2
 
 ## Filter and merge paired-end reads using dada2-denoise-paired (filter_seqs.sh)
 #!/bin/bash
 module load Conda/3
 conda activate qiime2-amplicon-2024.10
-dir=/mnt/research/EvansLab/Brandon/inter_BRC_microbiome/raw_Seqs
-cd $dir 
+output_dir=/mnt/research/EvansLab/Brandon/inter_BRC_microbiome/qiime_output/
+cd $output_dir
 
-qiime dada2 denoise-paired --i-demultiplexed-seqs interbrc_pe_demux.qza \ 
---p-trunc-len-f 250 \
---p-trunc-len-r 250 \
---p-n-threads 26 \
---o-representative-sequences interbrc_rep_seqs.qza \
---o-table interbrc_merged_feature_table.qza \
---o-denoising-stats dada2_denoising_stats.qza 
+qiime dada2 denoise-paired --i-demultiplexed-seqs interbrc_pe_demux.qza --p-trunc-len-f 150 --p-trunc-len-r 150 --o-representative-sequences jbei_pe_rep_seqs.qza --o-table jbei_pe_feature_table.qza --o-denoising-stats jbei_dada2_denoising_stats.qza --verbose 
+qiime dada2 denoise-paired --i-demultiplexed-seqs cbi_pe_demux.qza --p-trunc-len-f 150 --p-trunc-len-r 150 --o-representative-sequences cbi_pe_rep_seqs.qza --o-table cbi_pe_feature_table.qza --o-denoising-stats cbi_dada2_denoising_stats.qza --verbose
+qiime dada2 denoise-paired --i-demultiplexed-seqs glbrc_pe_demux.qza --p-trunc-len-f 150 --p-trunc-len-r 150 --o-representative-sequences glbrc_pe_rep_seqs.qza --o-table glbrc_pe_feature_table.qza --o-denoising-stats glbrc_dada2_denoising_stats.qza --verbose 
+qiime dada2 denoise-paired --i-demultiplexed-seqs cabbi_pe_demux.qza --p-trunc-len-f 150 --p-trunc-len-r 150 --o-representative-sequences cabbi_pe_rep_seqs.qza --o-table cabbi_pe_feature_table.qza --o-denoising-stats cabbi_dada2_denoising_stats.qza --verbose
 
-## Taxonomically classify the reads (classify_taxonomy.sh)
+## Merge all feature tables and rep seqs across each BRC 
+qiime feature-table merge --i-tables jbei_pe_feature_table.qza cbi_pe_feature_table.qza glbrc_pe_feature_table.qza cabbi_pe_feature_table.qza --o-merged-table interbrc_merged_feature_table.qza
+qiime feature-table merge-seqs --i-data jbei_pe_rep_seqs.qza cbi_pe_rep_seqs.qza glbrc_pe_rep_seqs.qza cabbi_pe_rep_seqs.qza  --o-merged-data interbrc_merged_rep_seqs.qza
+
+
+
+
+## Taxonomically classify the reads (classify_taxonomy.sh) using pre-trained bayesian classifier with SILVA's 515F-806R 99% OTU sequences 
+#!/bin/bash
 module load Conda/3
 conda activate qiime2-amplicon-2024.10
-dir=/mnt/research/EvansLab/Brandon/inter_BRC_microbiome/raw_Seqs
-cd $dir 
+output_dir=/mnt/research/EvansLab/Brandon/inter_BRC_microbiome/qiime_output/
+cd $output_dir
+qiime feature-classifier classify-sklearn --i-classifier classifier.qza --i-reads interbrc_merged_rep_seqs.qza --o-classification interbrc_merged_taxonomy.qza 
 
-qiime feature-classifier classify-sklearn --i-classifier classifier.qza \
---i-reads interbrc_rep_seqs.qza \
---o-classification interbrc_taxonomy.qza 
 
-qiime metadata tabulate --m-input-file taxonomy.qza \
---o-visualization taxonomy.qzv 
+
+
+
+
+
+qiime metadata tabulate --m-input-file interbrc_merged_taxonomy.qza --o-visualization taxonomy.qzv 
 
 
 
