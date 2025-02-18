@@ -1,0 +1,12 @@
+.Rproj.user
+.Rhistory
+.RData
+.Ruserdata
+
+*fastqc.html
+*fastqc.zip
+*fastq.gz
+multiqc*
+/data/output/qc_reports/cabbi_mxg
+/data/output/qc_reports/cabbi_sabr
+/data/output/phyloseq_objects/filtered_phyloseq_df.csv
