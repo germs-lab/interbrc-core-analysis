@@ -312,7 +312,7 @@ sncm.fit <- function(spp, pool=NULL, stats=TRUE, taxon=NULL){
 }
 
 ## Example: Core Microbiome across Switchgrass
-Check OTU table 
+#Check OTU table 
 filtered_phyloseq <- prune_samples(sample_sums(filtered_phyloseq)>=100, filtered_phyloseq)
 
 # Remove major outliers from MMPRNT GLBRC dataset, determined by Bray-Curtis beta diversity analysis
