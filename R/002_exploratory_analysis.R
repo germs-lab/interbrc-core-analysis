@@ -9,7 +9,7 @@ library(tidyverse)
 library(phyloseq)
 
 ## Source files
-load("data/output/phyloseq_objects/filtered_phyloseq.rda")
+load("ondemand/interbrc-core-analysis/data/output/phyloseq_objects/filtered_phyloseq.rda") # Nova OnDemand PATH
 
 
 # Exploratory Data Analysis
