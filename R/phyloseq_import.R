@@ -1,9 +1,9 @@
 library(phyloseq)
 library(tidyverse)
 
-taxonomy <- read.delim("data/input/taxonomy.tsv", comment.char = "#")
-metadata <- read.delim("data/input/metadata.tsv", row.names = 1)
-feature.table.modified <- read.delim("data/input/feature-table-modified.tsv")
+taxonomy <- read.delim("ondemand/interbrc-core-analysis/data/input/taxonomy.tsv", comment.char = "#") # Nova OnDemand PATH
+metadata <- read.delim("ondemand/interbrc-core-analysis/data/input/metadata.tsv", row.names = 1)
+feature.table.modified <- read.delim("ondemand/interbrc-core-analysis/data/input/feature-table-modified.tsv")
 
 feature.table.modified <- feature.table.modified %>%
   remove_rownames() %>%
