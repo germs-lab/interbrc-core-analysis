@@ -1,18 +1,3 @@
-# Load required packages
-library(phyloseq)
-library(vegan)
-library(tidyverse)
-library(ggsci)
-library(ggpubr)
-library(hillR)
-library(microViz)
-library(magrittr)
-library(lazyeval)
-library(minpack.lm)
-library(Hmisc)
-library(stats4)
-
-
 # The functions below use abundance-occupancy distributions fitted to a neutral model, described by Shade and Stopnisek, 2019. Core microbial taxa are selected based on their contributions to overall microbial beta-diversity. In the described function, a core microbial taxa must contribute at least ~2% of variation to Bray-Curtis dissimilarity to be considered a 'core' microbial taxa -- but this value can be manipulated within the function. 
 
 # Core microbial taxa whose abundance and occupancy are above the fitted neutral model's confidence intervals indicates greater occupancy across samples given abundance, suggesting deterministic selection by the plant. Alternatively, core microbial taxa that are below the fitted neutral model indicates greater abundance given lower occupancy; these taxa may be  dispersal limited.
