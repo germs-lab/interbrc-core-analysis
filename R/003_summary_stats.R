@@ -1,5 +1,5 @@
-# Inter-BRC-Core_Analysis
-# Exploratory Data Analyses
+# Inter-BRC-Core-Analysis
+# Summary Stats and Column rename
 # Bolívar Aponte Rolón
 # 2025-02-18
 
@@ -7,21 +7,19 @@
 # Setup
 library(tidyverse)
 library(phyloseq)
+library(metagMisc)
 
 ## Source files
 load(
-    "ondemand/interbrc-core-analysis/data/output/phyloseq_objects/filtered_phyloseq.rda"
-) # Nova OnDemand PATH
+    "data/output/phyloseq_objects/filtered_phyloseq.rda"
+)
+load(
+    "data/output/phyloseq_objects/unfiltered_phyloseq.rda"
+)
 
-
-# Exploratory Data Analysis
-
-## Column name clean-up
-colnames(sample_data(filtered_phyloseq)) <- filtered_phyloseq@sam_data |>
-    janitor::clean_names() |>
-    colnames()
 
 ## Summary stats
+
 metagMisc::phyloseq_summary(filtered_phyloseq, more_stats = F, long = F)
 
 percent_phyla_samples <- metagMisc::phyloseq_ntaxa_by_tax(
@@ -36,8 +34,8 @@ percent_phyla_samples <- metagMisc::phyloseq_ntaxa_by_tax(
     summarise(occurance_in_samples = n())
 
 
-# Saving phyloseq ad DF
-# Soon to eliminate this step BAR 2025-02-19
+# Saving phyloseq as DF
+
 metagMisc::phyloseq_to_df(
     filtered_phyloseq,
     addtax = T,
@@ -49,6 +47,3 @@ metagMisc::phyloseq_to_df(
     write.csv(.,
               file.path("data/output/phyloseq_objects/filtered_phyloseq_df.csv"))
 
-###
-
-ordinate(filtered_phyloseq, method = "NMDS", distance = "bray", trymax = 100)
