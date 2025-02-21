@@ -5,9 +5,8 @@
 
 
 # Setup
-library(tidyverse)
-library(phyloseq)
-library(metagMisc)
+source("R/000_setup.R")
+
 
 ## Source files
 load(
