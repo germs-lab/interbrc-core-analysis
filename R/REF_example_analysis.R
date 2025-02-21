@@ -5,7 +5,10 @@
 ## Example: Core Microbiome across Switchgrass
 
 # Setup
-source("ondemand/interbrc-core-analysis/R/000_core_microbiome_functions.R")
+source("R/000_core_microbiome_functions.R")
+load(
+    "data/output/phyloseq_objects/filtered_phyloseq.rda"
+) 
 
 # Check OTU table
 filtered_phyloseq <- prune_samples(sample_sums(filtered_phyloseq) >= 100, filtered_phyloseq)
@@ -31,7 +34,7 @@ glbrc_phyloseq <- subset_samples(filtered_phyloseq, brc == "glbrc")
 glbrc_phyloseq_switchgrass <- subset_samples(glbrc_phyloseq, crop == "Switchgrass")
 
 # Extract the 'spatial' core microbiome across all sites. The 'Var' in the ExtractCore is 'site'.
-spatial_core <- ExtractCore(glbrc_phyloseq_switchgrass, 'site', 'increase') #Minimum seq depth was ~10,000 reads.
+spatial_core <- ExtractCore(glbrc_phyloseq_switchgrass, 'site', 'increase') # Minimum seq depth was ~10,000 reads.
 
 # Plot Bray-Curtis Dissimilarity Curve:
 max <- 100 # Number of ranked-OTUs to plot
@@ -249,3 +252,4 @@ obs1 %>%
 core_table <- obs1 %>%
     filter(fill == 'core') %>%
     select(OTU_ID, family, genus, fit_class)
+core_table
