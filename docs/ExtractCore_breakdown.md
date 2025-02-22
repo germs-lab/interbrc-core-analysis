@@ -69,7 +69,7 @@ if (min(sample_sums(physeq)) == max(sample_sums(physeq))) {
 - **Explanation:**
     - Checks if all samples have the same sequencing depth.
     - If they do, no rarefaction is needed; the minimum sample sum (`nReads`) is used.
-    - Otherwise, the function performs even-depth rarefaction (subsampling without replacement is forced by `trimOTUs = TRUE` and `replace = TRUE`).
+    - Otherwise, the function performs even-depth rarefaction (subsampling wiht replacement is forced by `trimOTUs = TRUE` and `replace = TRUE`).
     - The taxonomy table is converted from a phyloseq tax_table to a matrix and then a data frame.
     - The dimensions of the taxonomy table are printed for verification.
 
