@@ -13,28 +13,19 @@ load(
 # Check OTU table
 filtered_phyloseq <- prune_samples(sample_sums(filtered_phyloseq) >= 100, filtered_phyloseq)
 
-# Remove major outliers from MMPRNT GLBRC dataset, determined by Bray-Curtis beta diversity analysis
-filtered_phyloseq <- subset_samples(
-    filtered_phyloseq,
-    sample_names(filtered_phyloseq) != "X2016.MMPRNT.RHN.G5.r2.Unfert.pr3"
-)
-filtered_phyloseq <- subset_samples(
-    filtered_phyloseq,
-    sample_names(filtered_phyloseq) != "X2018.HAN.G10.r2.UNFERT.pr3"
-)
-filtered_phyloseq <- subset_samples(filtered_phyloseq,
-                                    sample_names(filtered_phyloseq) != "X2017.LC.G5.r3.FERT.pr2")
+# Remove major outliers determined by Bray-Curtis beta diversity analysis
+# filtered_phyloseq <- subset_samples(
+#     filtered_phyloseq,
+#     sample_names(filtered_phyloseq) != "X2016.MMPRNT.RHN.G5.r2.Unfert.pr3"
+# )
 
 
 
-# Subset dataset to only include 'glbrc' samples from the MMPRNT MLE project
-glbrc_phyloseq <- subset_samples(filtered_phyloseq, brc == "glbrc")
 
-# Subset the phyloseq to only include 'switchgrass' samples.
-glbrc_phyloseq_switchgrass <- subset_samples(glbrc_phyloseq, crop == "Switchgrass")
+
 
 # Extract the 'spatial' core microbiome across all sites. The 'Var' in the ExtractCore is 'site'.
-spatial_core <- ExtractCore(glbrc_phyloseq_switchgrass, 'site', 'increase') # Minimum seq depth was ~10,000 reads.
+spatial_core <- ExtractCore(filtered_phyloseq, 'site', 'increase') # Minimum seq depth was ~10,000 reads.
 
 # Plot Bray-Curtis Dissimilarity Curve:
 max <- 100 # Number of ranked-OTUs to plot

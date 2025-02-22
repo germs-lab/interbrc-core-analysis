@@ -5,8 +5,7 @@
 
 
 # Setup
-library(phyloseq)
-library(tidyverse)
+source("R/000_setup.R")
 
 # Import files
 
