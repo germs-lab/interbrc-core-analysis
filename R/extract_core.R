@@ -7,14 +7,25 @@
 # EXTRACT CORE FUNCTION: This function extracts a core microbial community based on abundnace occupancy distributions and each taxa's contributions to BC-dissimilarity. The threshold defined for this analysis is 2% (1.02 in the below function).
 ExtractCore <- function(physeq, Var, method, Group = NULL, Level = NULL) {
   set.seed(37920)
+
+  # Error handling
+  if (!inherits(physeq, "phyloseq")) {
+    cli::cli_abort(
+      "{.arg physeq} must be a 'phyloseq' object.\nYou've supplied a {class(physeq)[1]} vector."
+    )
+  }
+  # If the check passes, continue processing
+  cli::cli_alert_success("Input phyloseq object is valid!")
+
   # input dataset needs to be rarified and minimum depth included
+  nReads <- min(sample_sums(physeq))
+
   if (min(sample_sums(physeq)) == max(sample_sums(physeq))) {
-    nReads <- min(sample_sums(physeq))
     # nReads %T>% print()
-    rare <- physeq
     # rare %T>% print()
-    taxon <- as(tax_table(rare), "matrix")
-    taxon <- as.data.frame(taxon)
+    taxon <- tax_table(physeq) %>%
+      as.data.frame.matrix()
+
     dim(taxon) %T>% print()
   } else {
     nReads <- min(sample_sums(physeq))
@@ -27,9 +38,10 @@ ExtractCore <- function(physeq, Var, method, Group = NULL, Level = NULL) {
         replace = TRUE,
         verbose = FALSE
       )
-    taxon <- as(tax_table(rare), "matrix")
-    taxon <- as.data.frame(taxon)
+    taxon <- tax_table(rare) %>%
+      as.data.frame.matrix()
   }
+
   # choosing a subset or using the whole phyloseq object as is
   if (is.null(Group)) {
     otu <- rare@otu_table %>% as("matrix")
