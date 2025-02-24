@@ -25,7 +25,10 @@ filtered_phyloseq <- prune_samples(sample_sums(filtered_phyloseq) >= 100, filter
 
 
 # Extract the 'spatial' core microbiome across all sites. The 'Var' in the ExtractCore is 'site'.
-spatial_core <- ExtractCore(filtered_phyloseq, 'site', 'increase') # Minimum seq depth was ~10,000 reads.
+spatial_core <- ExtractCore(filtered_phyloseq, Var = 'site', method = 'increase') # Minimum seq depth was ~10,000 reads.
+
+# Save, since it takes a long time.
+save(spatial_core, file = "data/output/spatial_core.rda")
 
 # Plot Bray-Curtis Dissimilarity Curve:
 max <- 100 # Number of ranked-OTUs to plot
@@ -78,9 +81,7 @@ BC_ranked_max %>%
     )
 
 # Plot Abundance Occupancy curve
-occ_abun <- spatial_core[[4]]
-
-occ_abun %>%
+occ_abun <-  spatial_core[[4]] %>%
     ggplot(aes(
         x = log10(otu_rel),
         y = otu_occ,
@@ -92,17 +93,19 @@ occ_abun %>%
     labs(x = "log10(Mean Relative Abundance)", y = "Occupancy") +
     theme_bw() +
     theme(
-        axis.title.x = element_text(size = 14),
-        title = element_text(size = 14),
-        axis.title.y = element_text(size = 14),
-        strip.text.x = element_text(size = 10),
-        strip.text.y = element_text(size = 14),
-        axis.text.x = element_text(size = 12, color = "black"),
-        axis.text.y = element_text(size = 12, color = "black"),
-        legend.text = element_text(size = 12),
-        legend.title = element_text(size = 14),
+        axis.title.x = element_text(size = 12),
+        title = element_text(size = 12),
+        axis.title.y = element_text(size = 12),
+        strip.text.x = element_text(size = 8),
+        strip.text.y = element_text(size = 12),
+        axis.text.x = element_text(size = 10, color = "black"),
+        axis.text.y = element_text(size = 10, color = "black"),
+        legend.text = element_text(size = 8),
+        legend.title = element_text(size = 8),
         plot.margin = unit(c(.5, 1, .5, .5), "cm")
     )
+    
+ggsave(filename = "abundance_occupancy.png", occ_abun,path = "data/output/plots/", dpi = 300,  width = 6, height = 4)
 
 #Fit Abundance-Occupancy Distribution to a Neutral Model
 # Fit neutral model
@@ -112,7 +115,7 @@ occ_abun <- spatial_core[[4]]
 names(occ_abun)[names(occ_abun) == "otu"] <- "OTU_ID"
 
 # source community pool
-meta <- spatial_core[[6]]
+#meta <- spatial_core[[6]]
 
 #fitting model
 obs.np <- sncm.fit(spp, taxon, stats = FALSE, pool = NULL)
