@@ -10,5 +10,5 @@ multiqc*
 /data/output/qc_reports/cabbi_mxg
 /data/output/qc_reports/cabbi_sabr
 /data/output/phyloseq_objects/filtered_phyloseq_df.csv
-*unfiltered_phyloseq.rda
-*filtered_phyloseq.rda
+/data/output/phyloseq_objects/unfiltered_phyloseq.rda
+/data/output/phyloseq_objects/filtered_phyloseq.rda

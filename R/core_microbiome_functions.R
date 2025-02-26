@@ -108,7 +108,7 @@ ExtractCore <- function(physeq, Var, method, Group=NULL, Level=NULL){
   # calculating BC dissimilarity based on additon of ranked OTUs from 2nd to 500th. 
   # Can be set to the entire length of OTUs in the dataset.
   # it might take some time if more than 5000 OTUs are included.
-  for(i in 2:411){ #nrow(otu_ranked)
+  for(i in nrow(otu_ranked)){ #nrow(otu_ranked)
     otu_add=otu_ranked$otu[i]
     add_matrix <- as.matrix(otu[otu_add,])
     add_matrix <- t(add_matrix)
