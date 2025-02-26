@@ -20,26 +20,35 @@ non_core_names <- spatial_core[[4]] %>%
   column_to_rownames(., var = "otu") %>%
   rownames()
 
+
+core_sample_names
+
+non_core_sample_names
+
+
 # "core and "non_core" communities as matrices and phyloseq objects
 ## Making new elements for phyloseqs
-
 ## ASV (OTU) Matrices
-core_asv_matrix <- filtered_phyloseq@otu_table |>
-  t() |>
-  as.data.frame() |>
-  select(contains(core_names)) |>
+## Useful for manual ordinations
+core_asv_matrix <- filtered_phyloseq@otu_table %>%
+  t() %>% # We need samples as rows and ASV as columns
+  as.data.frame() %>%
+  select(contains(core_names)) %>%
+  .[rowSums(.) > 0, ] %>% # Keep only samples with a non-zero sum
   as.matrix()
 
-test <- subset(otu_table(filtered_phyloseq), rownames(otu_table(filtered_phyloseq)) %in% core_names)
-
-non_core_asv_matrix <- filtered_phyloseq@otu_table |>
-  t() |>
-  as.data.frame() |>
-  select(contains(non_core_names)) |>
+non_core_asv_matrix <- filtered_phyloseq@otu_table %>%
+  t() %>% # We need samples as rows and ASV as columns
+  as.data.frame() %>%
+  select(contains(non_core_names)) %>%
+  .[rowSums(.) > 0, ] %>% # Keep only samples with a non-zero sum
   as.matrix()
+
 
 ## sample data
 all_samples <- sample_data(filtered_phyloseq@sam_data) # used for core and non_core
+
+prune_samples(taxa_names(filtered_phyloseq) %in% core_names, filtered_phyloseq)
 
 ## taxonomy
 core_taxa <- filtered_phyloseq@tax_table %>%
@@ -47,6 +56,7 @@ core_taxa <- filtered_phyloseq@tax_table %>%
   dplyr::filter(rownames(.) %in% core_names) %>%
   as.matrix() %>%
   phyloseq::tax_table()
+
 
 non_core_taxa <- filtered_phyloseq@tax_table %>%
   as.data.frame() %>%
@@ -72,14 +82,25 @@ save(core_brc_phyloseq, file = "data/output/phyloseq_objects/core_brc_phyloseq.r
 save(non_core_brc_phyloseq, file = "data/output/phyloseq_objects/non_core_brc_phyloseq.rda")
 
 
-# Hellinger transformation of matrices rarefied to 750 reads
-# To be used for dbRDA and adonis2
-core_hell_matrix <- decostand(core_asv_matrix, MARGIN = 1, method = "hellinger")
+# Remove samples where row sum 0
+# Bray-Curtis cannot compute non-existent communities or 0/0
+
+
+# Hellinger transformation of matrices
+# To be used for NMDS, dbRDA and adonis2
+core_hell_matrix <- decostand(t(core_asv_matrix),
+  MARGIN = 1,
+  method = "hellinger"
+) # Now we need samples as columns and ASV are rows
+
 ###########
 
 # Ordinations
-core_asv_dist <- vegdist(t(core_hell_matrix), method = "bray", binary = FALSE)
+core_asv_dist <- vegdist(t(core_hell_matrix), method = "bray", upper = FALSE, binary = FALSE, na.rm = TRUE)
 
+
+
+# Filter out distance matrix "NaN"
 
 # Choosing the number of dimensions
 NMDS.scree <- function(x) { # where x is the name of the data frame variable
@@ -89,7 +110,6 @@ NMDS.scree <- function(x) { # where x is the name of the data frame variable
   }
 }
 
-# NMDS.scree(x) #4 dimension seem to be appropriate to keep the stress around 0.15. More dimension will complicate the interpretation of results.
 
 NMDS <- metaMDS(as.matrix(core_asv_dist),
   distance = "bray",
@@ -103,13 +123,18 @@ NMDS <- metaMDS(as.matrix(core_asv_dist),
 stressplot(NMDS)
 
 # Adding site scores to `NMDS`
-sppscores(NMDS) <- core_asv_matrix
+sppscores(NMDS) <- core_hell_matrix
 
-data.scores <- as_tibble(vegan::scores(NMDS)$sites)
+## Scores and sample data for NMDS
+nmds_scores <- as_tibble(vegan::scores(NMDS)$sites)
+core_brc_sample_df <- core_brc_phyloseq@sam_data |>
+  data.frame()
+
+
 # NMDS Aesthetics ####
 
-ggplot(data.scores, aes(NMDS1, NMDS2)) +
-  geom_point(data = data.scores, aes(size = 3, alpha = 0.5, stroke = 1))
+ggplot(nmds_scores, x = NMDS1, y = NMDS2) +
+  geom_point(data = nmds_scores, aes(size = 3, , color = core_brc_sample_df$brc, alpha = 0.5, stroke = 1))
 
 
 
@@ -123,7 +148,7 @@ scale_shape_manual(values = c(15:22)) +
     legend.text = element_text(face = "italic")
   ) +
   stat_ellipse(
-    mapping = NULL, data = data.scores, geom = "path", size = 1.3,
+    mapping = NULL, data = nmds_scores, geom = "path", size = 1.3,
     position = "identity", type = "t", linetype = 1, level = 0.95, segments = 51,
     na.rm = FALSE, show.legend = NA, inherit.aes = TRUE
   )
