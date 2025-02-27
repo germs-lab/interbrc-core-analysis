@@ -10,21 +10,15 @@ load("data/output/phyloseq_objects/filtered_phyloseq.rda")
 # Subset by "core" and "non-core" names using "spatiol_core" object
 
 ## Name strings to subset
-core_names <- spatial_core[[4]] %>%
+core_asv_strings <- spatial_core[[4]] %>%
   dplyr::filter(., .$fill == "core") %>%
   column_to_rownames(., var = "otu") %>%
   rownames()
 
-non_core_names <- spatial_core[[4]] %>%
+non_core_asv_strings <- spatial_core[[4]] %>%
   dplyr::filter(., .$fill == "no") %>%
   column_to_rownames(., var = "otu") %>%
   rownames()
-
-
-core_sample_names
-
-non_core_sample_names
-
 
 # "core and "non_core" communities as matrices and phyloseq objects
 ## Making new elements for phyloseqs
@@ -33,49 +27,53 @@ non_core_sample_names
 core_asv_matrix <- filtered_phyloseq@otu_table %>%
   t() %>% # We need samples as rows and ASV as columns
   as.data.frame() %>%
-  select(contains(core_names)) %>%
-  .[rowSums(.) > 0, ] %>% # Keep only samples with a non-zero sum
+  select(contains(core_asv_strings)) %>%
+  .[rowSums(.) > 0, ] %>% # Keep only samples with a non-zero sum. Not all samples have the "core".
   as.matrix()
 
 non_core_asv_matrix <- filtered_phyloseq@otu_table %>%
   t() %>% # We need samples as rows and ASV as columns
   as.data.frame() %>%
-  select(contains(non_core_names)) %>%
+  select(contains(non_core_asv_strings)) %>%
   .[rowSums(.) > 0, ] %>% # Keep only samples with a non-zero sum
   as.matrix()
 
+## Sample names and data
+core_sample_strings <- rownames(core_asv_matrix)
+non_core_sample_strings <- rownames(non_core_asv_matrix)
 
-## sample data
-all_samples <- sample_data(filtered_phyloseq@sam_data) # used for core and non_core
+## Core dimensions is 50 ASVs out of a total of 23473 non-core ASVs in 1813 samples
+## When non-zero sums samples are gathered we en up with 50 ASVs present in 1733 samples
+## Core ASVs are present in 1733 / 1813 samples (96%)
 
-prune_samples(taxa_names(filtered_phyloseq) %in% core_names, filtered_phyloseq)
-
-## taxonomy
-core_taxa <- filtered_phyloseq@tax_table %>%
-  as.data.frame() %>%
-  dplyr::filter(rownames(.) %in% core_names) %>%
-  as.matrix() %>%
-  phyloseq::tax_table()
-
-
-non_core_taxa <- filtered_phyloseq@tax_table %>%
-  as.data.frame() %>%
-  dplyr::filter(rownames(.) %in% non_core_names) %>%
-  as.matrix() %>%
-  phyloseq::tax_table()
 
 ## Phyloseqs
-core_brc_phyloseq <- phyloseq(
-  otu_table(core_asv_matrix, taxa_are_rows = FALSE),
-  core_taxa,
-  all_samples
+
+core_brc_phyloseq <- prune_samples(
+  sort(sample_names(filtered_phyloseq)) %in% sort(core_sample_strings),
+  filtered_phyloseq
 )
 
-non_core_brc_phyloseq <- phyloseq(
-  otu_table(non_core_asv_matrix, taxa_are_rows = FALSE),
-  non_core_taxa,
-  all_samples
-)
+# THE oposite needs attentions
+# non_core_brc_phyloseq
+
+
+## taxonomy
+# core_taxa <- filtered_phyloseq@tax_table %>%
+#   as.data.frame() %>%
+#   dplyr::filter(rownames(.) %in% core_asv_strings) %>%
+#   as.matrix() %>%
+#   phyloseq::tax_table()
+
+
+# non_core_taxa <- filtered_phyloseq@tax_table %>%
+#   as.data.frame() %>%
+#   dplyr::filter(rownames(.) %in% non_core_asv_strings) %>%
+#   as.matrix() %>%
+#   phyloseq::tax_table()
+
+
+
 
 # Save
 save(core_brc_phyloseq, file = "data/output/phyloseq_objects/core_brc_phyloseq.rda")
