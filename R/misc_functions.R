@@ -60,3 +60,4 @@ subset.fasta <- function(file = NULL, subset = NULL, out = paste(file, ".subset"
   pos <- match(as.character(subset), names(sequences))
   writeXStringSet(sequences[pos], filepath = out)
 }
+
