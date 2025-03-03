@@ -26,15 +26,15 @@ non_core_asv_strings <- core_summary_lists[[4]] %>%
 
 # "core and "non_core" communities as matrices and phyloseq objects
 ## ASV (OTU) Matrices
+
 ## Remove samples where row sum 0 through ExtractMatrix()
-
 core_asv_matrix <- ExtractMatrix(filtered_phyloseq, .vec = core_asv_strings) # Useful for manual ordinations
-
 non_core_asv_matrix <- ExtractMatrix(filtered_phyloseq, .vec = non_core_asv_strings)
 
 ## Sample names and data
 core_sample_strings <- rownames(core_asv_matrix)
 non_core_sample_strings <- rownames(non_core_asv_matrix)
+
 
 #################################################
 ## Core dimensions is 50 ASVs out of a total of 23473 non-core ASVs in 1813 samples
