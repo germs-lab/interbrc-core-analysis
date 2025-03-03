@@ -40,7 +40,6 @@ non_core_sample_strings <- rownames(non_core_asv_matrix)
 
 
 ## Phyloseqs
-
 core_brc_phyloseq <- prune_samples(
   sort(sample_names(filtered_phyloseq)) %in% sort(core_sample_strings),
   filtered_phyloseq
@@ -53,7 +52,8 @@ non_core_brc_phyloseq <- prune_samples(
 ) %>%
   prune_taxa(rownames(.@otu_table) %in% non_core_asv_strings, .)
 
-
+## Checking that core is filtered out
+rownames(core_brc_phyloseq@otu_table) %in% non_core_asv_strings # Should return FALSE for all 50 ASVs
 
 # Save
 save(core_brc_phyloseq, file = "data/output/phyloseq_objects/core_brc_phyloseq.rda")
@@ -72,19 +72,16 @@ core_hell_matrix <- decostand(t(core_asv_matrix),
 # Ordinations
 core_asv_dist <- vegdist(t(core_hell_matrix), method = "bray", upper = FALSE, binary = FALSE, na.rm = TRUE)
 
-
-
-# Filter out distance matrix "NaN"
-
-# Choosing the number of dimensions
+## Choosing the number of dimensions
 NMDS.scree <- function(x) { # where x is the name of the data frame variable
-  plot(rep(1, 10), replicate(10, metaMDS(x, autotransform = F, k = 1)$stress), 
-  xlim = c(1, 10), 
-  ylim = c(0, 0.30), 
-  xlab = "# of Dimensions", 
-  ylab = "Stress", 
-  main = "NMDS stress plot")
-    
+  plot(rep(1, 10), replicate(10, metaMDS(x, autotransform = F, k = 1)$stress),
+    xlim = c(1, 10),
+    ylim = c(0, 0.30),
+    xlab = "# of Dimensions",
+    ylab = "Stress",
+    main = "NMDS stress plot"
+  )
+
   for (i in 1:10) {
     points(rep(i + 1, 10), replicate(10, metaMDS(x, autotransform = F, k = i + 1)$stress))
   }
