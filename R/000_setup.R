@@ -15,5 +15,7 @@ library(Hmisc) # [standard::NA/NA] v5.2-2
 library(stats4) # local install v4.4.1
 library(metagMisc) # [github::vmikk/metagMisc] v0.5.0
 
-source("R/core_microbiome_functions.R")
+
+source("R/extract_core.R")
+source("R/model_fit.R")
 source("R/misc_functions.R")
