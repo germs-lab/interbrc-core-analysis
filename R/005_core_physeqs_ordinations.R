@@ -24,19 +24,10 @@ non_core_asv_strings <- spatial_core[[4]] %>%
 ## Making new elements for phyloseqs
 ## ASV (OTU) Matrices
 ## Useful for manual ordinations
-core_asv_matrix <- filtered_phyloseq@otu_table %>%
-  t() %>% # We need samples as rows and ASV as columns
-  as.data.frame() %>%
-  select(contains(core_asv_strings)) %>%
-  .[rowSums(.) > 0, ] %>% # Keep only samples with a non-zero sum. Not all samples have the "core".
-  as.matrix()
 
-non_core_asv_matrix <- filtered_phyloseq@otu_table %>%
-  t() %>% # We need samples as rows and ASV as columns
-  as.data.frame() %>%
-  select(contains(non_core_asv_strings)) %>%
-  .[rowSums(.) > 0, ] %>% # Keep only samples with a non-zero sum
-  as.matrix()
+core_asv_matrix <- ExtractMatrix(filtered_phyloseq, .vec = core_asv_strings)
+
+non_core_asv_matrix <- ExtractMatrix(filtered_phyloseq, .vec = non_core_asv_strings)
 
 ## Sample names and data
 core_sample_strings <- rownames(core_asv_matrix)
