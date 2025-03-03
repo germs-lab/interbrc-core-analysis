@@ -4,25 +4,26 @@
 
 # Setup
 source("R/000_setup.R")
-load("data/output/spatial_core.rda")
+load("data/output/core_summary_lists.rda")
 load("data/output/phyloseq_objects/filtered_phyloseq.rda")
 
-# Subset by "core" and "non-core" names using "spatiol_core" object
+# Subset by "core" and "non-core" names using "core_summary_lists" object
 
 ## Name strings to subset
-core_asv_strings <- spatial_core[[4]] %>%
+core_asv_strings <- core_summary_lists[[4]] %>%
   dplyr::filter(., .$fill == "core") %>%
   column_to_rownames(., var = "otu") %>%
   rownames()
 
-non_core_asv_strings <- spatial_core[[4]] %>%
+non_core_asv_strings <- core_summary_lists[[4]] %>%
   dplyr::filter(., .$fill == "no") %>%
   column_to_rownames(., var = "otu") %>%
   rownames()
 
 # "core and "non_core" communities as matrices and phyloseq objects
-## Making new elements for phyloseqs
 ## ASV (OTU) Matrices
+## Remove samples where row sum 0 trhough ExtractMatrix()
+
 ## Useful for manual ordinations
 
 core_asv_matrix <- ExtractMatrix(filtered_phyloseq, .vec = core_asv_strings)
@@ -43,36 +44,20 @@ non_core_sample_strings <- rownames(non_core_asv_matrix)
 core_brc_phyloseq <- prune_samples(
   sort(sample_names(filtered_phyloseq)) %in% sort(core_sample_strings),
   filtered_phyloseq
-)
+) %>%
+  prune_taxa(rownames(.@otu_table) %in% core_asv_strings, .)
 
-# THE oposite needs attentions
-# non_core_brc_phyloseq
-
-
-## taxonomy
-# core_taxa <- filtered_phyloseq@tax_table %>%
-#   as.data.frame() %>%
-#   dplyr::filter(rownames(.) %in% core_asv_strings) %>%
-#   as.matrix() %>%
-#   phyloseq::tax_table()
-
-
-# non_core_taxa <- filtered_phyloseq@tax_table %>%
-#   as.data.frame() %>%
-#   dplyr::filter(rownames(.) %in% non_core_asv_strings) %>%
-#   as.matrix() %>%
-#   phyloseq::tax_table()
-
+non_core_brc_phyloseq <- prune_samples(
+  sort(sample_names(filtered_phyloseq)) %in% sort(non_core_sample_strings),
+  filtered_phyloseq
+) %>%
+  prune_taxa(rownames(.@otu_table) %in% non_core_asv_strings, .)
 
 
 
 # Save
 save(core_brc_phyloseq, file = "data/output/phyloseq_objects/core_brc_phyloseq.rda")
 save(non_core_brc_phyloseq, file = "data/output/phyloseq_objects/non_core_brc_phyloseq.rda")
-
-
-# Remove samples where row sum 0
-# Bray-Curtis cannot compute non-existent communities or 0/0
 
 
 # Hellinger transformation of matrices
@@ -93,12 +78,19 @@ core_asv_dist <- vegdist(t(core_hell_matrix), method = "bray", upper = FALSE, bi
 
 # Choosing the number of dimensions
 NMDS.scree <- function(x) { # where x is the name of the data frame variable
-  plot(rep(1, 10), replicate(10, metaMDS(x, autotransform = F, k = 1)$stress), xlim = c(1, 10), ylim = c(0, 0.30), xlab = "# of Dimensions", ylab = "Stress", main = "NMDS stress plot")
+  plot(rep(1, 10), replicate(10, metaMDS(x, autotransform = F, k = 1)$stress), 
+  xlim = c(1, 10), 
+  ylim = c(0, 0.30), 
+  xlab = "# of Dimensions", 
+  ylab = "Stress", 
+  main = "NMDS stress plot")
+    
   for (i in 1:10) {
     points(rep(i + 1, 10), replicate(10, metaMDS(x, autotransform = F, k = i + 1)$stress))
   }
 }
 
+NMDS.scree(core_asv_dist)
 
 NMDS <- metaMDS(as.matrix(core_asv_dist),
   distance = "bray",
