@@ -61,3 +61,27 @@ subset.fasta <- function(file = NULL, subset = NULL, out = paste(file, ".subset"
   writeXStringSet(sequences[pos], filepath = out)
 }
 
+
+# Parallelized function for choosing dimensions for NMDS
+NMDS.scree.parallel <- function(x, ncores = parallel::detectCores() - 1) {
+    # Function to calculate stress for a given number of dimensions
+    calculate_stress <- function(k) {
+        replicate(10, metaMDS(x, autotransform = FALSE, k = k)$stress)
+    }
+    
+    # Use mclapply to parallelize the stress calculation
+    stress_values <- parallel::mclapply(1:10, calculate_stress, mc.cores = ncores)
+    
+    # Plot the results
+    plot(rep(1, 10), stress_values[[1]],
+         xlim = c(1, 10),
+         ylim = c(0, 0.30),
+         xlab = "# of Dimensions",
+         ylab = "Stress",
+         main = "NMDS stress plot"
+    )
+    
+    for (i in 1:9) {
+        points(rep(i + 1, 10), stress_values[[i + 1]])
+    }
+}
