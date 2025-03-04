@@ -68,16 +68,16 @@ save(non_core_brc_phyloseq, file = "data/output/phyloseq_objects/non_core_brc_ph
 
 ## Core
 subset.fasta(
-  file = "data/output/rep_asv_seqs.fasta",
+  file = "data/output/fasta_files/rep_asv_seqs.fasta",
   subset = core_asv_strings,
-  out = "data/output/core_asv_seqs.fasta"
+  out = "data/output/fasta_files/core_asv_seqs.fasta"
 )
 
 ## Non-Core
 subset.fasta(
-  file = "data/output/rep_asv_seqs.fasta",
+  file = "data/output/fasta_files/rep_asv_seqs.fasta",
   subset = non_core_asv_strings,
-  out = "data/output/non_core_asv_seqs.fasta"
+  out = "data/output/fasta_files/non_core_asv_seqs.fasta"
 )
 
 
@@ -98,21 +98,8 @@ core_hell_matrix <- decostand(t(core_asv_matrix),
 core_asv_dist <- vegdist(t(core_hell_matrix), method = "bray", upper = FALSE, binary = FALSE, na.rm = TRUE)
 
 ## Choosing the number of dimensions
-NMDS.scree <- function(x) { # where x is the name of the data frame variable
-  plot(rep(1, 10), replicate(10, metaMDS(x, autotransform = F, k = 1)$stress),
-    xlim = c(1, 10),
-    ylim = c(0, 0.30),
-    xlab = "# of Dimensions",
-    ylab = "Stress",
-    main = "NMDS stress plot"
-  )
-
-  for (i in 1:10) {
-    points(rep(i + 1, 10), replicate(10, metaMDS(x, autotransform = F, k = i + 1)$stress))
-  }
-}
-
-NMDS.scree(core_asv_dist)
+set.seed(484035)
+NMDS.scree.parallel(core_asv_dist, ncores = 32)#  Results: Two dimensions keeps stress below 0.20
 
 NMDS <- metaMDS(as.matrix(core_asv_dist),
   distance = "bray",
@@ -121,8 +108,11 @@ NMDS <- metaMDS(as.matrix(core_asv_dist),
   autotransform = FALSE,
   wascores = TRUE,
   tidy = TRUE,
-  k = 4, trymax = 500
+  k = 2, 
+  trymax = 500, 
+  parallel = parallel::detectCores()
 )
+
 stressplot(NMDS)
 
 # Adding site scores to `NMDS`
