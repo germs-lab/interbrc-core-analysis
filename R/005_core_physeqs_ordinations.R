@@ -4,8 +4,8 @@
 
 # Setup
 source("R/000_setup.R")
-load("/home/bolivar/ondemand/interbrc-core-analysis/data/output/core_summary_lists.rda")
-load("/home/bolivar/ondemand/interbrc-core-analysis/data/output/phyloseq_objects/filtered_phyloseq.rda")
+load("data/output/core_summary_lists.rda")
+load("data/output/phyloseq_objects/filtered_phyloseq.rda")
 
 #################################################
 ### Core and Non_Core objects and fasta files ###
