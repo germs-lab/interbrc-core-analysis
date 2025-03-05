@@ -13,7 +13,7 @@ save(test_phyloseq, file = "tests/data/test_phyloseq.rda")
 
 # Extract the 'spatial' core microbiome across all sites. The 'Var' in the ExtractCore is 'site'.
 
-spatial_core <- ExtractCore(test_phyloseq, 'site', 'increase') # Minimum seq depth was ~10,000 reads.
+spatial_core <- ExtractCore(test_phyloseq, 'site', 'increase', 2) # Minimum seq depth was ~10,000 reads.
 
 # Plot Bray-Curtis Dissimilarity Curve:
 max <- 100 # Number of ranked-OTUs to plot
