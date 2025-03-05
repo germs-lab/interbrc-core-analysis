@@ -100,4 +100,4 @@ filtered_phyloseq <- filter_taxa(phyloseq_removed_singletons_plant, function(x)
 save(filtered_phyloseq, file = "data/output/phyloseq_objects/filtered_phyloseq.rda")
 
 # Unfiltered object
-save(unfiltered_phyloseq, file = "data/output/phyloseq_objects/unfiltered_phyloseq.rda")
+save(phyloseq, file = "data/output/phyloseq_objects/unfiltered_phyloseq.rda")
