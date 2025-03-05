@@ -122,29 +122,28 @@ ExtractCore <- function(physeq, Var, method, increase_value = NULL, Group = NULL
       arrange(desc(rank))
     # otu_ranked %T>% print()
 
-    # calculating BC dissimilarity based on the 1st ranked OTU
-    otu_start <- otu_ranked$otu[1]
-    start_matrix <- as.matrix(otu[otu_start, ])
-    start_matrix <- t(start_matrix)
-    x <- apply(combn(ncol(start_matrix), 2), 2, function(x) {
-      sum(abs(start_matrix[, x[1]] - start_matrix[, x[2]])) / (2 * nReads)
-    })
-    x_names <-
-      apply(combn(ncol(start_matrix), 2), 2, function(x) {
-        paste(colnames(start_matrix)[x], collapse = "-")
+    # Helper function: Calculate Bray-Curtis values
+    calculate_bc <- function(matrix, nReads) {
+      bc_values <- apply(combn(ncol(matrix), 2), 2, function(cols) {
+        sum(abs(matrix[, cols[1]] - matrix[, cols[2]])) / (2 * nReads)
       })
-    # creating a data.frame and adding first OTU name as 1
-    df_s <- data.frame(x_names, x)
-    names(df_s)[2] <- 1
-    # Initialize your data structures:  calculating the contribution of ranked OTUs to the BC similarity
-    BCaddition <- NULL
-    BCaddition <- rbind(BCaddition, df_s)
 
+      x_names <- apply(combn(ncol(matrix), 2), 2, function(cols) {
+        paste(colnames(matrix)[cols], collapse = "-")
+      })
 
-    # calculating BC dissimilarity based on additon of ranked OTUs from 2nd to 500th.
+      list(values = bc_values, names = x_names)
+    }
+
+    # calculating BC dissimilarity based on the 1st ranked OTU
+    start_matrix <- t(as.matrix(otu[otu_ranked$otu[1], ]))
+    first_bc <- calculate_bc(start_matrix, nReads)
+    BCaddition <- data.frame(x_names = first_bc$names, "1" = first_bc$values)
+
+    # calculating BC dissimilarity based on additon of ranked OTUs from 2nd to nth.
     # Can be set to the entire length of OTUs in the dataset.
     # it might take some time if more than 5000 OTUs are included.
-    for (i in nrow(otu_ranked)) {
+    for (i in 2:nrow(otu_ranked)) {
       otu_add <- otu_ranked$otu[i]
       add_matrix <- as.matrix(otu[otu_add, ])
       add_matrix <- t(add_matrix)
@@ -191,6 +190,8 @@ ExtractCore <- function(physeq, Var, method, increase_value = NULL, Group = NULL
     BC_ranked <- left_join(BC_ranked, increaseDF)
     BC_ranked <- BC_ranked[-nrow(BC_ranked), ]
     BC_ranked <- drop_na(BC_ranked)
+
+
     # Error handling: Make sure a method is specified as 'increase' or 'elbow'
     # Check if method is provided and is one of the allowed values
     if (missing(method) || !method %in% c("increase", "elbow")) {
@@ -221,6 +222,7 @@ ExtractCore <- function(physeq, Var, method, increase_value = NULL, Group = NULL
     }
     # Continue with the function logic
     cli::cli_alert_success("Performing method 'increase'")
+
     # Convert the % increase into a decimal value and add 1
     perc_increase <- 1 + (increase_value * 0.01)
     lastCall <-
