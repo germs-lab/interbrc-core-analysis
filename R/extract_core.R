@@ -5,9 +5,8 @@
 # More info on the functions can be found in Shade and Stopnisek, 2019. Original functions were developed in VanWallendael et al 2021. Code was adapted and updated by Nicco Benucci (GLBRC, Bonito Lab) and Brandon Kristy (GLBRC, Evans Lab).
 
 # EXTRACT CORE FUNCTION: This function extracts a core microbial community based on abundnace occupancy distributions and each taxa's contributions to BC-dissimilarity. The threshold defined for this analysis is 2% (1.02 in the below function).
-ExtractCore <- function(physeq, Var, method, Group = NULL, Level = NULL) {
+ExtractCore <- function(physeq, Var, method, increase_value = NULL, Group = NULL, Level = NULL) {{
   set.seed(37920)
-
   # Error handling
   if (!inherits(physeq, "phyloseq")) {
     cli::cli_abort(
@@ -74,6 +73,7 @@ ExtractCore <- function(physeq, Var, method, Group = NULL, Level = NULL) {
     rowSums(otu_PA) / ncol(otu_PA) # occupancy calculation
   otu_rel <-
     apply(decostand(otu, method = "total", MARGIN = 2), 1, mean) # mean relative abundance
+  # tibble::rownames_to_column appears to create an error at line #106 for left_join(), sticking with add_rownames for now
   occ_abun <-
     add_rownames(as.data.frame(cbind(otu_occ, otu_rel)), "otu") # combining occupancy and abundance data frame
   # NOTE! add_rownames is deprecated and generates a warning, a bug of tidyverse,
@@ -177,7 +177,13 @@ ExtractCore <- function(physeq, Var, method, Group = NULL, Level = NULL) {
   BC_ranked <- left_join(BC_ranked, increaseDF)
   BC_ranked <- BC_ranked[-nrow(BC_ranked), ]
   BC_ranked <- drop_na(BC_ranked)
+  # Error handling: Make sure a method is specified as 'increase' or 'elbow'
+  # Check if method is provided and is one of the allowed values
+  if (missing(method) || !method %in% c("increase", "elbow")) {
+      cli::cli_abort("{.arg method} must be specified as either 'increase' or 'elbow'.", call. = FALSE)
+  }}
   if (method == "elbow") {
+    cli::cli_alert_success("Performing method 'elbow'")
     fo_difference <- function(pos) {
       left <- (BC_ranked[pos, 2] - BC_ranked[1, 2]) / pos
       right <- (BC_ranked[nrow(BC_ranked), 2] - BC_ranked[pos, 2]) / (nrow(BC_ranked) - pos)
@@ -190,10 +196,21 @@ ExtractCore <- function(physeq, Var, method, Group = NULL, Level = NULL) {
   }
   # Creating threshold for core inclusion - last call method using a
   # final increase in BC similarity of equal or greater than 5%
-  else {
+  if (method == "increase") {
+    # Error handling: If method 'increase' is chosen, make sure that 'increase_value' is specified
+      if (missing(increase_value) || is.null(increase_value)) {
+          cli::cli_abort("{.arg increase_value} must be specified when method is 'increase'.")
+      }
+      if (!is.numeric(increase_value)) {
+          cli::cli_abort("{arg increase_value} must be a numeric value.")
+      }
+      # Continue with the function logic
+      cli::cli_alert_success("Performing method 'increase'")
+    # Convert the % increase into a decimal value and add 1 
+    perc_increase <- 1 + (increase_value*0.01)
     lastCall <-
       as.numeric(as.character(dplyr::last(
-        subset(BC_ranked, IncreaseBC >= 1.02)$rank
+        subset(BC_ranked, IncreaseBC >= perc_increase)$rank
       )))
     core_otus <- otu_ranked$otu[1:lastCall]
     # core_otus %T>% print()
