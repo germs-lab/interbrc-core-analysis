@@ -124,6 +124,11 @@ ExtractCore <- function(physeq, Var, method, increase_value = NULL, Group = NULL
 
     # Helper function: Calculate Bray-Curtis values
     calculate_bc <- function(matrix, nReads) {
+      if (nrow(matrix) == 0) {
+        cli::cli_alert_warning("{.arg matrix} is empty. Enter a non-empty matrix.")
+        return(list(values = numeric(0), names = character(0)))
+      }
+
       bc_values <- apply(combn(ncol(matrix), 2), 2, function(cols) {
         sum(abs(matrix[, cols[1]] - matrix[, cols[2]])) / (2 * nReads)
       })
