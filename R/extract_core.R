@@ -39,6 +39,7 @@ ExtractCore <- function(physeq, Var, method, increase_value = NULL, Group = NULL
           replace = TRUE,
           verbose = FALSE
         )
+
       taxon <- tax_table(rarefied) %>%
         as.data.frame.matrix()
     }
@@ -56,14 +57,17 @@ ExtractCore <- function(physeq, Var, method, increase_value = NULL, Group = NULL
         refseq(rarefied),
         sub_set
       )
+
       otu_table(physeq1) <- otu_table(physeq1)[which(rowSums(otu_table(physeq1)) > 0), ]
       otu <- physeq1@otu_table %>% as("matrix")
       map <- physeq1@sam_data %>% as("data.frame")
       print("Grouping Factor")
       map[, Group] %T>% print()
-      taxon <- as(tax_table(physeq1), "matrix")
-      taxon <- as.data.frame(taxon)
+
+      taxon <- tax_table(physeq1) %>%
+        as.data.frame.matrix()
     }
+
     map$SampleID <- rownames(map)
     # print("Check: dimension of datframe and metadata")
     # dim(otu) %T>% print() # funcitons form magrittr package
@@ -85,10 +89,11 @@ ExtractCore <- function(physeq, Var, method, increase_value = NULL, Group = NULL
 
 
     # Ranking OTUs based on their occupancy
-    # For calculating raking index we included following conditions:
+    # For calculating ranking index we included following conditions:
     # - time-specific occupancy (sumF) = frequency of detection within time point (genotype or site)
     # - replication consistency (sumG) = has occupancy of 1 in at least one time point (genotype or site) (1 if occupancy 1, else 0)
-    Var <- enquo(Var) # lazy evaluation
+
+    Var <- rlang::enquo(Var) # lazy evaluation
     PresenceSum <-
       data.frame(otu = as.factor(row.names(otu)), otu) %>%
       gather(SampleID, abun, -otu) %>%
@@ -106,6 +111,7 @@ ExtractCore <- function(physeq, Var, method, increase_value = NULL, Group = NULL
         Index = (sumF + sumG) / nS
       ) # calculating weighting Index based on number of points detected
     # PresenceSum %T>% print()
+
     # ranking otus
     otu_ranked <- occ_abun %>%
       left_join(PresenceSum, by = "otu") %>%
@@ -115,6 +121,7 @@ ExtractCore <- function(physeq, Var, method, increase_value = NULL, Group = NULL
       ) %>%
       arrange(desc(rank))
     # otu_ranked %T>% print()
+
     # calculating BC dissimilarity based on the 1st ranked OTU
     otu_start <- otu_ranked$otu[1]
     start_matrix <- as.matrix(otu[otu_start, ])
@@ -137,7 +144,7 @@ ExtractCore <- function(physeq, Var, method, increase_value = NULL, Group = NULL
     # calculating BC dissimilarity based on additon of ranked OTUs from 2nd to 500th.
     # Can be set to the entire length of OTUs in the dataset.
     # it might take some time if more than 5000 OTUs are included.
-    for (i in 2:411) { # nrow(otu_ranked)
+    for (i in nrow(otu_ranked)) {
       otu_add <- otu_ranked$otu[i]
       add_matrix <- as.matrix(otu[otu_add, ])
       add_matrix <- t(add_matrix)
@@ -230,5 +237,6 @@ ExtractCore <- function(physeq, Var, method, increase_value = NULL, Group = NULL
     list(core_otus, BC_ranked, otu_ranked, occ_abun, otu, map, taxon)
   return(return_list)
 }
+
 
 ## NOTE: This technique requires en even sampling depth to perform, which requires rarefaction. I tested this function /wo rarefaction (using the mean sampling depth instead), and there were no differences in core community composition or identification.
