@@ -1,10 +1,21 @@
-# The functions below use abundance-occupancy distributions fitted to a neutral model, described by Shade and Stopnisek, 2019. Core microbial taxa are selected based on their contributions to overall microbial beta-diversity. In the described function, a core microbial taxa must contribute at least ~2% of variation to Bray-Curtis dissimilarity to be considered a 'core' microbial taxa -- but this value can be manipulated within the function.
+# The functions below use abundance-occupancy distributions fitted to a neutral model
+# described by Shade and Stopnisek, 2019. Core microbial taxa are selected based on their
+# contributions to overall microbial beta-diversity. In the described function, a core microbial taxa
+# must contribute at least ~2% of variation to Bray-Curtis dissimilarity to be considered a 'core' microbial taxa
+# -- but this value can be manipulated within the function.
 
-# Core microbial taxa whose abundance and occupancy are above the fitted neutral model's confidence intervals indicates greater occupancy across samples given abundance, suggesting deterministic selection by the plant. Alternatively, core microbial taxa that are below the fitted neutral model indicates greater abundance given lower occupancy; these taxa may be  dispersal limited.
+# Core microbial taxa whose abundance and occupancy are above the fitted neutral model's confidence intervals
+# indicates greater occupancy across samples given abundance, suggesting deterministic selection by the plant.
+# Alternatively, core microbial taxa that are below the fitted neutral model indicates greater abundance given
+# lower occupancy; these taxa may be  dispersal limited.
 
-# More info on the functions can be found in Shade and Stopnisek, 2019. Original functions were developed in VanWallendael et al 2021. Code was adapted and updated by Nicco Benucci (GLBRC, Bonito Lab) and Brandon Kristy (GLBRC, Evans Lab).
+# More info on the functions can be found in Shade and Stopnisek, 2019. Original functions were developed in VanWallendael et al 2021.
+# Code was adapted and updated by Nicco Benucci (GLBRC, Bonito Lab) and Brandon Kristy (GLBRC, Evans Lab).
+# Error handling, helper functions and refactoring by Bolívar Aponte Rolón (CABBI, GERMS Lab) and Brandon Kristy. -2025-03-06
 
-# EXTRACT CORE FUNCTION: This function extracts a core microbial community based on abundnace occupancy distributions and each taxa's contributions to BC-dissimilarity. The threshold defined for this analysis is 2% (1.02 in the below function).
+# EXTRACT CORE FUNCTION: This function extracts a core microbial community based on abundnace occupancy
+# distributions and each taxa's contributions to BC-dissimilarity.
+# The threshold defined for this analysis is 2% (1.02 in the below function).
 
 ExtractCore <- function(physeq, Var, method, increase_value = NULL, Group = NULL, Level = NULL) {
   {  set.seed(37920)
@@ -17,6 +28,11 @@ ExtractCore <- function(physeq, Var, method, increase_value = NULL, Group = NULL
     }
     # If the check passes, continue processing
     cli::cli_alert_success("Input phyloseq object is valid!")
+
+
+    #################
+    ## Rarefaction ##
+    #################
 
     # input dataset needs to be rarified and minimum depth included
     nReads <- min(sample_sums(physeq))
@@ -43,6 +59,11 @@ ExtractCore <- function(physeq, Var, method, increase_value = NULL, Group = NULL
       taxon <- tax_table(rarefied) %>%
         as.data.frame.matrix()
     }
+
+
+    #################
+    ## Subsetting ##
+    #################
 
     # choosing a subset or using the whole phyloseq object as is
     if (is.null(Group)) {
@@ -73,6 +94,11 @@ ExtractCore <- function(physeq, Var, method, increase_value = NULL, Group = NULL
     # dim(otu) %T>% print() # funcitons form magrittr package
     # dim(map) %T>% print()
 
+
+    #############################
+    ## occupancy and abundance ##
+    #############################
+
     # calculating occupancy and abundance
     otu_PA <-
       1 * ((otu > 0) == 1) # presence-absence data
@@ -86,6 +112,11 @@ ExtractCore <- function(physeq, Var, method, increase_value = NULL, Group = NULL
     # NOTE! add_rownames is deprecated and generates a warning, a bug of tidyverse,
     # alternative you can use:
     occ_abun <- tibble::rownames_to_column(as.data.frame(cbind(otu_occ, otu_rel)), "otu")
+
+
+    ##################
+    ## Ranking OTUs ##
+    ##################
 
     # Ranking OTUs based on their occupancy
     # For calculating ranking index we included following conditions:
@@ -111,7 +142,7 @@ ExtractCore <- function(physeq, Var, method, increase_value = NULL, Group = NULL
       ) # calculating weighting Index based on number of points detected
     # PresenceSum %T>% print()
 
-    # ranking otus
+    # Ranked OTUs
     otu_ranked <- occ_abun %>%
       left_join(PresenceSum, by = "otu") %>%
       transmute(
@@ -120,6 +151,11 @@ ExtractCore <- function(physeq, Var, method, increase_value = NULL, Group = NULL
       ) %>%
       arrange(desc(rank))
     # otu_ranked %T>% print()
+
+
+    ###############################
+    ## Bray-Curtis Dissimilarity ##
+    ###############################
 
     # Helper function: Calculate Bray-Curtis values
     calculate_bc <- function(matrix, nReads) {
@@ -218,6 +254,12 @@ ExtractCore <- function(physeq, Var, method, increase_value = NULL, Group = NULL
       # Calculate proportion of the dissimilarity explained by the n number of ranked OTUs
       mutate(proportionBC = MeanBC / max(MeanBC))
     # BC_ranked %T>% print()
+
+
+    #############################
+    ## Increase in Bray-Curtis ##
+    #############################
+
     # Calculating the increase BC
     Increase <- BC_ranked$MeanBC[-1] / BC_ranked$MeanBC[-length(BC_ranked$MeanBC)]
     increaseDF <- data.frame(IncreaseBC = c(0, (Increase)), rank = factor(c(1:(length(Increase) + 1))))
@@ -275,4 +317,6 @@ ExtractCore <- function(physeq, Var, method, increase_value = NULL, Group = NULL
 }
 
 
-## NOTE: This technique requires en even sampling depth to perform, which requires rarefaction. I tested this function /wo rarefaction (using the mean sampling depth instead), and there were no differences in core community composition or identification.
+## NOTE: This technique requires en even sampling depth to perform, which requires rarefaction.
+# I tested this function /wo rarefaction (using the mean sampling depth instead),
+# and there were no differences in core community composition or identification.
