@@ -1,10 +1,21 @@
-# The functions below use abundance-occupancy distributions fitted to a neutral model, described by Shade and Stopnisek, 2019. Core microbial taxa are selected based on their contributions to overall microbial beta-diversity. In the described function, a core microbial taxa must contribute at least ~2% of variation to Bray-Curtis dissimilarity to be considered a 'core' microbial taxa -- but this value can be manipulated within the function.
+# The functions below use abundance-occupancy distributions fitted to a neutral model
+# described by Shade and Stopnisek, 2019. Core microbial taxa are selected based on their
+# contributions to overall microbial beta-diversity. In the described function, a core microbial taxa
+# must contribute at least ~2% of variation to Bray-Curtis dissimilarity to be considered a 'core' microbial taxa
+# -- but this value can be manipulated within the function.
 
-# Core microbial taxa whose abundance and occupancy are above the fitted neutral model's confidence intervals indicates greater occupancy across samples given abundance, suggesting deterministic selection by the plant. Alternatively, core microbial taxa that are below the fitted neutral model indicates greater abundance given lower occupancy; these taxa may be  dispersal limited.
+# Core microbial taxa whose abundance and occupancy are above the fitted neutral model's confidence intervals
+# indicates greater occupancy across samples given abundance, suggesting deterministic selection by the plant.
+# Alternatively, core microbial taxa that are below the fitted neutral model indicates greater abundance given
+# lower occupancy; these taxa may be  dispersal limited.
 
-# More info on the functions can be found in Shade and Stopnisek, 2019. Original functions were developed in VanWallendael et al 2021. Code was adapted and updated by Nicco Benucci (GLBRC, Bonito Lab) and Brandon Kristy (GLBRC, Evans Lab).
+# More info on the functions can be found in Shade and Stopnisek, 2019. Original functions were developed in VanWallendael et al 2021.
+# Code was adapted and updated by Nicco Benucci (GLBRC, Bonito Lab) and Brandon Kristy (GLBRC, Evans Lab).
+# Error handling, helper functions and refactoring by Bolívar Aponte Rolón (CABBI, GERMS Lab) and Brandon Kristy. -2025-03-06
 
-# EXTRACT CORE FUNCTION: This function extracts a core microbial community based on abundnace occupancy distributions and each taxa's contributions to BC-dissimilarity. The threshold defined for this analysis is 2% (1.02 in the below function).
+# EXTRACT CORE FUNCTION: This function extracts a core microbial community based on abundnace occupancy
+# distributions and each taxa's contributions to BC-dissimilarity.
+# The threshold defined for this analysis is 2% (1.02 in the below function).
 
 ExtractCore <- function(physeq, Var, method, increase_value = NULL, Group = NULL, Level = NULL) {
   {  set.seed(37920)
@@ -17,6 +28,11 @@ ExtractCore <- function(physeq, Var, method, increase_value = NULL, Group = NULL
     }
     # If the check passes, continue processing
     cli::cli_alert_success("Input phyloseq object is valid!")
+
+
+    #################
+    ## Rarefaction ##
+    #################
 
     # input dataset needs to be rarified and minimum depth included
     nReads <- min(sample_sums(physeq))
@@ -43,6 +59,11 @@ ExtractCore <- function(physeq, Var, method, increase_value = NULL, Group = NULL
       taxon <- tax_table(rarefied) %>%
         as.data.frame.matrix()
     }
+
+
+    #################
+    ## Subsetting ##
+    #################
 
     # choosing a subset or using the whole phyloseq object as is
     if (is.null(Group)) {
@@ -73,6 +94,11 @@ ExtractCore <- function(physeq, Var, method, increase_value = NULL, Group = NULL
     # dim(otu) %T>% print() # funcitons form magrittr package
     # dim(map) %T>% print()
 
+
+    #############################
+    ## occupancy and abundance ##
+    #############################
+
     # calculating occupancy and abundance
     otu_PA <-
       1 * ((otu > 0) == 1) # presence-absence data
@@ -81,12 +107,16 @@ ExtractCore <- function(physeq, Var, method, increase_value = NULL, Group = NULL
     otu_rel <-
       apply(decostand(otu, method = "total", MARGIN = 2), 1, mean) # mean relative abundance
     # tibble::rownames_to_column appears to create an error at line #106 for left_join(), sticking with add_rownames for now
-    occ_abun <-
-      add_rownames(as.data.frame(cbind(otu_occ, otu_rel)), "otu") # combining occupancy and abundance data frame
+    #   occ_abun <-
+    #     add_rownames(as.data.frame(cbind(otu_occ, otu_rel)), "otu") # combining occupancy and abundance data frame
     # NOTE! add_rownames is deprecated and generates a warning, a bug of tidyverse,
     # alternative you can use:
-    # occ_abun <- tibble::rownames_to_column(as.data.frame(cbind(otu_occ, otu_rel)),"otu")
+    occ_abun <- tibble::rownames_to_column(as.data.frame(cbind(otu_occ, otu_rel)), "otu")
 
+
+    ##################
+    ## Ranking OTUs ##
+    ##################
 
     # Ranking OTUs based on their occupancy
     # For calculating ranking index we included following conditions:
@@ -112,7 +142,7 @@ ExtractCore <- function(physeq, Var, method, increase_value = NULL, Group = NULL
       ) # calculating weighting Index based on number of points detected
     # PresenceSum %T>% print()
 
-    # ranking otus
+    # Ranked OTUs
     otu_ranked <- occ_abun %>%
       left_join(PresenceSum, by = "otu") %>%
       transmute(
@@ -121,6 +151,11 @@ ExtractCore <- function(physeq, Var, method, increase_value = NULL, Group = NULL
       ) %>%
       arrange(desc(rank))
     # otu_ranked %T>% print()
+
+
+    ###############################
+    ## Bray-Curtis Dissimilarity ##
+    ###############################
 
     # Helper function: Calculate Bray-Curtis values
     calculate_bc <- function(matrix, nReads) {
@@ -140,41 +175,46 @@ ExtractCore <- function(physeq, Var, method, increase_value = NULL, Group = NULL
       list(values = bc_values, names = x_names)
     }
 
-    # calculating BC dissimilarity based on the 1st ranked OTU
+    # Calculating BC dissimilarity based on the 1st ranked OTU
+    cli::cli_alert_info("Calculating BC dissimilarity based on the 1st ranked OTU")
+
     start_matrix <- t(as.matrix(otu[otu_ranked$otu[1], ]))
     first_bc <- calculate_bc(start_matrix, nReads)
     BCaddition <- data.frame(x_names = first_bc$names, "1" = first_bc$values)
 
-    # calculating BC dissimilarity based on additon of ranked OTUs from 2nd to nth.
-    # Can be set to the entire length of OTUs in the dataset.
-    # it might take some time if more than 5000 OTUs are included.
+    cli::cli_alert_success("BC dissimilarity based on the 1st ranked OTU complete")
+
+    # Calculating BC dissimilarity based on additon of ranked OTUs from 2nd to nth.
+    # Set to the entire length of OTUs in the dataset. It might take some time if more than 5000 OTUs are included.
+
+    cli::cli_alert_info("Calculating BC dissimilarity based on ranked OTUs, starting at {Sys.time()}")
+    progressbar_calc_bc <- cli::cli_progress_bar(
+      name = "Calculating BC rankings",
+      total = nrow(otu_ranked) - 1,
+      format = "{cli::pb_bar} {cli::pb_percent} | ETA: {cli::pb_eta}",
+      .auto_close = TRUE,
+      .envir = parent.frame()
+    )
+
     for (i in 2:nrow(otu_ranked)) {
-      otu_add <- otu_ranked$otu[i]
-      add_matrix <- as.matrix(otu[otu_add, ])
-      add_matrix <- t(add_matrix)
-      start_matrix <- rbind(start_matrix, add_matrix)
-      y <-
-        apply(combn(ncol(start_matrix), 2), 2, function(y) {
-          sum(abs(start_matrix[, y[1]] - start_matrix[, y[2]])) / (2 * nReads)
-        })
-      df_a <- data.frame(x_names, y)
+      # Add next OTU
+      current_matrix <- rbind(start_matrix, t(otu[otu_ranked$otu[i], ]))
+
+      # Calculate BC
+      current_bc <- calculate_bc(current_matrix, nReads)
+
+      # Update data frame
+      df_a <- data.frame(x_names = current_bc$names, val = current_bc$values)
       names(df_a)[2] <- i
-      BCaddition <- left_join(BCaddition, df_a, by = c("x_names"))
+      BCaddition <- left_join(BCaddition, df_a, by = "x_names")
+
+      cli::cli_progress_update(id = progressbar_calc_bc)
     }
-    # Calculating the BC dissimilarity of the whole dataset (not needed if the second loop
-    # is already including all OTUs)
-    z <-
-      apply(combn(ncol(otu), 2), 2, function(z) {
-        sum(abs(otu[, z[1]] - otu[, z[2]])) / (2 * nReads)
-      })
-    # overwrite the names here
-    x_names <-
-      apply(combn(ncol(otu), 2), 2, function(x) {
-        paste(colnames(otu)[x], collapse = "-")
-      })
-    df_full <- data.frame(x_names, z)
-    names(df_full)[2] <- length(rownames(otu))
-    BCfull <- left_join(BCaddition, df_full, by = "x_names")
+
+    cli::cli_progress_done(id = progressbar_calc_bc)
+    cli::cli_alert_success("BC ranks done!")
+
+    BCfull <- BCaddition
     # ranking the obtained BC
     rownames(BCfull) <- BCfull$x_names
     temp_BC <- BCfull
@@ -189,6 +229,12 @@ ExtractCore <- function(physeq, Var, method, increase_value = NULL, Group = NULL
       # Calculate proportion of the dissimilarity explained by the n number of ranked OTUs
       mutate(proportionBC = MeanBC / max(MeanBC))
     # BC_ranked %T>% print()
+
+
+    #############################
+    ## Increase in Bray-Curtis ##
+    #############################
+
     # Calculating the increase BC
     Increase <- BC_ranked$MeanBC[-1] / BC_ranked$MeanBC[-length(BC_ranked$MeanBC)]
     increaseDF <- data.frame(IncreaseBC = c(0, (Increase)), rank = factor(c(1:(length(Increase) + 1))))
@@ -240,10 +286,13 @@ ExtractCore <- function(physeq, Var, method, increase_value = NULL, Group = NULL
   # Adding Core otus for creating occupancy abundance plot
   occ_abun$fill <- "no"
   occ_abun$fill[occ_abun$otu %in% core_otus] <- "core"
+
   return_list <-
     list(core_otus, BC_ranked, otu_ranked, occ_abun, otu, map, taxon)
   return(return_list)
 }
 
 
-## NOTE: This technique requires en even sampling depth to perform, which requires rarefaction. I tested this function /wo rarefaction (using the mean sampling depth instead), and there were no differences in core community composition or identification.
+## NOTE: This technique requires en even sampling depth to perform, which requires rarefaction.
+# I tested this function /wo rarefaction (using the mean sampling depth instead),
+# and there were no differences in core community composition or identification.
