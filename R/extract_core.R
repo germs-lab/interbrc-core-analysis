@@ -146,15 +146,17 @@ ExtractCore <- function(physeq, Var, method, increase_value = NULL, Group = NULL
     first_bc <- calculate_bc(start_matrix, nReads)
     BCaddition <- data.frame(x_names = first_bc$names, "1" = first_bc$values)
 
-    cli::cli_alert_info("BC dissimilarity based on the 1st ranked OTU complete")
+    cli::cli_alert_success("BC dissimilarity based on the 1st ranked OTU complete")
 
     # calculating BC dissimilarity based on additon of ranked OTUs from 2nd to nth.
     # Set to the entire length of OTUs in the dataset. It might take some time if more than 5000 OTUs are included.
 
-    cli::cli_progress_bar(
-      name = "Calculating Bray-Curtis ranking of {.arg 2:nrow(otu_ranked)}",
+    progressbar_bc_ranking <- cli::cli_progress_bar(
+      name = "Calculating Bray-Curtis dissimilarity rankings",
       total = 100,
-      format = "{cli::pb_bar} {cli::pb_percent} @ {Sys.time()}"
+      format = "{cli::pb_bar} {cli::pb_percent} @ {Sys.time()} | ETA: {cli::pb_eta}",
+      .auto_close = FALSE,
+      .envir = parent.frame()
     )
 
     for (i in 2:nrow(otu_ranked)) {
@@ -169,10 +171,10 @@ ExtractCore <- function(physeq, Var, method, increase_value = NULL, Group = NULL
       names(df_a)[2] <- i
       BCaddition <- left_join(BCaddition, df_a, by = "x_names")
 
-      cli::cli_progress_update()
+      cli::cli_progress_update(id = progressbar_bc_ranking)
     }
 
-    cli::cli_process_done()
+    cli::cli_progress_done(id = progressbar_bc_ranking)
 
     # for (i in 2:nrow(otu_ranked)) {
     #   otu_add <- otu_ranked$otu[i]
