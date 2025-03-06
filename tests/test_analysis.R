@@ -11,15 +11,17 @@ load(
 # Test data set
 ## Making it small to it can run fast
 
-# test_phyloseq <- filtered_phyloseq %>%
-#   prune_taxa(taxa_sums(.) > 5000 & taxa_sums(.) < 50000, .) %>%
-#   prune_samples(sample_sums(.) >= 1, .)
+test_small_phyloseq <- test_phyloseq %>%
+  prune_taxa(taxa_sums(.) > 5000 & taxa_sums(.) < 50000, .) %>%
+  prune_samples(sample_sums(.) >= 1, .)
 
-# save(test_phyloseq, file = "tests/data/test_phyloseq.rda")
+# test_large_phyloseq <- prune_samples(sample_sums(test_phyloseq) >= 20000, test_phyloseq)
+
+# save(test_phyloseq, file = "tests/data/test_small_phyloseq.rda")
 
 # Extract the 'spatial' core microbiome across all sites. The 'Var' in the ExtractCore is 'site'.
 
-spatial_core <- ExtractCore(test_phyloseq, Var = "site", method = "increase", increase_value = 2) # Minimum seq depth was ~10,000 reads.
+spatial_core <- ExtractCore(test_small_phyloseq, Var = "site", method = "increase", increase_value = 2) # Minimum seq depth was ~10,000 reads.
 
 # Plot Bray-Curtis Dissimilarity Curve:
 max <- 100 # Number of ranked-OTUs to plot

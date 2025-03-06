@@ -184,14 +184,15 @@ ExtractCore <- function(physeq, Var, method, increase_value = NULL, Group = NULL
 
     cli::cli_alert_success("BC dissimilarity based on the 1st ranked OTU complete")
 
-    # calculating BC dissimilarity based on additon of ranked OTUs from 2nd to nth.
+    # Calculating BC dissimilarity based on additon of ranked OTUs from 2nd to nth.
     # Set to the entire length of OTUs in the dataset. It might take some time if more than 5000 OTUs are included.
 
-    progressbar_bc_ranking <- cli::cli_progress_bar(
-      name = "Calculating Bray-Curtis dissimilarity rankings",
-      total = 100,
-      format = "{cli::pb_bar} {cli::pb_percent} @ {Sys.time()} | ETA: {cli::pb_eta}",
-      .auto_close = FALSE,
+    cli::cli_alert_info("Calculating BC dissimilarity based on ranked OTUs, starting at {Sys.time()}")
+    progressbar_calc_bc <- cli::cli_progress_bar(
+      name = "Calculating BC rankings",
+      total = nrow(otu_ranked) - 1,
+      format = "{cli::pb_bar} {cli::pb_percent} | ETA: {cli::pb_eta}",
+      .auto_close = TRUE,
       .envir = parent.frame()
     )
 
@@ -207,38 +208,12 @@ ExtractCore <- function(physeq, Var, method, increase_value = NULL, Group = NULL
       names(df_a)[2] <- i
       BCaddition <- left_join(BCaddition, df_a, by = "x_names")
 
-      cli::cli_progress_update(id = progressbar_bc_ranking)
+      cli::cli_progress_update(id = progressbar_calc_bc)
     }
 
-    cli::cli_progress_done(id = progressbar_bc_ranking)
+    cli::cli_progress_done(id = progressbar_calc_bc)
+    cli::cli_alert_success("BC ranks done!")
 
-    # for (i in 2:nrow(otu_ranked)) {
-    #   otu_add <- otu_ranked$otu[i]
-    #   add_matrix <- as.matrix(otu[otu_add, ])
-    #   add_matrix <- t(add_matrix)
-    #   start_matrix <- rbind(start_matrix, add_matrix)
-    #   y <-
-    #     apply(combn(ncol(start_matrix), 2), 2, function(y) {
-    #       sum(abs(start_matrix[, y[1]] - start_matrix[, y[2]])) / (2 * nReads)
-    #     })
-    #   df_a <- data.frame(x_names, y)
-    #   names(df_a)[2] <- i
-    #   BCaddition <- left_join(BCaddition, df_a, by = c("x_names"))
-    # }
-    # Calculating the BC dissimilarity of the whole dataset (not needed if the second loop
-    # is already including all OTUs)
-    # z <-
-    #   apply(combn(ncol(otu), 2), 2, function(z) {
-    #     sum(abs(otu[, z[1]] - otu[, z[2]])) / (2 * nReads)
-    #   })
-    # # overwrite the names here
-    # x_names <-
-    #   apply(combn(ncol(otu), 2), 2, function(x) {
-    #     paste(colnames(otu)[x], collapse = "-")
-    #   })
-    # df_full <- data.frame(x_names, z)
-    # names(df_full)[2] <- length(rownames(otu))
-    # BCfull <- left_join(BCaddition, df_full, by = "x_names")
     BCfull <- BCaddition
     # ranking the obtained BC
     rownames(BCfull) <- BCfull$x_names
@@ -311,6 +286,7 @@ ExtractCore <- function(physeq, Var, method, increase_value = NULL, Group = NULL
   # Adding Core otus for creating occupancy abundance plot
   occ_abun$fill <- "no"
   occ_abun$fill[occ_abun$otu %in% core_otus] <- "core"
+
   return_list <-
     list(core_otus, BC_ranked, otu_ranked, occ_abun, otu, map, taxon)
   return(return_list)
