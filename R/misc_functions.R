@@ -102,12 +102,12 @@ core_nmds <- function(.data, .color, .shape = NULL, .drop_na) {
     geom_hline(
       yintercept = 0,
       colour = "grey70",
-      size = 0.65
+      linewidth = 0.65
     ) +
     geom_vline(
       xintercept = 0,
       colour = "grey70",
-      size = 0.65
+      linewidth = 0.65
     ) +
     theme_bw(base_size = 12) +
     theme(
