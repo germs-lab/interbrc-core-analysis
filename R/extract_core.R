@@ -274,21 +274,19 @@ ExtractCore <- function(physeq, Var, method, increase_value = NULL, Group = NULL
 
             # Convert the % increase into a decimal value and add 1
             perc_increase <- 1 + (increase_value * 0.01)
+            # Remove dplyr::last() as this only enabled comparisons with the final row of the BC_ranked dataframe
             lastCall <-
-            as.numeric(as.character(dplyr::last(
-                       dplyr::filter(BC_ranked, IncreaseBC >= perc_increase)$rank)))
-            core_otus <- otu_ranked$otu[1:lastCall]
-            # Instead: Use Base R to filter the rownames based on the 'character' version of the ranked OTU ID from lastCall
-            #lastCall <- as.character(lastCall)
-            #core_otus <- otu_ranked[rownames(otu_ranked) %in% lastCall, ]
+            as.numeric(as.character(
+                       dplyr::filter(BC_ranked, IncreaseBC >= perc_increase)$rank))
+            # Convert lastCall to character to subset core_otus by rowname
+            lastCall <- as.character(lastCall)
+            # Subset core_otus by rownames of lastCall
+            core_otus <- otu_ranked[rownames(otu_ranked) %in% lastCall, ]
+            # Convert the otu identification strings into a character vector, as before
+            core_otus <- as.vector(core_otus$otu)
+            # Filter non-core and core OTUs 
             occ_abun$fill <- "no"
             occ_abun$fill[occ_abun$otu %in% core_otus] <- "core"
-            #occ_abun$fill[occ_abun$OTU_ID %in% core_otus$otu] <- "core"
-            # core_otus is now a dataframe with two columns
-            #core_otus %T>% print()
-            # Adding Core otus for creating occupancy abundance plot
-            # This ensures that the core_otus$otu string names are matched in the occ_abun table
-            
             }
 
 return_list <- list(core_otus, BC_ranked, otu_ranked, occ_abun, otu, map, taxon)
