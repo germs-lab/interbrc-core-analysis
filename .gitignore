@@ -12,4 +12,4 @@ multiqc*
 /data/output/phyloseq_objects/filtered_phyloseq_df.csv
 /data/output/phyloseq_objects/unfiltered_phyloseq.rda
 /data/output/phyloseq_objects/filtered_phyloseq.rda
-/data/output/*.rda
+/data/output/core_summary_lists.rda
