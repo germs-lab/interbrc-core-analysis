@@ -28,7 +28,7 @@ core_asv_dist <- vegdist(t(core_hell_matrix), method = "bray", upper = FALSE, bi
 
 ## Choosing the number of dimensions
 set.seed(484035)
-NMDS.scree.parallel(core_asv_dist, ncores = 32) #  Results: Two dimensions keeps stress below 0.20
+nmds_screen_parallel(core_asv_dist, ncores = 32) #  Results: Two dimensions keeps stress below 0.20
 
 NMDS <- metaMDS(as.matrix(core_asv_dist),
   distance = "bray",
