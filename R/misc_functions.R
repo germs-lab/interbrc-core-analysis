@@ -61,3 +61,70 @@ subset.fasta <- function(file = NULL, subset = NULL, out = paste(file, ".subset"
   writeXStringSet(sequences[pos], filepath = out)
 }
 
+
+# Parallelized function for choosing dimensions for NMDS
+NMDS.scree.parallel <- function(x, ncores = parallel::detectCores() - 1) {
+  # Function to calculate stress for a given number of dimensions
+  calculate_stress <- function(k) {
+    replicate(10, metaMDS(x, autotransform = FALSE, k = k)$stress)
+  }
+
+  # Use mclapply to parallelize the stress calculation
+  stress_values <- parallel::mclapply(1:10, calculate_stress, mc.cores = ncores)
+
+  # Plot the results
+  plot(rep(1, 10), stress_values[[1]],
+    xlim = c(1, 10),
+    ylim = c(0, 0.30),
+    xlab = "# of Dimensions",
+    ylab = "Stress",
+    main = "NMDS stress plot"
+  )
+
+  for (i in 1:9) {
+    points(rep(i + 1, 10), stress_values[[i + 1]])
+  }
+}
+
+
+# Standard NMDS plots
+core_nmds <- function(.data, .color, .shape = NULL, .drop_na) {
+  .color <- enquo(.color)
+  .drop_na <- enquo(.drop_na)
+
+  .data %>%
+    drop_na(!!.drop_na) %>%
+    ggplot(., aes(x = NMDS1, y = NMDS2)) +
+    geom_point(aes(color = !!.color, stroke = 1),
+      alpha = 0.5,
+      na.rm = TRUE
+    ) +
+    geom_hline(
+      yintercept = 0,
+      colour = "grey70",
+      linewidth = 0.65
+    ) +
+    geom_vline(
+      xintercept = 0,
+      colour = "grey70",
+      linewidth = 0.65
+    ) +
+    theme_bw(base_size = 12) +
+    theme(
+      legend.position = "right",
+      legend.title = element_text()
+    ) +
+    stat_ellipse(
+      aes(color = !!.color),
+      geom = "path",
+      linewidth = 1.3,
+      position = "identity",
+      type = "t",
+      linetype = 1,
+      level = 0.95,
+      segments = 51,
+      na.rm = FALSE,
+      show.legend = NA,
+      inherit.aes = TRUE
+    )
+}
