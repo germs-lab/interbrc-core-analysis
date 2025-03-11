@@ -3,7 +3,7 @@
 ## By Bolívar Aponte Rolón
 
 # Setup
-source("R/000_setup.R")
+source("R/utils/000_setup.R")
 load("data/output/core_summary_lists.rda")
 load("data/output/phyloseq_objects/filtered_phyloseq.rda")
 load("data/output/phyloseq_objects/core_brc_phyloseq.rda")
