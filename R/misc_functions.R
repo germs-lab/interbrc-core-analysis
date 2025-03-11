@@ -63,7 +63,7 @@ subset.fasta <- function(file = NULL, subset = NULL, out = paste(file, ".subset"
 
 
 # Parallelized function for choosing dimensions for NMDS
-NMDS.scree.parallel <- function(x, ncores = parallel::detectCores() - 1) {
+nmds_screen_parallel <- function(x, ncores = parallel::detectCores() - 1) {
   # Function to calculate stress for a given number of dimensions
   calculate_stress <- function(k) {
     replicate(10, metaMDS(x, autotransform = FALSE, k = k)$stress)
@@ -85,7 +85,6 @@ NMDS.scree.parallel <- function(x, ncores = parallel::detectCores() - 1) {
     points(rep(i + 1, 10), stress_values[[i + 1]])
   }
 }
-
 
 # Standard NMDS plots
 core_nmds <- function(.data, .color, .shape = NULL, .drop_na) {
