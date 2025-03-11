@@ -5,7 +5,7 @@
 ## Example: Core Microbiome across Switchgrass
 
 # Setup
-source("R/000_setup.R")
+source("R/utils/000_setup.R")
 load(
   "data/output/phyloseq_objects/filtered_phyloseq.rda"
 )
