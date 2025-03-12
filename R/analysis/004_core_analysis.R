@@ -23,7 +23,11 @@ filtered_phyloseq <- prune_samples(sample_sums(filtered_phyloseq) >= 100, filter
 # )
 
 # Extract the 'spatial' core microbiome across all sites. The 'Var' in the ExtractCore is 'site'.
-core_summary_lists <- ExtractCore(filtered_phyloseq, Var = "site", method = "increase") # Minimum seq depth was ~10,000 reads.
+core_summary_lists <- ExtractCore(filtered_phyloseq,
+  Var = "site",
+  method = "increase",
+  increase_value = 2
+) # Minimum seq depth was ~10,000 reads.
 
 # Save, since it takes a long time.
 # save(core_summary_lists, file = "data/output/core_summary_lists.rda")
@@ -272,67 +276,43 @@ core_table
 # you might have to play with nrow()/ncol() and rowSums/colSums()
 
 # Load phyloseq object
-ps <- filtered_phyloseq
-
-# Convert to relative abundance
-ps_rel <- transform_sample_counts(ps, function(x) x / sum(x))
-
-# Calculate occurrence of each ASV across samples
-asv_sample_counts <- rowSums(otu_table(ps_rel) > 0)
-
-# Get total number of samples
-total_samples <- ncol(otu_table(ps_rel)) # Might be nrow() depending on table arrangement
-
-# Select ASVs based on occurrence criteria
-high_occurrence_asvs <- names(asv_sample_counts[asv_sample_counts >= total_samples * 0.6])
-low_occurrence_asvs <- names(asv_sample_counts[asv_sample_counts < total_samples * 0.6])
-
-# Print ASV counts
-cat("ASVs found in ≥60% samples:", length(high_occurrence_asvs), "\n")
-cat("ASVs found in <60% samples:", length(low_occurrence_asvs), "\n")
-
-# Filter phyloseq objects for each category
-ps_high_occ <- prune_taxa(high_occurrence_asvs, ps_rel)
-ps_low_occ <- prune_taxa(low_occurrence_asvs, ps_rel)
-ps_high_occ
-ps_low_occ
-
-set.seed(1234)
-
-# Ensure num_asvs is not greater than available ASVs
-num_asvs <- min(length(high_occurrence_asvs), length(low_occurrence_asvs))
-
-# Function to select ASVs while avoiding empty samples
-select_valid_asvs_fast <- function(asv_list, ps_obj, num_asvs) {
-  asv_table <- as.data.frame(otu_table(ps_obj))
-
-  # Prioritize ASVs that are detected in the highest number of samples
-  sorted_asvs <- asv_list[order(-colSums(asv_table[, asv_list] > 0))] # Sort by occurrence frequency
-  selected_asvs <- sorted_asvs[1:num_asvs] # Select the top 'num_asvs' ASVs
-
-  return(selected_asvs)
-}
+select_asvs_threshold <- select_asvs(filtered_phyloseq, threshold = 0.6, as = "rows")
 
 
+#####################################
+# Redundant code
+# Results in core community the same as when selected by threshold
+# The upside is that you can arbitrarily select a number of the most prevalent taxa
+# set.seed(1234)
 
-# Select ASVs ensuring no empty samples remain
-selected_high_occ_asvs <- select_asvs(ps_rel,
-  high_occurrence_asvs = high_occurrence_asvs,
-  low_occurrence_asvs = low_occurrence_asvs,
-  as = "rows"
-)
+# # Ensure num_asvs is not greater than available ASVs
+# num_asvs <- min(length(high_occurrence_asvs), length(low_occurrence_asvs))
 
-selected_test <- select_valid_asvs_fast(high_occurrence_asvs, ps_rel, num_asvs)
+# # Function to select ASVs while avoiding empty samples
+# select_valid_asvs_fast <- function(asv_list, ps_obj, num_asvs) {
+#   asv_table <- as.data.frame(t(otu_table(ps_obj)))
 
-# Prune the phyloseq object to include only selected ASVs
-ps_high_occ_selected <- prune_taxa(high_occurrence_asvs, ps_rel)
-ps_low_occ_selected <- prune_taxa(selected_low_occ_asvs, ps_rel)
-ps_high_occ_selected
-ps_low_occ_selected
+#   # Prioritize ASVs that are detected in the highest number of samples
+#   sorted_asvs <- asv_list[order(-colSums(asv_table[, asv_list] > 0))] # Sort by occurrence frequency
+#   selected_asvs <- sorted_asvs[1:num_asvs] # Select the top 'num_asvs' ASVs
 
-# Check if any samples are empty after pruning
-empty_samples_high <- sum(rowSums(otu_table(ps_high_occ_selected)) == 0)
-empty_samples_low <- sum(rowSums(otu_table(ps_low_occ_selected)) == 0)
+#   return(selected_asvs)
+# }
 
-cat("Empty samples in empty_samples_high:", empty_samples_high, "\n")
-cat("Empty samples in ps_low_occ_selected:", empty_samples_low, "\n")
+# # Select ASVs ensuring no empty samples remain
+# selected_high_occ_asvs <- select_valid_asvs_fast(high_occurrence_asvs, ps_rel, num_asvs)
+# selected_low_occ_asvs <- select_valid_asvs_fast(low_occurrence_asvs, ps_rel, num_asvs = length(low_occurrence_asvs))
+
+# # Prune the phyloseq object to include only selected ASVs
+# ps_high_occ_selected <- prune_taxa(high_occurrence_asvs, ps_rel)
+# ps_low_occ_selected <- prune_taxa(selected_low_occ_asvs, ps_rel)
+# ps_high_occ_selected
+# ps_low_occ_selected
+
+# # Check if any samples are empty after pruning
+# empty_samples_high <- sum(rowSums(otu_table(ps_high_occ_selected)) == 0)
+# empty_samples_low <- sum(rowSums(otu_table(ps_low_occ_selected)) == 0)
+
+# cat("Empty samples in empty_samples_high:", empty_samples_high, "\n")
+# cat("Empty samples in ps_low_occ_selected:", empty_samples_low, "\n")
+###########################

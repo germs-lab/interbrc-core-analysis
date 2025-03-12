@@ -19,3 +19,4 @@ library(metagMisc) # [github::vmikk/metagMisc] v0.5.0
 source("R/functions/extract_core.R")
 source("R/functions/model_fit.R")
 source("R/functions/misc_functions.R")
+source("R/functions/select_asvs.R")

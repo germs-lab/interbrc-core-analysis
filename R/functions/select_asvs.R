@@ -1,37 +1,39 @@
-#' Select High and Low Occurrence ASVs from a Phyloseq Object
+#' Select ASVs Based on Occurrence Threshold
 #'
-#' This function selects a specified number of high and low occurrence ASVs from a phyloseq object,
-#' ensuring no empty samples remain. It returns pruned phyloseq objects for both high and low occurrence ASVs.
+#' This function selects ASVs from a phyloseq object based on their occurrence frequency
+#' across samples. It returns filtered phyloseq objects for high and low occurrence ASVs.
 #'
 #' @param physeq A phyloseq object.
-#' @param high_occurrence_asvs A character vector of high occurrence ASV names.
-#' @param low_occurrence_asvs A character vector of low occurrence ASV names.
-#' @param as The matrix dimension that is desired for taxa. Must be
+#' @param threshold A numeric value between 0 and 1 specifying the occurrence threshold.
+#'   Default is 0.6 (60% of samples).
+#' @as as The matrix dimension that is desired for taxa. Must be
 #'   "rows" for rows and "columns" or "cols" for columns.
 #' @return A named list containing:
 #'   \itemize{
-#'     \item \code{ps_high_occ}: Phyloseq object with selected high occurrence ASVs.
-#'     \item \code{ps_low_occ}: Phyloseq object with selected low occurrence ASVs.
+#'     \item \code{physeq_high_occ}: Phyloseq object with high occurrence ASVs.
+#'     \item \code{physeq_low_occ}: Phyloseq object with low occurrence ASVs.
 #'   }
 #' @export
-select_asvs <- function(physeq, high_occurrence_asvs, low_occurrence_asvs, as = "rows") {
+select_asvs <- function(physeq, threshold = 0.6, as = "rows") {
   # Validate inputs
   if (!inherits(physeq, "phyloseq")) {
     cli::cli_abort("{.arg physeq} must be a phyloseq object. Got {class(physeq)[1]} instead.")
   }
 
-  if (length(high_occurrence_asvs) == 0 || length(low_occurrence_asvs) == 0) {
-    cli::cli_abort("Both {.arg high_occurrence_asvs} and {.arg low_occurrence_asvs} must be non-empty.")
+  if (threshold < 0 || threshold > 1) {
+    cli::cli_abort("{.arg threshold} must be between 0 and 1. Got {threshold} instead.")
   }
 
-  # Ensure num_asvs is not greater than available ASVs
-  num_asvs <- min(length(high_occurrence_asvs), length(low_occurrence_asvs))
+  # Convert to relative abundance
+  physeq_rel <- transform_sample_counts(physeq, function(x) x / sum(x))
 
-  cli::cli_alert_info("Selecting {num_asvs} ASVs from each group.")
+  # Helper function to select taxa orientation
+  # Based on `orient_taxa()` https://github.com/mikemc/speedyseq/blob/0057652ff7a4244ccef2b786dca58d901ec2fc62/R/utils.R
+  ensure_phyloseq_orientation <- function(physeq, as) {
+    # Validate 'as' argument
+    stopifnot(as %in% c("rows", "columns", "cols"))
 
-  # Helper function to select ASVs while avoiding empty samples
-  select_valid_asvs <- function(asv_list, physeq, num_asvs, as = "rows") {
-    stopifnot(as %in% c("rows", "columns", "cols")) # Borrowed from https://github.com/mikemc/speedyseq/blob/0057652ff7a4244ccef2b786dca58d901ec2fc62/R/utils.R#L114
+    # Ensure taxa are in the desired orientation
     if (identical(as, "rows")) {
       if (!taxa_are_rows(physeq)) {
         physeq <- t(physeq)
@@ -44,78 +46,29 @@ select_asvs <- function(physeq, high_occurrence_asvs, low_occurrence_asvs, as = 
 
     return(physeq)
   }
-  asv_table <- as.data.frame(otu_table(physeq))
+  physe_rel <- ensure_phyloseq_orientation(physeq_rel, as)
 
-  select_valid_asvs <- function(asv_table, high_occurrence_asvs, low_occurrence_asvs, num_asvs = 12) {
-    asv_table <- as.data.frame(asv_table)
-    asv_list <- list(
-      high_asvs = high_occurrence_asvs,
-      low_asvs = low_occurrence_asvs
-    )
+  # Calculate occurrence of each ASV across samples
+  asv_sample_counts <- rowSums(otu_table(physeq_rel) > 0)
 
-    # Validate inputs
-    if (!is.list(asv_list)) {
-      cli::cli_abort("{.arg asv_list} must be a named list of ASV groups.")
-    }
+  # Get total number of samples
+  total_samples <- ncol(otu_table(physeq_rel))
 
-    if (!is.data.frame(asv_table)) {
-      cli::cli_abort("{.arg asv_table} must be a data frame or matrix.")
-    }
+  # Select ASVs based on occurrence criteria
+  high_occurrence_asvs <- names(asv_sample_counts[asv_sample_counts >= total_samples * threshold])
+  low_occurrence_asvs <- names(asv_sample_counts[asv_sample_counts < total_samples * threshold])
 
-    if (num_asvs < 1) {
-      cli::cli_abort("{.arg num_asvs} must be at least 1.")
-    }
+  # Print ASV counts
+  cli::cli_alert_info("ASVs found in ≥{threshold * 100}% samples: {length(high_occurrence_asvs)}")
+  cli::cli_alert_info("ASVs found in <{threshold * 100}% samples: {length(low_occurrence_asvs)}")
 
-    # Initialize output list
-    selected_asvs <- list()
-
-    # Process each ASV group
-    for (group_name in names(asv_list)) {
-      asvs <- asv_list[[group_name]]
-
-      # Ensure ASV names match column names
-      valid_asvs <- intersect(asvs, colnames(asv_table))
-      if (length(valid_asvs) == 0) {
-        cli::cli_alert_warning("No matching ASVs found for group '{group_name}'.")
-        selected_asvs[[group_name]] <- character(0)
-        next
-      }
-
-      # Sort ASVs by occurrence frequency
-      sorted_asvs <- valid_asvs[order(-colSums(asv_table[, valid_asvs] > 0))]
-
-      # Select top 'num_asvs' ASVs
-      selected_asvs[[group_name]] <- sorted_asvs[1:min(num_asvs, length(sorted_asvs))]
-
-      if (length(selected_asvs[[group_name]]) < num_asvs) {
-        cli::cli_alert_warning(
-          "Only {length(selected_asvs[[group_name]])} ASVs available for group '{group_name}'."
-        )
-      }
-    }
-
-    return(selected_asvs)
-  }
-
-  # Select ASVs
-  selected_high_occ_asvs <- select_valid_asvs(high_occurrence_asvs, physeq, num_asvs)
-  selected_low_occ_asvs <- select_valid_asvs(low_occurrence_asvs, physeq, num_asvs)
-
-  # Prune the phyloseq object to include only selected ASVs
-  ps_high_occ <- prune_taxa(selected_high_occ_asvs, physeq)
-  ps_low_occ <- prune_taxa(selected_low_occ_asvs, physeq)
-
-  # Check for empty samples
-  if (any(sample_sums(ps_high_occ) == 0)) {
-    cli::cli_alert_warning("Some samples in the high occurrence phyloseq object have zero reads.")
-  }
-  if (any(sample_sums(ps_low_occ) == 0)) {
-    cli::cli_alert_warning("Some samples in the low occurrence phyloseq object have zero reads.")
-  }
+  # Filter phyloseq objects for each category
+  physeq_high_occ <- prune_taxa(high_occurrence_asvs, physeq_rel)
+  physeq_low_occ <- prune_taxa(low_occurrence_asvs, physeq_rel)
 
   # Return results
   return(list(
-    ps_high_occ = ps_high_occ,
-    ps_low_occ = ps_low_occ
+    physeq_high_occ = physeq_high_occ,
+    physeq_low_occ = physeq_low_occ
   ))
 }
