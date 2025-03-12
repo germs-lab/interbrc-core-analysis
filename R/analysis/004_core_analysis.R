@@ -300,7 +300,7 @@ ps_low_occ
 set.seed(1234)
 
 # Ensure num_asvs is not greater than available ASVs
-num_asvs <- min(num_asvs, length(high_occurrence_asvs), length(low_occurrence_asvs))
+num_asvs <- min(length(high_occurrence_asvs), length(low_occurrence_asvs))
 
 # Function to select ASVs while avoiding empty samples
 select_valid_asvs_fast <- function(asv_list, ps_obj, num_asvs) {
@@ -313,9 +313,16 @@ select_valid_asvs_fast <- function(asv_list, ps_obj, num_asvs) {
   return(selected_asvs)
 }
 
+
+
 # Select ASVs ensuring no empty samples remain
-selected_high_occ_asvs <- select_valid_asvs_fast(high_occurrence_asvs, ps_rel, num_asvs)
-selected_low_occ_asvs <- select_valid_asvs_fast(low_occurrence_asvs, ps_rel, num_asvs)
+selected_high_occ_asvs <- select_asvs(ps_rel,
+  high_occurrence_asvs = high_occurrence_asvs,
+  low_occurrence_asvs = low_occurrence_asvs,
+  as = "rows"
+)
+
+selected_test <- select_valid_asvs_fast(high_occurrence_asvs, ps_rel, num_asvs)
 
 # Prune the phyloseq object to include only selected ASVs
 ps_high_occ_selected <- prune_taxa(high_occurrence_asvs, ps_rel)
