@@ -2,13 +2,16 @@
 ## This was part of the `core_microbiome_functions.R` by Brandon Kristy.
 ## Split by Bolívar Aponte Rolón 2025-02-20
 
-## Example: Core Microbiome across Switchgrass
 
 # Setup
 source("R/utils/000_setup.R")
 load(
   "data/output/phyloseq_objects/filtered_phyloseq.rda"
 )
+
+###################################################
+### Microbiome Core Selection via ExtractCore() ###
+###################################################
 
 # Check OTU table
 filtered_phyloseq <- prune_samples(sample_sums(filtered_phyloseq) >= 100, filtered_phyloseq)
@@ -20,19 +23,21 @@ filtered_phyloseq <- prune_samples(sample_sums(filtered_phyloseq) >= 100, filter
 # )
 
 # Extract the 'spatial' core microbiome across all sites. The 'Var' in the ExtractCore is 'site'.
-spatial_core <- ExtractCore(filtered_phyloseq, Var = "site", method = "increase") # Minimum seq depth was ~10,000 reads.
+core_summary_lists <- ExtractCore(filtered_phyloseq, Var = "site", method = "increase") # Minimum seq depth was ~10,000 reads.
 
 # Save, since it takes a long time.
-# save(spatial_core, file = "data/output/spatial_core.rda")
+# save(core_summary_lists, file = "data/output/core_summary_lists.rda")
 
 # Load spatial core
-load("data/output/spatial_core.rda")
+load("data/output/core_summary_lists.rda")
 
 # Plot Bray-Curtis Dissimilarity Curve:
 max <- 100 # Number of ranked-OTUs to plot
-BC_ranked <- spatial_core[[2]]
-BC_ranked$rank <- factor(BC_ranked$rank, levels = BC_ranked$rank)
-BC_ranked <- drop_na(BC_ranked)
+
+BC_ranked <- core_summary_lists[[2]] %>%
+  dplyr::mutate(., rank = factor(.$rank, levels = .$rank)) %>%
+  drop_na()
+
 BC_ranked_max <- BC_ranked[1:max, ]
 
 
@@ -83,7 +88,7 @@ BC_ranked_max %>%
   )
 
 # Plot Abundance Occupancy curve
-occ_abun_plot <- spatial_core[[4]] %>%
+occ_abun_plot <- core_summary_lists[[4]] %>%
   ggplot(aes(
     x = log10(otu_rel),
     y = otu_occ,
@@ -110,18 +115,18 @@ occ_abun_plot <- spatial_core[[4]] %>%
   )
 occ_abun_plot
 
-ggsave(filename = "abundance_occupancy.png", occ_abun, path = "data/output/plots/", dpi = 300, width = 6, height = 4)
+ggsave(filename = "abundance_occupancy.png", occ_abun_plot, path = "data/output/plots/", dpi = 300, width = 6, height = 4)
 
 
 # Fit Abundance-Occupancy Distribution to a Neutral Model
 # Fit neutral model
-taxon <- spatial_core[[7]]
-spp <- t(spatial_core[[5]])
-occ_abun <- spatial_core[[4]]
+taxon <- core_summary_lists[[7]]
+spp <- t(core_summary_lists[[5]])
+occ_abun <- core_summary_lists[[4]]
 names(occ_abun)[names(occ_abun) == "otu"] <- "OTU_ID"
 
 # source community pool
-# meta <- spatial_core[[6]]
+# meta <- core_summary_lists[[6]]
 
 # fitting model
 debugonce(sncm.fit)
