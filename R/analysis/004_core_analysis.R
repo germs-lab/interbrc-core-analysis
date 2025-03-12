@@ -276,43 +276,16 @@ core_table
 # you might have to play with nrow()/ncol() and rowSums/colSums()
 
 # Load phyloseq object
-select_asvs_threshold <- select_asvs(filtered_phyloseq, threshold = 0.6, as = "rows")
+core_asvs_threshold <- select_asvs(filtered_phyloseq, threshold = 0.6, as = "rows")
+
+# save(core_asvs_threshold, file = "data/output/phyloseq_objects/core_asvs_threshold.rda")
+
+physeq_high_occ_matrix <- physeq_high_occ@otu_table %>%
+  as.matrix()
+
+physeq_low_occ_matrix <- physeq_low_occ@otu_table %>%
+  as.matrix()
 
 
-#####################################
-# Redundant code
-# Results in core community the same as when selected by threshold
-# The upside is that you can arbitrarily select a number of the most prevalent taxa
-# set.seed(1234)
-
-# # Ensure num_asvs is not greater than available ASVs
-# num_asvs <- min(length(high_occurrence_asvs), length(low_occurrence_asvs))
-
-# # Function to select ASVs while avoiding empty samples
-# select_valid_asvs_fast <- function(asv_list, ps_obj, num_asvs) {
-#   asv_table <- as.data.frame(t(otu_table(ps_obj)))
-
-#   # Prioritize ASVs that are detected in the highest number of samples
-#   sorted_asvs <- asv_list[order(-colSums(asv_table[, asv_list] > 0))] # Sort by occurrence frequency
-#   selected_asvs <- sorted_asvs[1:num_asvs] # Select the top 'num_asvs' ASVs
-
-#   return(selected_asvs)
-# }
-
-# # Select ASVs ensuring no empty samples remain
-# selected_high_occ_asvs <- select_valid_asvs_fast(high_occurrence_asvs, ps_rel, num_asvs)
-# selected_low_occ_asvs <- select_valid_asvs_fast(low_occurrence_asvs, ps_rel, num_asvs = length(low_occurrence_asvs))
-
-# # Prune the phyloseq object to include only selected ASVs
-# ps_high_occ_selected <- prune_taxa(high_occurrence_asvs, ps_rel)
-# ps_low_occ_selected <- prune_taxa(selected_low_occ_asvs, ps_rel)
-# ps_high_occ_selected
-# ps_low_occ_selected
-
-# # Check if any samples are empty after pruning
-# empty_samples_high <- sum(rowSums(otu_table(ps_high_occ_selected)) == 0)
-# empty_samples_low <- sum(rowSums(otu_table(ps_low_occ_selected)) == 0)
-
-# cat("Empty samples in empty_samples_high:", empty_samples_high, "\n")
-# cat("Empty samples in ps_low_occ_selected:", empty_samples_low, "\n")
-###########################
+save(physeq_high_occ_matrix, file = "data/output/high_occ_matrix.rda")
+save(physeq_low_occ_matrix, file = "data/output/low_occ_matrix.rda")
