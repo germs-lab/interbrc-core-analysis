@@ -273,7 +273,7 @@ core_table
 # you might have to play with nrow()/ncol() and rowSums/colSums()
 
 # Load phyloseq object
-core_asvs_threshold <- select_asvs(filtered_phyloseq, threshold = 0.4, as = "rows")
+core_asvs_threshold <- filter_core(filtered_phyloseq, threshold = 0.6, as = "rows")
 
 physeq_high_occ <- core_asvs_threshold$physeq_high_occ
 physeq_low_occ <- core_asvs_threshold$physeq_low_occ
