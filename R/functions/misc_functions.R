@@ -87,7 +87,7 @@ nmds_screen_parallel <- function(x, ncores = parallel::detectCores() - 1) {
 }
 
 # Standard NMDS plots
-core_nmds <- function(.data, .color, .shape = NULL, .drop_na) {
+gg_nmds <- function(.data, .color, .shape = NULL, .drop_na) {
   .color <- enquo(.color)
   .drop_na <- enquo(.drop_na)
 
