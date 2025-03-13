@@ -25,7 +25,7 @@ select_asvs <- function(physeq, threshold = 0.6, as = "rows") {
   }
 
   # Convert to relative abundance
-  physeq_rel <- transform_sample_counts(physeq, function(x) x / sum(x))
+  # physeq_rel <- transform_sample_counts(physeq, function(x) x / sum(x))
 
   # Helper function to select taxa orientation
   # Based on `orient_taxa()` https://github.com/mikemc/speedyseq/blob/0057652ff7a4244ccef2b786dca58d901ec2fc62/R/utils.R
@@ -46,7 +46,7 @@ select_asvs <- function(physeq, threshold = 0.6, as = "rows") {
 
     return(physeq)
   }
-  physe_rel <- ensure_phyloseq_orientation(physeq_rel, as)
+  physeq_rel <- ensure_phyloseq_orientation(physeq, as)
 
   # Calculate occurrence of each ASV across samples
   asv_sample_counts <- rowSums(otu_table(physeq_rel) > 0)
