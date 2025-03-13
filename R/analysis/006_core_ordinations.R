@@ -14,6 +14,8 @@ source("R/utils/000_setup.R")
 ##############################
 # Hellinger transformation of matrices
 # To be used for NMDS, dbRDA and adonis2
+core_ext_core <- calculate_nmds(core_asv_matrix, core_brc_phyloseq)
+
 core_hell_matrix <- decostand(t(core_asv_matrix),
   MARGIN = 1,
   method = "hellinger"
@@ -257,11 +259,11 @@ high_occ_sample_df <- core_asvs_threshold$physeq_high_occ@sam_data %>%
 
 high_occ_nmds_df <- right_join(high_occ_sample_df, high_occ_nmds_scores, by = "unique_id")
 
-
+test <- calculate_nmds(physeq_high_occ_matrix, physeq_high_occ)
 # Core NMDS Aesthetics ####
 test_nmds_crops <- gg_nmds(
   .data = high_occ_nmds_df,
-  .color = brc,
+  .color = crop,
   .drop_na = brc
 ) + ggtitle("12 core ASVs in BRC crops (60% samples)")
 
@@ -273,22 +275,4 @@ core_nmds_brc <- core_nmds(
 
 
 
-# nmds_high_occ_selected <- ordinate(physeq_high_occ, method = "NMDS", distance = "bray", trymax = 100, zerodist <- "add")
-# nmds_low_occ_selected <- ordinate(physeq_low_occ, method = "NMDS", distance = "bray", trymax = 100)
 
-# # Plot NMDS results
-# nmds_plot_high_occ_selected <- plot_ordination(ps_high_occ_selected, nmds_high_occ_selected, color = "Plant", shape = "Location") +
-#   geom_point(size = 3, alpha = 0.8) +
-#   # facet_wrap(~Date, ncol = 2) +
-#   labs(title = "NMDS of Selected Highly Prevalent ASVs", x = "NMDS1", y = "NMDS2") +
-#   theme_minimal()
-
-# nmds_plot_low_occ_selected <- plot_ordination(ps_low_occ_selected, nmds_low_occ_selected, color = "Plant", shape = "Location") +
-#   geom_point(size = 3, alpha = 0.8) +
-#   # facet_wrap(~Date, ncol = 2) +
-#   labs(title = "NMDS of Selected Low Prevalence ASVs", x = "NMDS1", y = "NMDS2") +
-#   theme_minimal()
-
-# # Print NMDS plots
-# print(nmds_plot_high_occ_selected)
-# print(nmds_plot_low_occ_selected)

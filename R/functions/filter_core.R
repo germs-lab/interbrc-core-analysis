@@ -14,7 +14,7 @@
 #'     \item \code{physeq_low_occ}: Phyloseq object with low occurrence ASVs.
 #'   }
 #' @export
-select_asvs <- function(physeq, threshold = 0.6, as = "rows") {
+filter_core <- function(physeq, threshold = 0.6, as = "rows") {
   # Validate inputs
   if (!inherits(physeq, "phyloseq")) {
     cli::cli_abort("{.arg physeq} must be a phyloseq object. Got {class(physeq)[1]} instead.")
