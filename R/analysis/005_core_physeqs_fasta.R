@@ -4,8 +4,6 @@
 
 # Setup
 source("R/utils/000_setup.R")
-load("data/output/core_summary_lists.rda")
-load("data/output/phyloseq_objects/filtered_phyloseq.rda")
 
 #################################################
 ### Core and Non_Core objects and fasta files ###

@@ -5,9 +5,6 @@
 
 # Setup
 source("R/utils/000_setup.R")
-load(
-  "data/output/phyloseq_objects/filtered_phyloseq.rda"
-)
 
 ###################################################
 ### Microbiome Core Selection via ExtractCore() ###
@@ -281,9 +278,8 @@ core_asvs_threshold <- select_asvs(filtered_phyloseq, threshold = 0.6, as = "row
 # save(core_asvs_threshold, file = "data/output/phyloseq_objects/core_asvs_threshold.rda")
 
 physeq_high_occ_matrix <- physeq_high_occ@otu_table %>%
-  as.matrix()
-
-physeq_low_occ_matrix <- physeq_low_occ@otu_table %>%
+  as.matrix() %>%
+  physeq_low_occ_matrix() <- physeq_low_occ@otu_table %>%
   as.matrix()
 
 

@@ -4,15 +4,7 @@
 
 # Setup
 source("R/utils/000_setup.R")
-load("data/output/core_summary_lists.rda")
-load("data/output/phyloseq_objects/filtered_phyloseq.rda")
-load("data/output/phyloseq_objects/core_brc_phyloseq.rda")
-load("data/output/phyloseq_objects/non_core_brc_phyloseq.rda")
-load("data/output/core_asv_matrix.rda")
-load("data/output/non_core_asv_matrix.rda")
-load("data/output/phyloseq_objects/core_asvs_threshold.rda")
-load("data/output/high_occ_matrix.rda")
-load("data/output/low_occ_matrix.rda")
+
 
 
 #################################################
