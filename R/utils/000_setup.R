@@ -17,11 +17,8 @@ library(microViz) # [::NA/NA] v0.12.6
 library(metagMisc) # [github::vmikk/metagMisc] v0.5.0
 
 # Scripts
-source("R/functions/extract_core.R")
-source("R/functions/model_fit.R")
-source("R/functions/misc_functions.R")
-source("R/functions/select_asvs.R")
-
+## List files and source each
+list.files("R/functions/", full.names = TRUE) %>% map(source)
 
 # Objects
 load("data/output/core_summary_lists.rda")
