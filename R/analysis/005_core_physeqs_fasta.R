@@ -4,8 +4,6 @@
 
 # Setup
 source("R/utils/000_setup.R")
-load("data/output/core_summary_lists.rda")
-load("data/output/phyloseq_objects/filtered_phyloseq.rda")
 
 #################################################
 ### Core and Non_Core objects and fasta files ###
@@ -27,9 +25,9 @@ non_core_asv_strings <- core_summary_lists[[4]] %>%
 # "core and "non_core" communities as matrices and phyloseq objects
 ## ASV (OTU) Matrices
 
-## Remove samples where row sum 0 through ExtractMatrix()
-core_asv_matrix <- ExtractMatrix(filtered_phyloseq, .vec = core_asv_strings) # Useful for manual ordinations
-non_core_asv_matrix <- ExtractMatrix(filtered_phyloseq, .vec = non_core_asv_strings)
+## Remove samples where row sum 0 through extract_matrix()
+core_asv_matrix <- extract_matrix(filtered_phyloseq, .vec = core_asv_strings) # Useful for manual ordinations
+non_core_asv_matrix <- extract_matrix(filtered_phyloseq, .vec = non_core_asv_strings)
 
 ## Sample names and data
 core_sample_strings <- rownames(core_asv_matrix)
@@ -71,14 +69,14 @@ save(non_core_brc_phyloseq, file = "data/output/phyloseq_objects/non_core_brc_ph
 ## https://github.com/GuillemSalazar/FastaUtils/blob/master/R/FastaUtils_functions.R
 
 ## Core
-subset.fasta(
+subset_fasta(
   file = "data/output/fasta_files/rep_asv_seqs.fasta",
   subset = core_asv_strings,
   out = "data/output/fasta_files/core_asv_seqs.fasta"
 )
 
 ## Non-Core
-subset.fasta(
+subset_fasta(
   file = "data/output/fasta_files/rep_asv_seqs.fasta",
   subset = non_core_asv_strings,
   out = "data/output/fasta_files/non_core_asv_seqs.fasta"
