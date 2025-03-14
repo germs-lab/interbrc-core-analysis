@@ -3,7 +3,7 @@ library(vegan)
 library(tidyverse)
 library(waldo)
 library(testthat)
-list.files("R/functions/", full.names = TRUE) %>%
+list.files("R/functions/", full.names = TRUE) |>
   lapply(source)
 
 # Load the esophagus dataset
