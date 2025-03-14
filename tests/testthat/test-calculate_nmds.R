@@ -4,10 +4,10 @@ library(tidyverse)
 library(waldo)
 library(testthat)
 list.files("R/functions/", full.names = TRUE) %>%
-  map(source)
+  lapply(source)
 
 # Load the esophagus dataset
-data(esophagus) # Phyloseq package
+data(esophagus, package = "phyloseq")
 
 # Add sample metadata to the esophagus dataset (required for calculate_nmds)
 sample_data <- data.frame(
@@ -19,6 +19,9 @@ esophagus_with_metadata <- merge_phyloseq(esophagus, sample_data(sample_data))
 
 # Test suite
 test_that("calculate_nmds() works with esophagus dataset", {
+  # Load expected results
+  load("tests/testthat/expected_nmds.rda")
+
   # Extract the OTU table from the esophagus dataset
   esophagus_asv_matrix <- as.matrix(otu_table(esophagus_with_metadata))
 
@@ -46,16 +49,16 @@ test_that("calculate_nmds() works with esophagus dataset", {
   expect_equal(results$ordi$ndim, 2) # Check number of dimensions
 
   # Test 5: Compare NMDS scores with expected values (using waldo)
-  #   expected_nmds_scores <- results$nmds_scores # Replace with known good values if available
-  #   compare(results$nmds_scores, expected_nmds_scores)
+  expected_nmds_scores <- expected_nmds$nmds_scores
+  compare(results$nmds_scores, expected_nmds_scores)
 
   # Test 6: Compare merged metadata with expected values (using waldo)
-  #   expected_nmds_df <- results$nmds_df # Replace with known good values if available
-  #   compare(results$nmds_df, expected_nmds_df)
+  expected_nmds_df <- expected_nmds$nmds_df
+  compare(results$nmds_df, expected_nmds_df)
 
   # Test 7: Check for NA/NaN in NMDS scores
   expect_false(any(is.na(results$nmds_scores)))
 
   # Test 8: Check for convergence
-  # expect_true(results$ordi$converged, 0)
+  expect_true(ifelse(results$ordi$converged > 0, TRUE, FALSE))
 })
