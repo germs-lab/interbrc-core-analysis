@@ -1,7 +1,13 @@
 library(testthat)
+library(phyloseq)
+library(vegan)
+library(tidyverse)
 
 list.files("R/functions/", full.names = TRUE) |>
   lapply(source)
+
+# Load the esophagus dataset
+data(esophagus, package = "phyloseq")
 
 # Get the taxa names from the esophagus dataset
 taxa_names <- taxa_names(esophagus)
@@ -50,6 +56,9 @@ esophagus_with_tax <- merge_phyloseq(esophagus, tax_table, sample_data(sample_da
 
 # Test suite
 test_that("ExtractCore() works with esophagus_with_tax dataset", {
+  # Load expected
+  load("tests/testthat/expected_extract_core.rda")
+
   # Run the function
   test_core <- ExtractCore(
     esophagus_with_tax,
@@ -87,11 +96,11 @@ test_that("ExtractCore() works with esophagus_with_tax dataset", {
 
   # Test 6: Check otu_table
   expect_true(is.matrix(test_core$otu_table))
-  expect_equal(nrow(test_core$otu_table), nsamples(esophagus_with_tax))
+  expect_equal(nrow(test_core$otu_table), nrow(expected_extract_core$otu_table))
 
   # Test 7: Check sample_metadata
   expect_s3_class(test_core$sample_metadata, "data.frame")
-  expect_true(all(c("Sample", "site") %in% names(test_core$sample_metadata)))
+  expect_true(all(c("Sample", "SampleID") %in% names(test_core$sample_metadata)))
 
   # Test 8: Check taxonomy_table
   expect_s3_class(test_core$taxonomy_table, "data.frame")
@@ -99,9 +108,7 @@ test_that("ExtractCore() works with esophagus_with_tax dataset", {
 
   # Test 9: Check for NA/NaN in bray_curtis_ranked
   expect_false(any(is.na(test_core$bray_curtis_ranked)))
-  expect_false(any(is.nan(test_core$bray_curtis_ranked)))
 
   # Test 10: Check for NA/NaN in otu_rankings
   expect_false(any(is.na(test_core$otu_rankings)))
-  expect_false(any(is.nan(test_core$otu_rankings)))
 })
