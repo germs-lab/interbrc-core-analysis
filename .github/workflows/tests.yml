@@ -52,7 +52,6 @@ jobs:
             cran::here
             bioc::phyloseq
             cran::vegan
-          needs: check
 
       - name: Run tests
         run: |
