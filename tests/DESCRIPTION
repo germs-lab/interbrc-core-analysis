@@ -1,9 +1,0 @@
-Description: Inter-BRC Core Microbiome Analyses
-Depends:
-    R (>= 4.0.0)
-Imports:
-    testthat,
-    tidyverse,
-    here,
-    phyloseq,
-    vegan
