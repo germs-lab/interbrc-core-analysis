@@ -27,10 +27,6 @@
         "URL": "https://cran.rstudio.com"
       },
       {
-        "Name": "R-Universe",
-        "URL": "https://r-universe.dev"
-      },
-      {
         "Name": "Cloud Project",
         "URL": "https://cloud.r-project.org"
       }

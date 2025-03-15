@@ -330,11 +330,24 @@ ExtractCore <- function(physeq, Var, method, increase_value = NULL, Group = NULL
             occ_abun$fill[occ_abun$otu %in% core_otus] <- "core"
             }
 
-return_list <- list(core_otus, BC_ranked, otu_ranked, occ_abun, otu, map, taxon)
-return(return_list)
-        }
+  # Create named return list
+  return_list <- list(
+    core_otus = core_otus,
+    bray_curtis_ranked = BC_ranked,
+    otu_rankings = otu_ranked,
+    occupancy_abundance = occ_abun,
+    otu_table = otu,
+    sample_metadata = map,
+    taxonomy_table = taxon
+  )
+                      
+  # Validate return list
+  if (any(sapply(return_list, is.null))) {
+    cli::cli_alert_warning("One or more return list elements are NULL.")
+  }
 
-        
+  return(return_list)
+}
         
 ## NOTE: This technique requires en even sampling depth to perform, which requires rarefaction.
 # I tested this function /wo rarefaction (using the mean sampling depth instead),
