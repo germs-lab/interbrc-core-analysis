@@ -40,9 +40,9 @@ jobs:
         if: ${{ runner.os == 'Linux' }}
         run: |
           sudo apt-get update
-          sudo apt-get install -y libcurl4-openssl
-          sudo apt-get install -y libpng libtiff libx11 pandoc
-          sudo apt-get install -y install cmake libfontconfig libfreetype libfribidi libgit2 libglpk libharfbuzz
+          sudo apt-get install -y libcurl4-openssl-dev
+          sudo apt-get install -y libpng-dev libtiff-dev libx11-dev pandoc
+          sudo apt-get install -y install cmake libfontconfig-dev libfreetype-dev libfribidi-dev libgit2-dev libglpk-dev libharfbuzz-dev
 
       - name: Set up R
         uses: r-lib/actions/setup-r@v2
