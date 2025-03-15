@@ -43,7 +43,7 @@ mock_taxonomy_table <- matrix(
 # Convert to a taxonomy table object
 tax_table <- tax_table(mock_taxonomy_table)
 
-# Add sample metadata to the esophagus dataset (required for calculate_nmds)
+# Add sample metadata to the esophagus dataset
 sample_data <- data.frame(
   Sample = sample_names(esophagus),
   Group = sample(c("A", "B"), nsamples(esophagus), replace = TRUE), # Random groups
@@ -57,7 +57,7 @@ esophagus_with_tax <- merge_phyloseq(esophagus, tax_table, sample_data(sample_da
 # Test suite
 test_that("ExtractCore() works with esophagus_with_tax dataset", {
   # Load expected
-  load("tests/testthat/expected_extract_core.rda")
+  load(here::here("tests/testthat/expected_extract_core.rda"))
 
   # Run the function
   test_core <- ExtractCore(

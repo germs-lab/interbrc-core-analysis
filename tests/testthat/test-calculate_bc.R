@@ -1,5 +1,5 @@
 library(testthat)
-list.files("R/functions/", full.names = TRUE) |>
+list.files(here::here("R/functions/"), full.names = TRUE) |>
   lapply(source)
 
 # Unit Tests

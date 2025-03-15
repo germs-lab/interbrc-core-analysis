@@ -3,7 +3,7 @@ library(vegan)
 library(tidyverse)
 library(waldo)
 library(testthat)
-list.files("R/functions/", full.names = TRUE) |>
+list.files(here::here("R/functions/"), full.names = TRUE) |>
   lapply(source)
 
 # Load the esophagus dataset
@@ -20,7 +20,7 @@ esophagus_with_metadata <- merge_phyloseq(esophagus, sample_data(sample_data))
 # Test suite
 test_that("calculate_nmds() works with esophagus dataset", {
   # Load expected results
-  load("tests/testthat/expected_nmds.rda")
+  load(here::here("tests/testthat/expected_nmds.rda"))
 
   # Extract the OTU table from the esophagus dataset
   esophagus_asv_matrix <- as.matrix(otu_table(esophagus_with_metadata))
