@@ -31,7 +31,10 @@ filter_core <- function(physeq, threshold = 0.6, as = "rows") {
   # Based on `orient_taxa()` https://github.com/mikemc/speedyseq/blob/0057652ff7a4244ccef2b786dca58d901ec2fc62/R/utils.R
   ensure_phyloseq_orientation <- function(physeq, as) {
     # Validate 'as' argument
-    stopifnot(as %in% c("rows", "columns", "cols"))
+    stopifnot(
+      "Arguments 'as' must be a string:'rows', 'cols' or 'columns'!" =
+        as %in% c("rows", "columns", "cols")
+    )
 
     # Ensure taxa are in the desired orientation
     if (identical(as, "rows")) {
@@ -49,10 +52,16 @@ filter_core <- function(physeq, threshold = 0.6, as = "rows") {
   physeq_rel <- ensure_phyloseq_orientation(physeq, as)
 
   # Calculate occurrence of each ASV across samples
-  asv_sample_counts <- rowSums(otu_table(physeq_rel) > 0)
-
   # Get total number of samples
-  total_samples <- ncol(otu_table(physeq_rel))
+  if (identical(as, "rows")) {
+    asv_sample_counts <- rowSums(otu_table(physeq_rel) > 0)
+    total_samples <- ncol(otu_table(physeq_rel))
+  }
+
+  if (identical(as, "cols") || identical(as, "columns")) {
+    asv_sample_counts <- colSums(otu_table(physeq_rel) > 0)
+    total_samples <- nrow(otu_table(physeq_rel))
+  }
 
   # Select ASVs based on occurrence criteria
   high_occurrence_asvs <- names(asv_sample_counts[asv_sample_counts >= total_samples * threshold])
