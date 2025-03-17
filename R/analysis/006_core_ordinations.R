@@ -14,10 +14,24 @@ source("R/utils/000_setup.R")
 ##############################
 # Hellinger transformation of matrices
 # To be used for NMDS, dbRDA and adonis2
+core_hell_matrix <- decostand(t(core_asv_matrix),
+  MARGIN = 1,
+  method = "hellinger"
+) # Now we need samples as columns and ASV are rows
+
+###########
+
+# Ordinations
+core_asv_dist <- vegdist(t(core_hell_matrix),
+  method = "bray",
+  upper = FALSE,
+  binary = FALSE,
+  na.rm = TRUE
+)
 
 ## Choosing the number of dimensions for NMDS
-# set.seed(484035)
-# nmds_screen_parallel(core_asv_dist, ncores = 32) # Results: Two dimensions keeps stress below 0.20
+set.seed(484035)
+nmds_screen_parallel(core_asv_dist, ncores = 8) # Results: Two dimensions keeps stress below 0.20
 
 core_ext_core <- calculate_nmds(
   asv_matrix = core_asv_matrix,
@@ -26,10 +40,6 @@ core_ext_core <- calculate_nmds(
   k = 2,
   trymax = 100
 )
-
-
-waldo::compare(core_nmds_df, core_ext_core$nmds_df)
-
 
 # Core NMDS Aesthetics ####
 core_nmds_crops <- gg_nmds(
@@ -49,81 +59,17 @@ core_nmds_brc <- gg_nmds(
 )
 
 
-ggsave(
-  filename = "core_nmds_crops.png",
-  plot = core_nmds_crops,
-  path = "data/output/plots/",
-  dpi = 300,
-  width = 200,
-  height = 200,
-  units = "mm"
-)
-
-ggsave(
-  filename = "core_nmds_brc.png",
-  plot = core_nmds_brc,
-  path = "data/output/plots/",
-  dpi = 300,
-  width = 200,
-  height = 200,
-  units = "mm"
-)
-
-
 ##################################
 ### Non-Core by ExctractCore() ###
 ##################################
 
-# Hellinger transformation of matrices
-non_core_hell_matrix <- decostand(t(non_core_asv_matrix),
-  MARGIN = 1,
-  method = "hellinger"
-) %>%
-  as.data.frame() %>%
-  select(where(~ is.numeric(.) && sum(.) > 0)) %>% # Removal of columns that sum 0
-  as.matrix()
-
-###########
-
-# Ordinations
-non_core_asv_dist <- vegdist(t(non_core_hell_matrix),
-  method = "bray",
-  upper = FALSE,
-  binary = FALSE,
-  na.rm = TRUE
-)
-
-
-non_core_ordi <- metaMDS(as.matrix(non_core_asv_dist),
-  distance = "bray",
-  display = c("sites"),
-  noshare = TRUE,
-  autotransform = FALSE,
-  wascores = TRUE,
-  zerodist = "ignore",
-  tidy = TRUE,
+non_core_ext_core <- calculate_nmds(
+  asv_matrix = non_core_asv_matrix,
+  physeq = non_core_brc_phyloseq,
+  ncores = parallel::detectCores(),
   k = 2,
-  trymax = 100,
-  parallel = parallel::detectCores()
+  trymax = 100
 )
-
-stressplot(non_core_ordi)
-
-## Scores and sample data for NMDS
-vegan::sppscores(non_core_ordi) <- t(non_core_hell_matrix)
-
-non_nmds_scores <- as.data.frame(vegan::scores(non_core_ordi)$sites)
-
-rownames(non_nmds_scores) <- rownames(vegan::scores(non_core_ordi)$sites)
-
-non_nmds_scores <- non_nmds_scores %>%
-  rownames_to_column(., var = "unique_id")
-
-non_core_brc_sample_df <- non_core_brc_phyloseq@sam_data %>%
-  data.frame() %>%
-  rownames_to_column(., var = "unique_id")
-
-non_core_nmds_df <- right_join(non_core_brc_sample_df, non_nmds_scores, by = "unique_id")
 
 # Non-Core NMDS Aesthetics ####
 non_core_nmds_crops <- core_nmds(
@@ -139,27 +85,6 @@ non_core_nmds_brc <- core_nmds(
   .drop_na = brc
 ) + ggtitle("Non-core ASVs in BRC (100% samples)")
 
-
-
-ggsave(
-  filename = "non_core_nmds_crops.png",
-  plot = non_core_nmds_crops,
-  path = "data/output/plots/",
-  dpi = 300,
-  width = 200,
-  height = 200,
-  units = "mm"
-)
-
-ggsave(
-  filename = "non_core_nmds_brc.png",
-  plot = non_core_nmds_brc,
-  path = "data/output/plots/",
-  dpi = 300,
-  width = 200,
-  height = 200,
-  units = "mm"
-)
 
 
 ######################################
@@ -237,3 +162,29 @@ core_nmds_brc <- core_nmds(
   .color = brc,
   .drop_na = brc
 ) + ggtitle("50 core ASVs in BRCs (100% samples)")
+
+
+
+## Saving plots
+core_plots <- list(core_nmds_brc, core_nmds_crops)
+plot_names <- c(
+  "core_nmds_brc",
+  "core_nmds_crops",
+  "non_core_nmds_brc",
+  "non_core_nmds_crops"
+)
+
+
+plot_paths <- str_glue("data/output/plots/{tolower(plot_names)}.png")
+
+purrr::walk2(
+  plot_paths, core_plots,
+  \(path, plot) ggsave(
+    filename = path,
+    plot = plot,
+    dpi = 300,
+    width = 200,
+    height = 200,
+    units = "mm"
+  )
+)

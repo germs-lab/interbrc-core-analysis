@@ -47,18 +47,28 @@ calculate_nmds <- function(asv_matrix, physeq, ncores = parallel::detectCores(),
   }
 
   # Calculate Bray-Curtis distances
-  asv_dist <- vegdist(t(hell_matrix), method = "bray", na.rm = TRUE)
+  asv_dist <- vegdist(t(hell_matrix),
+    method = "bray",
+    upper = FALSE,
+    binary = FALSE,
+    na.rm = TRUE
+  )
+
 
   # Perform NMDS
   ordi <- metaMDS(
     as.matrix(asv_dist),
     distance = "bray",
+    display = "sites",
+    noshare = TRUE,
+    autotransform = FALSE,
+    wascores = TRUE,
+    tidy = TRUE,
     k = k,
     trymax = trymax,
     parallel = ncores,
-    autotransform = FALSE,
-    wascores = TRUE
   )
+
 
   # Check NMDS convergence
   if (ordi$converged == FALSE) {
