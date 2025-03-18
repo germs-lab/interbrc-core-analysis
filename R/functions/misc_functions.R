@@ -1,9 +1,9 @@
 # Miscellaneous functions for Inter-BRC Core Microbiome Analysis
 # By Bolívar Aponte Rolón
 
-# ExtracMatrix(): extract/subset a ASV/OTU matrix based on a vector of strings and a rowSums() condition.
+# extract_matrix(): extract/subset a ASV/OTU matrix based on a vector of strings and a rowSums() condition.
 
-ExtractMatrix <- function(physeq, .vec, keep_rows_sums = 0) {
+extract_matrix <- function(physeq, .vec, keep_rows_sums = 0) {
   # Error handling
   if (!inherits(physeq, c("phyloseq", "matrix"))) {
     cli::cli_abort(
@@ -53,7 +53,7 @@ ExtractMatrix <- function(physeq, .vec, keep_rows_sums = 0) {
 #' @author Guillem Salazar <salazar@@icm.csic.es>
 #' @examples
 #' subset.fasta(file = "http://greengenes.lbl.gov/Data/JD_Tutorial/UnAligSeq24606.txt", subset = c("24.6jsd1.Tut", "24.6jsd2.Tut ", "24.6jsd3.Tut "), out = "out.fasta")
-subset.fasta <- function(file = NULL, subset = NULL, out = paste(file, ".subset", sep = "")) {
+subset_fasta <- function(file = NULL, subset = NULL, out = paste(file, ".subset", sep = "")) {
   library(Biostrings)
   sequences <- readDNAStringSet(file)
   if (all(as.character(subset) %in% names(sequences)) == FALSE) stop("There are names in 'subset' not present in the fasta file")
@@ -66,7 +66,7 @@ subset.fasta <- function(file = NULL, subset = NULL, out = paste(file, ".subset"
 nmds_screen_parallel <- function(x, ncores = parallel::detectCores() - 1) {
   # Function to calculate stress for a given number of dimensions
   calculate_stress <- function(k) {
-    replicate(10, metaMDS(x, autotransform = FALSE, k = k)$stress)
+    replicate(10, metaMDS(x, autotransform = FALSE, k = k, maxit = 100, trymax = 10)$stress)
   }
 
   # Use mclapply to parallelize the stress calculation
@@ -87,7 +87,7 @@ nmds_screen_parallel <- function(x, ncores = parallel::detectCores() - 1) {
 }
 
 # Standard NMDS plots
-core_nmds <- function(.data, .color, .shape = NULL, .drop_na) {
+gg_nmds <- function(.data, .color, .shape = NULL, .drop_na) {
   .color <- enquo(.color)
   .drop_na <- enquo(.drop_na)
 
