@@ -66,7 +66,7 @@ subset_fasta <- function(file = NULL, subset = NULL, out = paste(file, ".subset"
 nmds_screen_parallel <- function(x, ncores = parallel::detectCores() - 1) {
   # Function to calculate stress for a given number of dimensions
   calculate_stress <- function(k) {
-    replicate(10, metaMDS(x, autotransform = FALSE, k = k)$stress)
+    replicate(10, metaMDS(x, autotransform = FALSE, k = k, maxit = 100, trymax = 10)$stress)
   }
 
   # Use mclapply to parallelize the stress calculation
