@@ -188,47 +188,88 @@ ExtractCore <- function(physeq, Var, method, increase_value = NULL, Group = NULL
         # Set to the entire length of OTUs in the dataset. It might take some time if more than 5000 OTUs are included.
         
         cli::cli_alert_info("Calculating BC dissimilarity based on ranked OTUs, starting at {Sys.time()}")
-        progressbar_calc_bc <- cli::cli_progress_bar(
-            name = "Calculating BC rankings",
-            total = nrow(otu_ranked) - 1,
-            format = "{cli::pb_bar} {cli::pb_percent} | ETA: {cli::pb_eta}",
-            .auto_close = TRUE,
-            .envir = parent.frame()
-        )
+        # progressbar_calc_bc <- cli::cli_progress_bar(
+        #     name = "Calculating BC rankings",
+        #     total = nrow(otu_ranked) - 1,
+        #     format = "{cli::pb_bar} {cli::pb_percent} | ETA: {cli::pb_eta}",
+        #     .auto_close = TRUE,
+        #     .envir = parent.frame()
+        # )
         
-        for (i in 2:nrow(otu_ranked)) {
-            # Add next OTU
-            current_matrix <- rbind(start_matrix, t(otu[otu_ranked$otu[i], ]))
+        # for (i in 2:nrow(otu_ranked)) {
+        #     # Add next OTU
+        #     current_matrix <- rbind(start_matrix, t(otu[otu_ranked$otu[i], ]))
+        #     
+        #     # Calculate BC
+        #     current_bc <- calculate_bc(current_matrix, nReads)
+        #     
+        #     # Update data frame
+        #     df_a <- data.frame(x_names = current_bc$names, val = current_bc$values)
+        #     names(df_a)[2] <- i
+        #     BCaddition <- left_join(BCaddition, df_a, by = "x_names")
+        #     
+        #     cli::cli_progress_update(id = progressbar_calc_bc)
+        # }
+        # 
+        # cli::cli_progress_done(id = progressbar_calc_bc)
+        
+        
+        
+        # Calculating the BC dissimilarity of the whole dataset (not needed if the second loop 
+        # is already including all OTUs)
+        z <-
+            apply(combn(ncol(otu), 2), 2, function(z)
+                sum(abs(otu[, z[1]] - otu[, z[2]])) / (2 * nReads))
+        # overwrite the names here
+        x_names <-
+            apply(combn(ncol(otu), 2), 2, function(x)
+                paste(colnames(otu)[x], collapse = "-"))
+        
+        cli::cli_progress_bar("Calculating Ranked-BC", total = nrow(otu_ranked) - 1)
+        
+        
+        for(i in 2:nrow(otu_ranked)){ #nrow(otu_ranked)
+            otu_add=otu_ranked$otu[i]
+            add_matrix <- as.matrix(otu[otu_add,])
+            add_matrix <- t(add_matrix)
+            start_matrix <- rbind(start_matrix, add_matrix)
+            y <-
+                apply(combn(ncol(start_matrix), 2), 2, function(y)
+                    sum(abs(start_matrix[, y[1]] - start_matrix[, y[2]])) / (2 * nReads))
+            df_a <- data.frame(x_names, y)
+            names(df_a)[2] <- i 
+            BCaddition <- left_join(BCaddition, df_a, by=c('x_names'))
             
-            # Calculate BC
-            current_bc <- calculate_bc(current_matrix, nReads)
-            
-            # Update data frame
-            df_a <- data.frame(x_names = current_bc$names, val = current_bc$values)
-            names(df_a)[2] <- i
-            BCaddition <- left_join(BCaddition, df_a, by = "x_names")
-            
-            cli::cli_progress_update(id = progressbar_calc_bc)
+            cli::cli_progress_update()
         }
         
-        cli::cli_progress_done(id = progressbar_calc_bc)
+        
         cli::cli_alert_success("BC ranks done!")
         
-        BCfull <- BCaddition
-        # ranking the obtained BC
+        df_full <- data.frame(x_names, z)
+        names(df_full)[2] <- length(rownames(otu))
+        BCfull <- left_join(BCaddition, df_full, by='x_names')
+        
+        # ranking the obtained BC 
         rownames(BCfull) <- BCfull$x_names
         temp_BC <- BCfull
         temp_BC$x_names <- NULL
         temp_BC_matrix <- as.matrix(temp_BC)
-        BC_ranked <- data.frame(rank = as.factor(row.names(t(temp_BC_matrix))), t(temp_BC_matrix)) %>%
+        BC_ranked <- data.frame(rank = as.factor(row.names(t(temp_BC_matrix))),t(temp_BC_matrix)) %>% 
             gather(comparison, BC, -rank) %>%
             group_by(rank) %>%
             # Calculate mean Bray-Curtis dissimilarity
-            summarise(MeanBC = mean(BC)) %>%
+            summarise(MeanBC=mean(BC)) %>%            
             arrange(desc(-MeanBC)) %>%
-            # Calculate proportion of the dissimilarity explained by the n number of ranked OTUs
-            mutate(proportionBC = MeanBC / max(MeanBC))
-        # BC_ranked %T>% print()
+            # Calculate proportion of the dissimilarity explained by the n number of ranked OTUs 
+            mutate(proportionBC=MeanBC/max(MeanBC))
+        #BC_ranked %T>% print()
+        # Calculating the increase BC
+        Increase=BC_ranked$MeanBC[-1]/BC_ranked$MeanBC[-length(BC_ranked$MeanBC)]
+        increaseDF <- data.frame(IncreaseBC=c(0,(Increase)), rank=factor(c(1:(length(Increase)+1))))
+        BC_ranked <- left_join(BC_ranked, increaseDF)
+        BC_ranked <- BC_ranked[-nrow(BC_ranked),]
+        BC_ranked <- drop_na(BC_ranked) 
         
         
         #############################
@@ -289,11 +330,24 @@ ExtractCore <- function(physeq, Var, method, increase_value = NULL, Group = NULL
             occ_abun$fill[occ_abun$otu %in% core_otus] <- "core"
             }
 
-return_list <- list(core_otus, BC_ranked, otu_ranked, occ_abun, otu, map, taxon)
-return(return_list)
-        }
+  # Create named return list
+  return_list <- list(
+    core_otus = core_otus,
+    bray_curtis_ranked = BC_ranked,
+    otu_rankings = otu_ranked,
+    occupancy_abundance = occ_abun,
+    otu_table = otu,
+    sample_metadata = map,
+    taxonomy_table = taxon
+  )
+                      
+  # Validate return list
+  if (any(sapply(return_list, is.null))) {
+    cli::cli_alert_warning("One or more return list elements are NULL.")
+  }
 
-        
+  return(return_list)
+}
         
 ## NOTE: This technique requires en even sampling depth to perform, which requires rarefaction.
 # I tested this function /wo rarefaction (using the mean sampling depth instead),
