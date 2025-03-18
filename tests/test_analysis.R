@@ -15,10 +15,39 @@ test_small_phyloseq <- test_phyloseq %>%
 
 # save(test_phyloseq, file = "tests/data/test_small_phyloseq.rda")
 
+
+# test multi_rarefy.R function 
+oty_table_rare <-
+    multi_rarefy(physeq = test_small_phyloseq,
+                 depth_level = 5000,
+                 num_iter = 99)
+
+# Recreate the phyloseq object with the rarefied otu_table
+test_phyloseq_rare <-
+    phyloseq(
+        otu_table(
+            oty_table_rare %>%
+                column_to_rownames("SampleID") %>%
+                t() %>%
+                as.matrix() %>%
+                as.data.frame(),
+            taxa_are_rows = TRUE
+        ),
+        test_small_phyloseq@sam_data,
+        test_small_phyloseq@tax_table
+    ) %>%
+    prune_taxa(taxa_sums(x = .) > 0, x = .) %>%
+    prune_samples(sample_sums(x = .) > 0, x = .)
+
+
 # Extract the 'spatial' core microbiome across all sites. The 'Var' in the ExtractCore is 'site'.
 
-spatial_core <- ExtractCore(test_small_phyloseq, Var = "site", method = "increase", increase_value = 2) # Minimum seq depth was ~10,000 reads.
-
+spatial_core <- ExtractCore(
+    test_small_phyloseq,
+    Var = "site",
+    method = "increase",
+    increase_value = 2
+) # Minimum seq depth was ~10,000 reads.
 
 
 # Plot Bray-Curtis Dissimilarity Curve:
@@ -157,6 +186,7 @@ obs1 <- obs1 %>%
 
 
 obs1 %>%
+<<<<<<< Updated upstream
   ggplot(aes(x = log10(otu_rel), y = otu_occ)) +
   scale_fill_npg(
     name = "Core Membership: Model Predictions",
@@ -230,3 +260,77 @@ obs1 %>%
     legend.title = element_text(size = 14),
     plot.margin = unit(c(.5, 1, .5, .5), "cm")
   )
+=======
+    ggplot(aes(x = log10(otu_rel), y = otu_occ)) +
+    scale_fill_npg(
+        name = "Core Membership: Model Predictions",
+        labels = c(
+            "Core: Above Prediction",
+            "Core: As Predicted",
+            "Core: Below Prediction",
+            "Non-Core Taxa" )
+    ) +
+    geom_point(
+        aes(fill = fill_fit_class),
+        pch = 21,
+        alpha = 0.75,
+        size = 2.2
+    ) +
+    geom_line(
+        color = "red",
+        data = obs1,
+        size = 0.8,
+        aes(y = obs1$freq.pred, x = log10(obs1$p)),
+        alpha = 0.55
+    ) +
+    geom_line(
+        color = "black",
+        lty = "twodash",
+        size = 0.9,
+        data = obs1,
+        aes(y = obs1$pred.upr, x = log10(obs1$p)),
+        alpha = 0.55
+    ) +
+    geom_line(
+        color = "black",
+        lty = "twodash",
+        size = 0.9,
+        data = obs1,
+        aes(y = obs1$pred.lwr, x = log10(obs1$p)),
+        alpha = 0.55
+    ) +
+    labs(x = "Log10(mean abundance)", y = "Occupancy") +
+    annotate(
+        "text",
+        -Inf,
+        Inf,
+        label = paste("italic(R)^2 ==", round(obs2$Rsqr, 3)),
+        parse = TRUE,
+        size = 4.8,
+        hjust = -0.2,
+        vjust = 1.2
+    ) +
+    annotate(
+        "text",
+        -Inf,
+        Inf,
+        label = paste("italic(m) ==", round(obs2$m, 3)),
+        parse = TRUE,
+        size = 4.8,
+        hjust = -0.2,
+        vjust = 3.2
+    ) +
+    theme_bw() +
+    theme(
+        axis.title.x = element_text(size = 14),
+        title = element_text(size = 14),
+        axis.title.y = element_text(size = 14),
+        strip.text.x = element_text(size = 10),
+        strip.text.y = element_text(size = 14),
+        axis.text.x = element_text(size = 12, color = "black"),
+        axis.text.y = element_text(size = 12, color = "black"),
+        legend.text = element_text(size = 12),
+        legend.title = element_text(size = 14),
+        plot.margin = unit(c(.5, 1, .5, .5), "cm")
+    )
+>>>>>>> Stashed changes
