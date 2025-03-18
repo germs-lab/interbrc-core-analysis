@@ -20,10 +20,18 @@ pacman::p_load(
     metagMisc
 )
 
-source("R/functions/extract_core.R")
-source("R/functions/model_fit.R")
-source("R/functions/misc_functions.R")
-source("R/functions/multi_rarefy.R")
+# Scripts
+## List files and source each
+list.files("R/functions/", full.names = TRUE) %>%
+  purrr::map(source)
+
+# Objects
+list.files("data/output",
+  full.names = TRUE,
+  recursive = TRUE,
+  pattern = "\\.rda$"
+) %>%
+  purrr::walk(., load, envir = .GlobalEnv)
 
 # Solve known conflicts
 conflict_prefer("select", "dplyr")
