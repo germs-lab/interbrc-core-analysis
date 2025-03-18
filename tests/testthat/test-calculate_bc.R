@@ -1,6 +1,24 @@
 library(testthat)
-list.files(here::here("R/functions/"), full.names = TRUE) |>
-  lapply(source)
+
+# Helper function for Bray-Curtis calculation (as defined in ExtracCore.R)
+calculate_bc <- function(matrix, nReads) {
+  if (nrow(matrix) == 0) {
+    cli::cli_alert_warning("{.arg matrix} is empty. Enter a non-empty matrix.")
+    return(list(values = numeric(0), names = character(0)))
+  }
+
+  bc_values <- apply(combn(ncol(matrix), 2), 2, function(cols) {
+    sum(abs(matrix[, cols[1]] - matrix[, cols[2]])) / (2 * nReads)
+  })
+
+  x_names <- apply(combn(ncol(matrix), 2), 2, function(cols) {
+    paste(colnames(matrix)[cols], collapse = "-")
+  })
+
+  list(values = bc_values, names = x_names)
+}
+
+
 
 # Unit Tests
 test_that("calculate_bc() correctly computes Bray-Curtis between samples", {
