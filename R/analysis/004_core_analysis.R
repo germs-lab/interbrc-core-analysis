@@ -2,13 +2,13 @@
 ## This was part of the `core_microbiome_functions.R` by Brandon Kristy.
 ## Split by Bolívar Aponte Rolón 2025-02-20
 
+## Example: Core Microbiome across Switchgrass
 
 # Setup
 source("R/utils/000_setup.R")
-
-###################################################
-### Microbiome Core Selection via ExtractCore() ###
-###################################################
+load(
+  "data/output/phyloseq_objects/filtered_phyloseq.rda"
+)
 
 # Check OTU table
 filtered_phyloseq <- prune_samples(sample_sums(filtered_phyloseq) >= 100, filtered_phyloseq)
@@ -20,25 +20,19 @@ filtered_phyloseq <- prune_samples(sample_sums(filtered_phyloseq) >= 100, filter
 # )
 
 # Extract the 'spatial' core microbiome across all sites. The 'Var' in the ExtractCore is 'site'.
-core_summary_lists <- ExtractCore(filtered_phyloseq,
-  Var = "site",
-  method = "increase",
-  increase_value = 2
-) # Minimum seq depth was ~10,000 reads.
+spatial_core <- ExtractCore(filtered_phyloseq, Var = "site", method = "increase") # Minimum seq depth was ~10,000 reads.
 
 # Save, since it takes a long time.
-# save(core_summary_lists, file = "data/output/core_summary_lists.rda")
+# save(spatial_core, file = "data/output/spatial_core.rda")
 
 # Load spatial core
-load("data/output/core_summary_lists.rda")
+load("data/output/spatial_core.rda")
 
 # Plot Bray-Curtis Dissimilarity Curve:
 max <- 100 # Number of ranked-OTUs to plot
-
-BC_ranked <- core_summary_lists[[2]] %>%
-  dplyr::mutate(., rank = factor(.$rank, levels = .$rank)) %>%
-  drop_na()
-
+BC_ranked <- spatial_core[[2]]
+BC_ranked$rank <- factor(BC_ranked$rank, levels = BC_ranked$rank)
+BC_ranked <- drop_na(BC_ranked)
 BC_ranked_max <- BC_ranked[1:max, ]
 
 
@@ -89,7 +83,7 @@ BC_ranked_max %>%
   )
 
 # Plot Abundance Occupancy curve
-occ_abun_plot <- core_summary_lists[[4]] %>%
+occ_abun_plot <- spatial_core[[4]] %>%
   ggplot(aes(
     x = log10(otu_rel),
     y = otu_occ,
@@ -116,18 +110,18 @@ occ_abun_plot <- core_summary_lists[[4]] %>%
   )
 occ_abun_plot
 
-ggsave(filename = "abundance_occupancy.png", occ_abun_plot, path = "data/output/plots/", dpi = 300, width = 6, height = 4)
+ggsave(filename = "abundance_occupancy.png", occ_abun, path = "data/output/plots/", dpi = 300, width = 6, height = 4)
 
 
 # Fit Abundance-Occupancy Distribution to a Neutral Model
 # Fit neutral model
-taxon <- core_summary_lists[[7]]
-spp <- t(core_summary_lists[[5]])
-occ_abun <- core_summary_lists[[4]]
+taxon <- spatial_core[[7]]
+spp <- t(spatial_core[[5]])
+occ_abun <- spatial_core[[4]]
 names(occ_abun)[names(occ_abun) == "otu"] <- "OTU_ID"
 
 # source community pool
-# meta <- core_summary_lists[[6]]
+# meta <- spatial_core[[6]]
 
 # fitting model
 debugonce(sncm.fit)
@@ -263,31 +257,3 @@ core_table <- obs1 %>%
   filter(fill == "core") %>%
   select(OTU_ID, family, genus, fit_class)
 core_table
-
-
-##############################################
-### Microbiome Core Selection by Threshold ###
-##############################################
-# Analysis based on Jae's code
-# Depending on how your phyloseq object's otu table is structured (e.g., if taxa_are_rows = FALSE ),
-# you might have to play with nrow()/ncol() and rowSums/colSums()
-
-# Load phyloseq object
-core_asvs_threshold <- filter_core(filtered_phyloseq, threshold = 0.6, as = "rows")
-
-physeq_high_occ <- core_asvs_threshold$physeq_high_occ
-physeq_low_occ <- core_asvs_threshold$physeq_low_occ
-
-# save(core_asvs_threshold, file = "data/output/phyloseq_objects/core_asvs_threshold.rda")
-
-physeq_high_occ_matrix <- physeq_high_occ@otu_table %>%
-  t() %>% # Samples as rows
-  as.matrix()
-
-physeq_low_occ_matrix <- physeq_low_occ@otu_table %>%
-  t() %>%
-  as.matrix()
-
-
-save(physeq_high_occ_matrix, file = "data/output/high_occ_matrix.rda")
-save(physeq_low_occ_matrix, file = "data/output/low_occ_matrix.rda")

@@ -7,6 +7,16 @@
 # Setup
 source("R/utils/000_setup.R")
 
+
+## Source files
+load(
+  "data/output/phyloseq_objects/filtered_phyloseq.rda"
+)
+load(
+  "data/output/phyloseq_objects/unfiltered_phyloseq.rda"
+)
+
+
 ## Summary stats
 
 metagMisc::phyloseq_summary(filtered_phyloseq, more_stats = F, long = F)
