@@ -4,6 +4,7 @@
 
 # Setup
 source("R/utils/000_setup.R")
+remove(phyloseq, spatial_core)
 
 #################################################
 ###### Ordinations and Community Analysis #######
@@ -37,7 +38,7 @@ core_asv_dist <- vegdist(t(core_hell_matrix),
 core_ext_core <- calculate_nmds(
   asv_matrix = core_asv_matrix,
   physeq = core_brc_phyloseq,
-  ncores = parallel::detectCores(),
+  ncores = parallel::detectCores() - 1,
   k = 3,
   trymax = 9999
 ) # Best solution repeated 1 times (k = 3)
@@ -68,21 +69,23 @@ core_nmds_brc <- gg_nmds(
 non_core_ext_core <- calculate_nmds(
   asv_matrix = non_core_asv_matrix,
   physeq = non_core_brc_phyloseq,
-  ncores = 1,
+  ncores = parallel::detectCores() - 1,
   k = 3,
   trymax = 9999
-)
+) # Best solution was not repeated (k = 3)
+
+save(non_core_ext_core, file = "data/output/non_core_ext_core.rda")
 
 # Non-Core NMDS Aesthetics ####
-non_core_nmds_crops <- core_nmds(
-  .data = non_core_nmds_df,
+non_core_nmds_crops <- gg_nmds(
+  .data = non_core_ext_core$nmds_df,
   .color = crop,
   .drop_na = brc
 ) + ggtitle("Non-core ASVs in BRC crops (100% samples)")
 
 
-non_core_nmds_brc <- core_nmds(
-  .data = non_core_nmds_df,
+non_core_nmds_brc <- gg_nmds(
+  .data = non_core_ext_core$nmds_df,
   .color = brc,
   .drop_na = brc
 ) + ggtitle("Non-core ASVs in BRC (100% samples)")
@@ -95,16 +98,18 @@ non_core_nmds_brc <- core_nmds(
 
 high_occ_core <- calculate_nmds(
     asv_matrix = physeq_high_occ_matrix,
-    physeq = physeq_high_occ,
-    ncores = parallel::detectCores(),
+    physeq = core_asvs_threshold$physeq_high_occ,
+    ncores = parallel::detectCores() - 1,
     k = 3,
     trymax = 9999
 )
 
+save(high_occ_core, file = "data/output/high_occ_core.rda")
+
 
 # Core NMDS Aesthetics ####
 high_occ_nmds_crops <- gg_nmds(
-  .data = high_occ_nmds_df,
+  .data = high_occ_core$high_occ_nmds_df,
   .color = crop,
   .drop_na = brc
 ) + ggtitle("12 core ASVs in BRC crops (60% samples)")
@@ -118,10 +123,10 @@ high_occ_nmds_brc <- core_nmds(
 
 
 ## Saving plots
-core_plots <- list(core_nmds_brc, core_nmds_crops)
+core_plots <- list(non_core_nmds_brc, non_core_nmds_crops)
 plot_names <- c(
-  "core_nmds_brc",
-  "core_nmds_crops"
+  "non_core_nmds_brc",
+  "non_core_nmds_crops"
 )
 
 

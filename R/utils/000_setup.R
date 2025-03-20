@@ -8,15 +8,13 @@ pacman::p_load(
     phyloseq,
     vegan,
     tidyverse,
-    ggsci,
-    ggpubr,
-    hillR,
-    microViz,
-    magrittr,
-    lazyeval,
-    minpack.lm,
-    Hmisc,
-    stats4,
+    #ggsci,
+    #ggpubr,
+    #hillR,
+    #microViz,
+    #minpack.lm,
+    #Hmisc,
+    #stats4,
     metagMisc
 )
 
