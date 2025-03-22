@@ -177,3 +177,28 @@ purrr::walk2(
     units = "mm"
   )
 )
+
+
+
+#########
+#PCoA
+
+test_pcoa <- wcmdscale(core_asv_dist,
+          k = 2,
+          eig = TRUE,
+          add = FALSE,
+          x.ret = FALSE
+)
+
+# Extract PCoA scores and add metadata
+test_pcoa_df <- data.frame(
+    Dim1 = test_pcoa$points[, 1],    # First PCoA axis
+    Dim2 = test_pcoa$points[, 2],    # Second PCoA axis
+    brc = factor(core_brc_phyloseq@sam_data$brc)  # Convert 'brc' to a factor
+)
+
+
+ggplot(data = test_pcoa_df, aes(x = Dim1, y = Dim2, color = brc)) +
+    geom_point() +
+    theme_bw() +
+    labs(color = "BRC")  
