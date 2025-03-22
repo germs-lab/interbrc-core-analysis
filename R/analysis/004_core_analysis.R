@@ -279,12 +279,17 @@ physeq_low_occ <- core_asvs_threshold$physeq_low_occ
 # save(core_asvs_threshold, file = "data/output/phyloseq_objects/core_asvs_threshold.rda")
 
 physeq_high_occ_matrix <- physeq_high_occ@otu_table %>%
-  t() %>% # Samples as rows
-  as.matrix()
+    t() %>% # Samples as rows
+    as.data.frame() %>%
+    .[rowSums(.) > 0, ] %>% # Keep only samples with a non-zero sum. Not all samples have the "core".
+    as.matrix()
+
 
 physeq_low_occ_matrix <- physeq_low_occ@otu_table %>%
-  t() %>%
-  as.matrix()
+    t() %>% # Samples as rows
+    as.data.frame() %>%
+    .[rowSums(.) > 0, ] %>% # Keep only samples with a non-zero sum. Not all samples have the "core".
+    as.matrix()
 
 
 save(physeq_high_occ_matrix, file = "data/output/high_occ_matrix.rda")
