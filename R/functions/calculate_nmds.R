@@ -72,7 +72,7 @@ calculate_nmds <- function(asv_matrix,
         wascores = TRUE,
         tidy = TRUE,
         k = k,
-        maxit = 999,
+        maxit = maxit,
         trymax = trymax,
         parallel = ncores,
         previous.best = previous.best

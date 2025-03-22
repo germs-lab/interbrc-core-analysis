@@ -29,8 +29,6 @@ core_summary_lists <- ExtractCore(filtered_phyloseq,
 # Save, since it takes a long time.
 # save(core_summary_lists, file = "data/output/core_summary_lists.rda")
 
-# Load spatial core
-load("data/output/core_summary_lists.rda")
 
 # Plot Bray-Curtis Dissimilarity Curve:
 max <- 100 # Number of ranked-OTUs to plot
