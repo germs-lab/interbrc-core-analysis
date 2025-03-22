@@ -8,6 +8,8 @@ source("R/utils/000_setup.R")
 #################################################
 ### Core and Non_Core objects and fasta files ###
 #################################################
+### extract_core() ###
+#######################
 
 # Subset by "core" and "non-core" names using "core_summary_lists" object
 
@@ -80,4 +82,23 @@ subset_fasta(
   file = "data/output/fasta_files/rep_asv_seqs.fasta",
   subset = non_core_asv_strings,
   out = "data/output/fasta_files/non_core_asv_seqs.fasta"
+)
+
+
+##############################################
+### Microbiome Core Selection by Threshold ###
+##############################################
+
+## High occupancy
+subset_fasta(
+  file = "data/output/fasta_files/rep_asv_seqs.fasta",
+  subset = colnames(physeq_high_occ_matrix),
+  out = "data/output/fasta_files/high_occ_asv_seqs.fasta"
+)
+
+## Low occupancy
+subset_fasta(
+  file = "data/output/fasta_files/rep_asv_seqs.fasta",
+  subset = colnames(physeq_low_occ_matrix),
+  out = "data/output/fasta_files/low_occ_asv_seqs.fasta"
 )
