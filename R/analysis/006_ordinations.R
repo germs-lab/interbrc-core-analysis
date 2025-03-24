@@ -26,7 +26,7 @@ remove(phyloseq)
 
 
 # distance_matrices <- purrr::map(
-#   .x = hell_matrices, ~ 
+#   .x = hell_matrices, ~
 #     vegdist(t(.x),
 #       method = "bray",
 #       upper = FALSE,
@@ -53,6 +53,7 @@ core_ext_nmds <- calculate_nmds(
   trymax = 9999
 ) # Best solution repeated 1 times (k = 3)
 
+save(core_ext_nmds, file = "data/output/core_ext_nmds.rda")
 
 # Core NMDS Aesthetics ####
 core_nmds_crops <- gg_nmds(
@@ -70,9 +71,6 @@ core_nmds_brc <- gg_nmds(
 ) + ggtitle("50 core ASVs in BRC crops",
   subtitle = "Core that contributes 2% to Bray-Curtis"
 )
-
-save(core_ext_nmds, file = "data/output/core_ext_nmds.rda")
-
 
 ##################################
 ### Non-Core by ExctractCore() ###
@@ -194,25 +192,19 @@ purrr::walk2(
 ### PCoA ###
 ############
 # List of transformed matrices
-asv_matrices <- list(
-  core = core_asv_matrix,
-  non_core = non_core_asv_matrix,
-  high_occ = high_occ_matrix,
-  low_occ = low_occ_matrix
-)
+
 hell_matrices <- purrr::map(asv_matrices, ~ {
   decostand(t(.x), method = "hellinger", MARGIN = 1)
 })
 
 # Distances
-distance_matrices <- purrr::map(hell_matrices ~ 
-    .f = vegdist(t(.x),
-      method = "bray",
-      upper = FALSE,
-      binary = FALSE,
-      na.rm = TRUE
-    )
-)
+distance_matrices <- purrr::map(hell_matrices ~
+  vegdist(t(.x),
+    method = "bray",
+    upper = FALSE,
+    binary = FALSE,
+    na.rm = TRUE
+  ))
 
 distance_matrices <- hell_matrices %>%
   purrr::map(~ vegdist(t(.x), method = "bray", na.rm = TRUE),
@@ -223,27 +215,25 @@ distance_matrices <- hell_matrices %>%
 
 
 core_asv_pcoa <- wcmdscale(core_asv_dist,
-          k = 2,
-          eig = TRUE,
-          add = FALSE,
-          x.ret = FALSE
+  k = 2,
+  eig = TRUE,
+  add = FALSE,
+  x.ret = FALSE
 )
 
 # Extract PCoA scores and add metadata
 core_pcoa_df <- data.frame(
-    Dim1 = core_asv_pcoa$points[, 1],    # First PCoA axis
-    Dim2 = core_asv_pcoa$points[, 2],    # Second PCoA axis
-    brc = factor(core_brc_phyloseq@sam_data$brc),  # Convert 'brc' to a factor
-    crop = factor(core_brc_phyloseq@sam_data$crop)
+  Dim1 = core_asv_pcoa$points[, 1], # First PCoA axis
+  Dim2 = core_asv_pcoa$points[, 2], # Second PCoA axis
+  brc = factor(core_brc_phyloseq@sam_data$brc), # Convert 'brc' to a factor
+  crop = factor(core_brc_phyloseq@sam_data$crop)
 )
 
 
 core_pcoa_gg <- ggplot(data = core_pcoa_df, aes(x = Dim1, y = Dim2, color = brc)) +
-    geom_point() +
-    theme_bw() +
-    labs(color = "BRC") +
+  geom_point() +
+  theme_bw() +
+  labs(color = "BRC") +
   ggtitle("PCoA: 50 core ASVs in BRC crops",
-  subtitle = "Core that contributes 2% to Bray-Curtis"
-)
-
-
+    subtitle = "Core that contributes 2% to Bray-Curtis"
+  )
