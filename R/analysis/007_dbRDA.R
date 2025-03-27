@@ -138,23 +138,26 @@ dbrda_02 <- dbrda(t(hell_matrix) ~ drought + block + harvest,
 
 # Visualizations
 # Core
-core_dbrda_gg <- brc_flex_ordi(dbrda_02, dbrda_traits, 
-    color_var = "treatment", 
-    sample_id_col = "sample_id") %>%
-    + ggtitle(str_glue("{BRC}: Bray-Curtis Core"))
+core_dbrda_gg <- brc_flex_ordi(dbrda_02, dbrda_traits,
+  color_var = "treatment",
+  sample_id_col = "sample_id"
+) %>%
+  +ggtitle(str_glue("{BRC}: Bray-Curtis Core"))
 
-nocore_dbrda_gg <- brc_flex_ordi(dbrda_02, dbrda_traits, 
-    color_var = "treatment", 
-    sample_id_col = "sample_id") %>%
-    + ggtitle(str_glue("{BRC}: Bray-Curtis Non-Core "))
+nocore_dbrda_gg <- brc_flex_ordi(dbrda_02, dbrda_traits,
+  color_var = "treatment",
+  sample_id_col = "sample_id"
+) %>%
+  +ggtitle(str_glue("{BRC}: Bray-Curtis Non-Core "))
 
-save_gg <- list(str_glue("{BRC}_{CORE}_dbrda") = core_dbrda_gg,
-  str_glue("{BRC}_{NOCORE}_dbrda") = nocore_dbrda_gg
-)
+# Save ggplots
+
+save_gg <- list(core_dbrda_gg, nocore_dbrda_gg) %>%
+  purrr::set_names(
+    stringr::str_glue("{BRC}_{c(CORE, NOCORE)}_dbrda")
+  )
 
 brc_ggsave(save_gg, "data/output/plots/")
-
-
 
 ###############################################
 ### Core and Non-Core selected by threshold ###
