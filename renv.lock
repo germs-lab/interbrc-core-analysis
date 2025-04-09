@@ -55,12 +55,12 @@
     },
     "BRCore": {
       "Package": "BRCore",
-      "Version": "0.0.0.9000",
+      "Version": "0.0.2",
       "Source": "GitHub",
-      "Title": "What the Package Does (One Line, Title Case)",
+      "Title": "Provides a Set of Tools to Process and Analyze Microbial Data from Bioenergy Research Centers",
       "Authors@R": "c( person(\"Bolívar\", \"Aponte Rolón\", , \"bolaponte@pm.me\", role = c(\"aut\", \"cre\"), comment = c(ORCID = \"0000-0002-2544-4551\")), person(\"Brandon\", \"Kristy\", role = c(\"aut\")), person(\"Gian\", \"Benucci\", role = c(\"aut\")), person(\"Adina\", \"Howe\", role = \"ctb\"), person(\"Jaejin\", \"Lee\", role = \"ctb\"), person(\"Phillip\", \"de Lorimier\", role = \"ctb\") )",
       "Description": "What the package does (one paragraph).",
-      "License": "`use_mit_license()`, `use_gpl3_license()` or friends to pick a license",
+      "License": "MIT + file LICENSE",
       "Encoding": "UTF-8",
       "Roxygen": "list(markdown = TRUE)",
       "RoxygenNote": "7.3.2",
@@ -87,19 +87,19 @@
         "tidyverse"
       ],
       "Config/testthat/edition": "3",
+      "Depends": [
+        "R (>= 4.4)"
+      ],
       "RemoteType": "github",
       "RemoteHost": "api.github.com",
       "RemoteRepo": "BRCore",
       "RemoteUsername": "germs-lab",
       "RemotePkgRef": "germs-lab/BRCore",
       "RemoteRef": "HEAD",
-      "RemoteSha": "51d757d2270ce48b0f6f3acf93ba35109a4c30d2",
+      "RemoteSha": "c0478c3fbb44f22102d5d472a300db81cd2ee718",
       "NeedsCompilation": "no",
       "Author": "Bolívar Aponte Rolón [aut, cre] (<https://orcid.org/0000-0002-2544-4551>), Brandon Kristy [aut], Gian Benucci [aut], Adina Howe [ctb], Jaejin Lee [ctb], Phillip de Lorimier [ctb]",
-      "Maintainer": "Bolívar Aponte Rolón <bolaponte@pm.me>",
-      "Depends": [
-        "R (>= 3.5.0)"
-      ]
+      "Maintainer": "Bolívar Aponte Rolón <bolaponte@pm.me>"
     },
     "Biobase": {
       "Package": "Biobase",
@@ -791,9 +791,9 @@
     },
     "Hmisc": {
       "Package": "Hmisc",
-      "Version": "5.2-2",
+      "Version": "5.2-3",
       "Source": "Repository",
-      "Date": "2025-01-10",
+      "Date": "2025-03-16",
       "Title": "Harrell Miscellaneous",
       "Authors@R": "c(person(given = \"Frank E\", family = \"Harrell Jr\", role = c(\"aut\", \"cre\"), email = \"fh@fharrell.com\", comment = c(ORCID = \"0000-0002-8271-5493\")), person(given = \"Charles\", family = \"Dupont\", role = \"ctb\", email = \"charles.dupont@vumc.org\", comment = \"contributed several functions and maintains latex functions\"))",
       "Maintainer": "Frank E Harrell Jr <fh@fharrell.com>",
@@ -4658,6 +4658,39 @@
       "Author": "Hadley Wickham [aut] (<https://orcid.org/0000-0003-4757-117X>), Winston Chang [aut] (<https://orcid.org/0000-0002-1576-2126>), Lionel Henry [aut], Thomas Lin Pedersen [aut, cre] (<https://orcid.org/0000-0002-5147-4711>), Kohske Takahashi [aut], Claus Wilke [aut] (<https://orcid.org/0000-0002-7470-9261>), Kara Woo [aut] (<https://orcid.org/0000-0002-5125-4188>), Hiroaki Yutani [aut] (<https://orcid.org/0000-0002-3385-7233>), Dewey Dunnington [aut] (<https://orcid.org/0000-0002-9415-4582>), Teun van den Brand [aut] (<https://orcid.org/0000-0002-9335-7468>), Posit, PBC [cph, fnd]",
       "Maintainer": "Thomas Lin Pedersen <thomas.pedersen@posit.co>",
       "Repository": "CRAN"
+    },
+    "ggsci": {
+      "Package": "ggsci",
+      "Version": "3.2.0",
+      "Source": "Repository",
+      "Type": "Package",
+      "Title": "Scientific Journal and Sci-Fi Themed Color Palettes for 'ggplot2'",
+      "Authors@R": "c( person(\"Nan\", \"Xiao\", email = \"me@nanx.me\", role = c(\"aut\", \"cre\"), comment = c(ORCID = \"0000-0002-0250-5673\")), person(\"Joshua\", \"Cook\", email = \"joshuacook0023@gmail.com\", role = \"ctb\"), person(\"Clara\", \"Jégousse\", email = \"cat3@hi.is\", role = \"ctb\"), person(\"Hui\", \"Chen\", email = \"huichen@zju.edu.cn\", role = \"ctb\"), person(\"Miaozhu\", \"Li\", email = \"miaozhu.li@duke.edu\", role = \"ctb\") )",
+      "Maintainer": "Nan Xiao <me@nanx.me>",
+      "Description": "A collection of 'ggplot2' color palettes inspired by plots in scientific journals, data visualization libraries, science fiction movies, and TV shows.",
+      "License": "GPL (>= 3)",
+      "URL": "https://nanx.me/ggsci/, https://github.com/nanxstats/ggsci",
+      "BugReports": "https://github.com/nanxstats/ggsci/issues",
+      "Depends": [
+        "R (>= 3.5.0)"
+      ],
+      "Imports": [
+        "ggplot2 (>= 2.0.0)",
+        "grDevices",
+        "scales"
+      ],
+      "Suggests": [
+        "gridExtra",
+        "knitr",
+        "ragg",
+        "rmarkdown"
+      ],
+      "VignetteBuilder": "knitr",
+      "Encoding": "UTF-8",
+      "RoxygenNote": "7.3.1",
+      "NeedsCompilation": "no",
+      "Author": "Nan Xiao [aut, cre] (<https://orcid.org/0000-0002-0250-5673>), Joshua Cook [ctb], Clara Jégousse [ctb], Hui Chen [ctb], Miaozhu Li [ctb]",
+      "Repository": "RSPM"
     },
     "gh": {
       "Package": "gh",
@@ -9139,9 +9172,9 @@
     },
     "stringi": {
       "Package": "stringi",
-      "Version": "1.8.4",
+      "Version": "1.8.7",
       "Source": "Repository",
-      "Date": "2024-05-06",
+      "Date": "2025-03-27",
       "Title": "Fast and Portable Character String Processing Facilities",
       "Description": "A collection of character string/text/natural language processing tools for pattern searching (e.g., with 'Java'-like regular expressions or the 'Unicode' collation algorithm), random string generation, case mapping, string transliteration, concatenation, sorting, padding, wrapping, Unicode normalisation, date-time formatting and parsing, and many more. They are fast, consistent, convenient, and - thanks to 'ICU' (International Components for Unicode) - portable across all locales and platforms. Documentation about 'stringi' is provided via its website at <https://stringi.gagolewski.com/> and the paper by Gagolewski (2022, <doi:10.18637/jss.v103.i02>).",
       "URL": "https://stringi.gagolewski.com/, https://github.com/gagolews/stringi, https://icu.unicode.org/",
@@ -9158,13 +9191,14 @@
       ],
       "Biarch": "TRUE",
       "License": "file LICENSE",
-      "Author": "Marek Gagolewski [aut, cre, cph] (<https://orcid.org/0000-0003-0637-6028>), Bartek Tartanus [ctb], and others (stringi source code); Unicode, Inc. and others (ICU4C source code, Unicode Character Database)",
-      "Maintainer": "Marek Gagolewski <marek@gagolewski.com>",
-      "RoxygenNote": "7.2.3",
+      "Authors@R": "c(person(given = \"Marek\", family = \"Gagolewski\", role = c(\"aut\", \"cre\", \"cph\"), email = \"marek@gagolewski.com\", comment = c(ORCID = \"0000-0003-0637-6028\")), person(given = \"Bartek\", family = \"Tartanus\", role = \"ctb\"), person(\"Unicode, Inc. and others\", role=\"ctb\", comment = \"ICU4C source code, Unicode Character Database\") )",
+      "RoxygenNote": "7.3.2",
       "Encoding": "UTF-8",
       "NeedsCompilation": "yes",
+      "Author": "Marek Gagolewski [aut, cre, cph] (<https://orcid.org/0000-0003-0637-6028>), Bartek Tartanus [ctb], Unicode, Inc. and others [ctb] (ICU4C source code, Unicode Character Database)",
+      "Maintainer": "Marek Gagolewski <marek@gagolewski.com>",
       "License_is_FOSS": "yes",
-      "Repository": "RSPM"
+      "Repository": "CRAN"
     },
     "stringr": {
       "Package": "stringr",
