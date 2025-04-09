@@ -5,6 +5,8 @@
 
 # Setup
 source("R/utils/000_setup.R")
+remove(phyloseq)
+
 
 ###################################################
 ### Microbiome Core Selection via ExtractCore() ###
@@ -20,7 +22,7 @@ filtered_phyloseq <- prune_samples(sample_sums(filtered_phyloseq) >= 100, filter
 # )
 
 # Extract the 'spatial' core microbiome across all sites. The 'Var' in the ExtractCore is 'site'.
-core_summary_lists <- ExtractCore(filtered_phyloseq,
+core_summary_lists <- extract_core(filtered_phyloseq,
   Var = "site",
   method = "increase",
   increase_value = 2
@@ -127,10 +129,10 @@ names(occ_abun)[names(occ_abun) == "otu"] <- "OTU_ID"
 # source community pool
 # meta <- core_summary_lists[[6]]
 
-# fitting model
-debugonce(sncm.fit)
-obs.np <- sncm.fit(spp, taxon, stats = FALSE, pool = NULL)
-sta.np <- sncm.fit(spp, taxon, stats = TRUE, pool = NULL)
+# Fitting model
+
+obs.np <- sncm.fit2(spp, taxon, stats = FALSE, pool = NULL)
+sta.np <- sncm.fit2(spp, taxon, stats = TRUE, pool = NULL)
 
 obs.np$fit_class <- "As predicted"
 obs.np[which(obs.np$freq < obs.np$pred.lwr), "fit_class"] <-
@@ -140,7 +142,7 @@ obs.np[which(obs.np$freq > obs.np$pred.upr), "fit_class"] <-
 obs.np[which(is.na(obs.np$freq)), "fit_class"] <- "NA"
 
 obs.np <- tibble::rownames_to_column(obs.np, "OTU_ID")
-as.data.frame(left_join(occ_abun, obs.np, by = "OTU_ID")) -> fit_table
+as.data.frame(dplyr::left_join(occ_abun, obs.np, by = "OTU_ID")) -> fit_table
 #
 sta.np$above.pred <-
   sum(obs.np$freq > (obs.np$pred.upr), na.rm = TRUE) / sta.np$Richness
@@ -148,6 +150,7 @@ sta.np$below.pred <-
   sum(obs.np$freq < (obs.np$pred.lwr), na.rm = TRUE) / sta.np$Richness
 fit_res <- as.data.frame(sta.np)
 rownames(fit_res) <- "Value"
+
 fit_res
 list_tab <- list(fit_res, fit_table)
 
@@ -157,26 +160,10 @@ obs1 <- obs1[!is.na(obs1$p), ]
 obs2 <- as.data.frame(list_tab[[1]])
 
 obs1 <- obs1 %>%
-  mutate(fill_fit_class = paste0(fill, ":", fit_class))
-
-obs1 <- obs1 %>%
-  mutate(across(
-    "fill_fit_class",
-    str_replace,
-    "no:Below prediction",
-    "Non Core Taxa"
-  )) %>%
-  mutate(across(
-    "fill_fit_class",
-    str_replace,
-    "no:Above prediction",
-    "Non Core Taxa"
-  )) %>%
-  mutate(across(
-    "fill_fit_class",
-    str_replace,
-    "no:As predicted",
-    "Non Core Taxa"
+  mutate(fill_fit_class = paste0(fill, ":", fit_class)) %>%
+  mutate(fill_fit_class = case_when(
+    str_detect(fill, "no") ~ "Non Core Taxa",
+    TRUE ~ fill_fit_class
   ))
 
 
@@ -260,6 +247,7 @@ obs1 %>%
 core_table <- obs1 %>%
   filter(fill == "core") %>%
   select(OTU_ID, family, genus, fit_class)
+
 core_table
 
 

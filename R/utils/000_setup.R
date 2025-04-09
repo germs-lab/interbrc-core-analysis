@@ -9,7 +9,7 @@ pacman::p_load(
   phyloseq,
   vegan,
   tidyverse,
-  # ggsci,
+  ggsci,
   # ggpubr,
   # hillR,
   # microViz,
