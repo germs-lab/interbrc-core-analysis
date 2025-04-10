@@ -243,7 +243,7 @@ subset_physeq <- function(core_obj, physeq, .var, type) {
 
 
 brc_ggsave <- function(objects, save_path) {
-  ggnames <- c(names(test))
+  ggnames <- c(names(objects))
 
 
   plot_paths <- str_glue("{save_path}{tolower(ggnames)}.png")

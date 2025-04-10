@@ -8,7 +8,7 @@ remove(phyloseq)
 
 
 #####################################
-### Filtering for BRS of interest ###
+### Filtering for BRC of interest ###
 #####################################
 ###############
 # Parameters
@@ -52,7 +52,7 @@ name_object <- function(brc, physeq, type) {
 
 # Save phyloseqs
 name_object(brc = BRC, physeq = physeq, type = "core") %>%
-  saveRDS(., file = stringr::str_glue("data/output/phyloseq_objects/{BRC}_{CORE}_phyloseq.rda"))
+  saveRDS(., file = stringr::str_glue("data/output/phyloseq_objects/{BRC}_{CORE}_phyloseq.rda")) # For some reason saving like this result sin magic number X
 
 name_object(brc = BRC, physeq = physeq, type = "nocore") %>%
   saveRDS(., file = stringr::str_glue("data/output/phyloseq_objects/{BRC}_{NOCORE}_phyloseq.rda"))
@@ -70,7 +70,7 @@ dbrda_traits <- braycore_summary$sample_metadata %>%
 
 
 # dbRDA Modelling
-dbrda_00 <- dbrda(t(hell_matrix) ~ 1,
+dbrda_00_core <- dbrda(t(hell_matrix) ~ 1,
   distance = "bray",
   dfun = vegdist,
   data = dbrda_traits,
@@ -78,7 +78,7 @@ dbrda_00 <- dbrda(t(hell_matrix) ~ 1,
   na.action = na.omit
 )
 
-dbrda_01 <- dbrda(t(hell_matrix) ~ .,
+dbrda_01_core <- dbrda(t(hell_matrix) ~ .,
   distance = "bray",
   dfun = vegdist,
   data = dbrda_traits,
@@ -86,7 +86,7 @@ dbrda_01 <- dbrda(t(hell_matrix) ~ .,
   na.action = na.omit
 ) # Model with all explanatory variables.
 
-dbrda_02 <- dbrda(t(hell_matrix) ~ drought + block + harvest,
+dbrda_02_core <- dbrda(t(hell_matrix) ~ drought + block + harvest,
   distance = "bray",
   dfun = vegdist,
   data = dbrda_traits,
@@ -96,9 +96,9 @@ dbrda_02 <- dbrda(t(hell_matrix) ~ drought + block + harvest,
 
 # Anovas (PERMANOVAs)
 set.seed(123)
-anova.cca(dbrda_02, by = "margin", permutations = 999, parallel = 8) # .cca adds Distance based CCA functionality
-anova(dbrda_02, by = "axis")
-anova(dbrda_02, by = "axis", perm.max = 500)
+anova.cca(dbrda_02_nocore, by = "margin", permutations = 999, parallel = 8) # .cca adds Distance based CCA functionality
+anova(dbrda_02_core, by = "axis")
+anova(dbrda_02_core, by = "axis", perm.max = 500)
 
 
 ### BC Non-Core
@@ -112,7 +112,7 @@ dbrda_traits <- braycore_summary$sample_metadata %>%
 
 
 # dbRDA Modelling
-dbrda_00 <- dbrda(t(hell_matrix) ~ 1,
+dbrda_00_nocore <- dbrda(t(hell_matrix) ~ 1,
   distance = "bray",
   dfun = vegdist,
   data = dbrda_traits,
@@ -120,7 +120,7 @@ dbrda_00 <- dbrda(t(hell_matrix) ~ 1,
   na.action = na.omit
 )
 
-dbrda_01 <- dbrda(t(hell_matrix) ~ .,
+dbrda_01_nocore <- dbrda(t(hell_matrix) ~ .,
   distance = "bray",
   dfun = vegdist,
   data = dbrda_traits,
@@ -128,7 +128,7 @@ dbrda_01 <- dbrda(t(hell_matrix) ~ .,
   na.action = na.omit
 ) # Model with all explanatory variables.
 
-dbrda_02 <- dbrda(t(hell_matrix) ~ drought + block + harvest,
+dbrda_02_nocore <- dbrda(t(hell_matrix) ~ drought + block + harvest,
   distance = "bray",
   dfun = vegdist,
   data = dbrda_traits,
@@ -136,15 +136,17 @@ dbrda_02 <- dbrda(t(hell_matrix) ~ drought + block + harvest,
   na.action = na.omit
 )
 
-# Visualizations
-# Core
-core_dbrda_gg <- brc_flex_ordi(dbrda_02, dbrda_traits,
+######################
+### Visualizations ###
+######################
+
+core_dbrda_gg <- brc_flex_ordi(dbrda_02_core, dbrda_traits,
   color_var = "treatment",
   sample_id_col = "sample_id"
 ) %>%
   +ggtitle(str_glue("{BRC}: Bray-Curtis Core"))
 
-nocore_dbrda_gg <- brc_flex_ordi(dbrda_02, dbrda_traits,
+nocore_dbrda_gg <- brc_flex_ordi(dbrda_02_nocore, dbrda_traits,
   color_var = "treatment",
   sample_id_col = "sample_id"
 ) %>%
