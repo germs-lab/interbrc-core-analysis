@@ -29,7 +29,10 @@ non_core_asv_strings <- core_summary_lists[[4]] %>%
 
 ## Remove samples where row sum 0 through extract_matrix()
 core_asv_matrix <- extract_matrix(filtered_phyloseq, .vec = core_asv_strings) # Useful for manual ordinations
-non_core_asv_matrix <- extract_matrix(filtered_phyloseq, .vec = non_core_asv_strings)
+non_core_asv_matrix <- extract_matrix(
+  filtered_phyloseq,
+  .vec = non_core_asv_strings
+)
 
 ## Sample names and data
 core_sample_strings <- rownames(core_asv_matrix)
@@ -59,8 +62,14 @@ non_core_brc_phyloseq <- prune_samples(
 rownames(core_brc_phyloseq@otu_table) %in% non_core_asv_strings # Should return FALSE for all 50 ASVs
 
 # Save phyloseqs
-save(core_brc_phyloseq, file = "data/output/phyloseq_objects/core_brc_phyloseq.rda")
-save(non_core_brc_phyloseq, file = "data/output/phyloseq_objects/non_core_brc_phyloseq.rda")
+save(
+  core_brc_phyloseq,
+  file = "data/output/phyloseq_objects/core_brc_phyloseq.rda"
+)
+save(
+  non_core_brc_phyloseq,
+  file = "data/output/phyloseq_objects/non_core_brc_phyloseq.rda"
+)
 
 # Creating Core and non_core Fasta files
 ## Subsetting fasta based on `subset.fasta` function from
