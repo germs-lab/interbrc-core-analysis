@@ -1,4 +1,4 @@
-gg_bc_curve <- function(
+brc_bc_curve <- function(
   core_summary_list,
   max_otus = 100,
   threshold = 1.02
