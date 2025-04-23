@@ -15,7 +15,9 @@ extract_matrix <- function(physeq, .vec, keep_rows_sums = 0) {
     cli::cli_alert_info("Detected a 'phyloseq' object. Input object is valid!")
     physeq <- otu_table(physeq)
   } else {
-    cli::cli_alert_info("Detected a 'matrix' object. Proceeding with the input matrix.")
+    cli::cli_alert_info(
+      "Detected a 'matrix' object. Proceeding with the input matrix."
+    )
   }
 
   if (!inherits(physeq, "matrix")) {
@@ -38,7 +40,6 @@ extract_matrix <- function(physeq, .vec, keep_rows_sums = 0) {
 }
 
 
-
 # Borrowed subset.fasta from https://github.com/GuillemSalazar/FastaUtils/blob/master/R/FastaUtils_functions.R
 
 #' Select a subset of sequences from a fasta file
@@ -53,10 +54,15 @@ extract_matrix <- function(physeq, .vec, keep_rows_sums = 0) {
 #' @author Guillem Salazar <salazar@@icm.csic.es>
 #' @examples
 #' subset.fasta(file = "http://greengenes.lbl.gov/Data/JD_Tutorial/UnAligSeq24606.txt", subset = c("24.6jsd1.Tut", "24.6jsd2.Tut ", "24.6jsd3.Tut "), out = "out.fasta")
-subset_fasta <- function(file = NULL, subset = NULL, out = paste(file, ".subset", sep = "")) {
+subset_fasta <- function(
+  file = NULL,
+  subset = NULL,
+  out = paste(file, ".subset", sep = "")
+) {
   library(Biostrings)
   sequences <- readDNAStringSet(file)
-  if (all(as.character(subset) %in% names(sequences)) == FALSE) stop("There are names in 'subset' not present in the fasta file")
+  if (all(as.character(subset) %in% names(sequences)) == FALSE)
+    stop("There are names in 'subset' not present in the fasta file")
   pos <- match(as.character(subset), names(sequences))
   writeXStringSet(sequences[pos], filepath = out)
 }
@@ -66,14 +72,19 @@ subset_fasta <- function(file = NULL, subset = NULL, out = paste(file, ".subset"
 nmds_screen_parallel <- function(x, ncores = parallel::detectCores() - 1) {
   # Function to calculate stress for a given number of dimensions
   calculate_stress <- function(k) {
-    replicate(10, metaMDS(x, autotransform = FALSE, k = k, maxit = 100, trymax = 10)$stress)
+    replicate(
+      10,
+      metaMDS(x, autotransform = FALSE, k = k, maxit = 100, trymax = 10)$stress
+    )
   }
 
   # Use mclapply to parallelize the stress calculation
   stress_values <- parallel::mclapply(1:10, calculate_stress, mc.cores = ncores)
 
   # Plot the results
-  plot(rep(1, 10), stress_values[[1]],
+  plot(
+    rep(1, 10),
+    stress_values[[1]],
     xlim = c(1, 10),
     ylim = c(0, 0.30),
     xlab = "# of Dimensions",
@@ -154,109 +165,4 @@ gg_ordi <- function(.data, .color, ordi, .drop_na = NULL) {
     )
 
   return(final_plot)
-}
-
-
-#' Subset phyloseq object based on core analysis results
-#'
-#' Filters a phyloseq object to retain only samples and taxa identified in a core microbiome analysis
-#' using `extract_core()`.
-#' Returns both the subsetted phyloseq object and corresponding ASV matrix.
-#'
-#' @param core_obj A list object containing core microbiome analysis results.
-#'        Expected to contain a dataframe at position [[4]] with OTU information.
-#' @param physeq A phyloseq object to be subsetted.
-#' @param .var Character string specifying the column name in `core_obj[[4]]`
-#'        containing sample/group identifiers to filter by.
-#' @param type Value to filter by in the 'fill' column of `core_obj[[4]]`.
-#'        Determines which OTUs are retained.
-#'
-#' @return A list containing two elements:
-#' \itemize{
-#'   \item \code{expected_physeq} - Subsetted phyloseq object
-#'   \item \code{asv_matrix} - Corresponding ASV abundance matrix
-#' }
-#'
-#' @details
-#' This function performs the following operations:
-#' \enumerate{
-#'   \item Extracts OTUs of interest from the core analysis object based on the specified type
-#'   \item Filters the phyloseq object to retain only these OTUs and samples where they appear
-#'   \item Verifies the filtering was successful
-#'   \item Returns both the subsetted phyloseq object and ASV matrix
-#' }
-#'
-#' The function uses \code{prune_samples} and \code{prune_taxa} to safely subset the phyloseq object
-#' while preserving all associated data (sample data, taxonomy table, etc.). The ASV matrix is
-#' processed to remove samples with zero row sums.
-#'
-#' @examples
-#' \dontrun{
-#' # Subset for "persistent" core OTUs
-#' result <- subset_physeq(
-#'   core_obj = my_core_results,
-#'   physeq = my_phyloseq,
-#'   .var = "body_site",
-#'   type = "persistent"
-#' )
-#'
-#' # Access results
-#' subset_physeq <- result$expected_physeq
-#' asv_matrix <- result$asv_matrix
-#' }
-#'
-#' @import phyloseq
-#' @import dplyr
-#' @import tibble
-#' @import cli
-#' @export
-subset_physeq <- function(core_obj, physeq, .var, type) {
-  asv_matrix <-
-    core_obj[[4]] %>% # Get strings from all OTUs
-    dplyr::filter(., .$fill == type) %>%
-    tibble::column_to_rownames(., var = .var) %>%
-    rownames() %>%
-    extract_matrix(physeq, .vec = .) # Remove samples where row sum 0 through extract_matrix()
-
-  sample_strings <- rownames(asv_matrix)
-
-  ## Phyloseqs
-  expected_physeq <- phyloseq::prune_samples(
-    sort(phyloseq::sample_names(physeq)) %in% sort(sample_strings),
-    physeq
-  ) %>%
-    phyloseq::prune_taxa(rownames(.@otu_table) %in% colnames(asv_matrix), .)
-
-  ## Checking that core is filtered out
-  if (any(rownames(expected_physeq@otu_table) %in% colnames(asv_matrix))) {
-    cli::cli_alert_info("Successfully selected ASVs of interest")
-  }
-
-  return(
-    list(
-      expected_physeq = expected_physeq,
-      asv_matrix = asv_matrix
-    )
-  )
-}
-
-
-
-brc_ggsave <- function(objects, save_path) {
-  ggnames <- c(names(objects))
-
-
-  plot_paths <- str_glue("{save_path}{tolower(ggnames)}.png")
-
-  purrr::walk2(
-    plot_paths, objects,
-    \(path, plot) ggsave(
-      filename = path,
-      plot = plot,
-      dpi = 300,
-      width = 200,
-      height = 200,
-      units = "mm"
-    )
-  )
 }

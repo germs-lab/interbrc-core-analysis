@@ -5,8 +5,8 @@ brc_report() {
     local BRC="$1"
     
     # Render the Quarto document
-    quarto render brc_report.qmd \
-        -P $BRC \
+quarto render brc_report.qmd \
+        --execute-param BRC=$BRC \
         --to html \
         --output "${BRC}.html"
     

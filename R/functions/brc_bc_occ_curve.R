@@ -1,4 +1,4 @@
-gg_bc_occ_curve <- function(
+brc_bc_occ_curve <- function(
   core_summary_list,
   point_size = 2.5,
   point_alpha = 1,

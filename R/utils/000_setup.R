@@ -9,6 +9,7 @@ pacman::p_load(
   phyloseq,
   vegan,
   tidyverse,
+  janitor,
   ggsci,
   # ggpubr,
   # hillR,
@@ -22,11 +23,12 @@ pacman::p_load(
 )
 
 ## List files and source each
-# list.files("R/functions/", full.names = TRUE) %>%
-#   purrr::map(source)
+list.files(here::here("R/functions"), pattern = "brc_", full.names = TRUE) %>%
+  purrr::map(source)
 
 # Objects
-list.files("data/output",
+list.files(
+  here::here("data/output"),
   full.names = TRUE,
   recursive = TRUE,
   pattern = "\\.rda$"

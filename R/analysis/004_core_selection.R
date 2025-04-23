@@ -2,7 +2,6 @@
 ## This was part of the `core_microbiome_functions.R` by Brandon Kristy.
 ## Split by Bolívar Aponte Rolón 2025-02-20
 
-
 # Setup
 source("R/utils/000_setup.R")
 remove(phyloseq)
@@ -13,7 +12,10 @@ remove(phyloseq)
 ###################################################
 
 # Check OTU table
-filtered_phyloseq <- prune_samples(sample_sums(filtered_phyloseq) >= 100, filtered_phyloseq)
+filtered_phyloseq <- prune_samples(
+  sample_sums(filtered_phyloseq) >= 100,
+  filtered_phyloseq
+)
 
 # Remove major outliers determined by Bray-Curtis beta diversity analysis
 # filtered_phyloseq <- subset_samples(
@@ -22,7 +24,8 @@ filtered_phyloseq <- prune_samples(sample_sums(filtered_phyloseq) >= 100, filter
 # )
 
 # Extract the 'spatial' core microbiome across all sites. The 'Var' in the ExtractCore is 'site'.
-core_summary_lists <- extract_core(filtered_phyloseq,
+core_summary_lists <- extract_core(
+  filtered_phyloseq,
   Var = "site",
   method = "increase",
   increase_value = 2
@@ -31,92 +34,20 @@ core_summary_lists <- extract_core(filtered_phyloseq,
 # Save, since it takes a long time.
 # save(core_summary_lists, file = "data/output/core_summary_lists.rda")
 
-
 # Plot Bray-Curtis Dissimilarity Curve:
-max <- 100 # Number of ranked-OTUs to plot
+bray_curtis_curve <- brc_bc_curve(core_summary_list = core_summary_lists)
+occ_abun_plot <- brc_bc_occ_curve(core_summary_list = core_summary_lists)
 
-BC_ranked <- core_summary_lists[[2]] %>%
-  dplyr::mutate(., rank = factor(.$rank, levels = .$rank)) %>%
-  drop_na()
-
-BC_ranked_max <- BC_ranked[1:max, ]
-
-
-BC_ranked_max %>%
-  ggplot(aes(x = rank[1:max], y = proportionBC)) +
-  geom_point(
-    pch = 21,
-    col = "black",
-    alpha = 0.85,
-    size = 3.5
-  ) +
-  geom_vline(
-    xintercept = last(as.numeric(BC_ranked$rank[(BC_ranked$IncreaseBC >= 1.02)])),
-    lty = 4,
-    col = "darkred",
-    cex = 0.5
-  ) +
-  scale_x_discrete(
-    limits = BC_ranked$rank[1:max], # making the x axis more readable
-    breaks = BC_ranked$rank[1:max][seq(1, length(BC_ranked$rank[1:max]),
-      by =
-        10
-    )]
-  ) +
-  xlab("Ranked OTUs") +
-  ylab("Contribution to Bray-Curtis Similarity") +
-  annotate(
-    geom = "text",
-    x = last(as.numeric(BC_ranked$rank[(BC_ranked$IncreaseBC >= 1.02)])),
-    y = 0.18,
-    label = paste("Last 2% increase\n(", last(as.numeric(BC_ranked$rank[(BC_ranked$IncreaseBC >=
-      1.02)])), " OTUs)", sep = ""),
-    color = "darkred",
-    size = 4,
-  ) +
-  theme_bw() +
-  theme(
-    axis.title.x = element_text(size = 14),
-    title = element_text(size = 14),
-    axis.title.y = element_text(size = 14),
-    strip.text.x = element_text(size = 10),
-    strip.text.y = element_text(size = 14),
-    axis.text.x = element_text(size = 10, color = "black"),
-    axis.text.y = element_text(size = 12, color = "black"),
-    legend.text = element_text(size = 12),
-    legend.title = element_text(size = 14),
-    plot.margin = unit(c(.5, 1, .5, .5), "cm")
-  )
-
-# Plot Abundance Occupancy curve
-occ_abun_plot <- core_summary_lists[[4]] %>%
-  ggplot(aes(
-    x = log10(otu_rel),
-    y = otu_occ,
-    fill = fill
-  )) +
-  # scale_fill_npg(
-  #   name = "Core Membership",
-  #   labels = c("Core Taxa", "Non Core Taxa")
-  # ) +
-  geom_point(pch = 21, alpha = 1, size = 2.5) +
-  labs(x = "log10(Mean Relative Abundance)", y = "Occupancy") +
-  theme_bw() +
-  theme(
-    axis.title.x = element_text(size = 12),
-    title = element_text(size = 12),
-    axis.title.y = element_text(size = 12),
-    strip.text.x = element_text(size = 8),
-    strip.text.y = element_text(size = 12),
-    axis.text.x = element_text(size = 10, color = "black"),
-    axis.text.y = element_text(size = 10, color = "black"),
-    legend.text = element_text(size = 8),
-    legend.title = element_text(size = 8),
-    plot.margin = unit(c(.5, 1, .5, .5), "cm")
-  )
 occ_abun_plot
 
-ggsave(filename = "abundance_occupancy.png", occ_abun_plot, path = "data/output/plots/", dpi = 300, width = 6, height = 4)
+ggsave(
+  filename = "abundance_occupancy.png",
+  occ_abun_plot,
+  path = "data/output/plots/",
+  dpi = 300,
+  width = 6,
+  height = 4
+)
 
 
 # Fit Abundance-Occupancy Distribution to a Neutral Model
@@ -161,10 +92,12 @@ obs2 <- as.data.frame(list_tab[[1]])
 
 obs1 <- obs1 %>%
   mutate(fill_fit_class = paste0(fill, ":", fit_class)) %>%
-  mutate(fill_fit_class = case_when(
-    str_detect(fill, "no") ~ "Non Core Taxa",
-    TRUE ~ fill_fit_class
-  ))
+  mutate(
+    fill_fit_class = case_when(
+      str_detect(fill, "no") ~ "Non Core Taxa",
+      TRUE ~ fill_fit_class
+    )
+  )
 
 
 obs1 %>%
@@ -259,6 +192,13 @@ core_table
 # you might have to play with nrow()/ncol() and rowSums/colSums()
 
 # Load phyloseq object
-core_asvs_threshold <- filter_core(filtered_phyloseq, threshold = 0.6, as = "rows")
+core_asvs_threshold <- filter_core(
+  filtered_phyloseq,
+  threshold = 0.6,
+  as = "rows"
+)
 
-save(core_asvs_threshold, file = "data/output/phyloseq_objects/core_asvs_threshold.rda")
+save(
+  core_asvs_threshold,
+  file = "data/output/phyloseq_objects/core_asvs_threshold.rda"
+)
