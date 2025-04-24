@@ -4,9 +4,13 @@ brc_bc_curve <- function(
   threshold = 1.02
 ) {
   # Extract Bray-Curtis ranked data from the list
-  BC_ranked <- core_summary_list[[2]] %>%
-    dplyr::mutate(rank = factor(rank, levels = rank)) %>%
-    tidyr::drop_na()
+  # BC_ranked <- core_summary_list[[2]] %>%
+  #   dplyr::mutate(rank = factor(rank, levels = rank)) %>%
+  #   tidyr::drop_na()
+
+  BC_ranked <- core_summary_list[[2]]
+  BC_ranked$rank <- factor(BC_ranked$rank, levels = BC_ranked$rank)
+  BC_ranked <- drop_na(BC_ranked)
 
   # Subset to max OTUs
   BC_ranked_max <- BC_ranked[1:max_otus, ]
@@ -46,7 +50,7 @@ brc_bc_curve <- function(
       x = last_otu,
       y = 0.18,
       label = paste(
-        "Last",
+        "Last ",
         (threshold - 1) * 100,
         "% increase\n(",
         last_otu,
