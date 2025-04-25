@@ -6,7 +6,7 @@ if (exists("phyloseq")) remove(phyloseq)
 
 
 ###################################################
-### Microbiome Core Selection via ExtractCore() ###
+### Microbiome Core Selection via extract_core() ###
 ###################################################
 
 # Data set clean up
@@ -25,8 +25,8 @@ new_metadata <- drought_jbei %>%
 
 # Update phyloseq object
 sample_data(drought_jbei) <- new_metadata
-str(new_metadata)
-str(sample_data(filtered_phyloseq))
+
+# save(drought_jbei, file = "data/output/phyloseq_objects/jbei/drought_jbei.rda")
 
 # Check OTU table
 drought_jbei <- prune_samples(
