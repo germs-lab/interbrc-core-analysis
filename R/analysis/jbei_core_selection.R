@@ -9,7 +9,7 @@ if (exists("phyloseq")) remove(phyloseq)
 ### Microbiome Core Selection via extract_core() ###
 ###################################################
 
-# Data set clean up
+# Data set clean upp
 
 new_metadata <- drought_jbei %>%
   sample_data() %>%
