@@ -1,7 +1,7 @@
 # Model fitting
 
 # NEUTRAL MODEL FUNCTION: This function fits the extracted core OTU table from ExtractCore to a neutral model, identifying taxa that are above or below the fitted model predictions. This provides insights into potential taxa that may be deterministically selected by the plant host.
-sncm.fit <- function(spp, pool = NULL, stats = TRUE, taxon = NULL) {
+sncm.fit2 <- function(spp, pool = NULL, stats = TRUE, taxon = NULL) {
   # Calculate the number of individuals per community
   N <- mean(apply(spp, 1, sum))
 
@@ -59,11 +59,45 @@ sncm.fit <- function(spp, pool = NULL, stats = TRUE, taxon = NULL) {
 
   ## Calculate AIC for binomial model
   bino.LL <- function(mu, sigma) {
-    R <- freq - pbinom(d, N, p, lower.tail = FALSE)
-    R <- dnorm(R, mu, sigma)
-    -sum(log(R))
+    # 1. Calculate predicted probabilities with bounds
+    pred <- pbinom(d, N, p, lower.tail = FALSE)
+    pred <- pmax(pmin(pred, 1 - 1e-10), 1e-10) # Constrain to (0,1)
+
+    # 2. Calculate residuals safely
+    R <- freq - pred
+
+    # 3. Return high penalty for invalid values
+    if (any(!is.finite(R))) {
+      return(1e10)
+    }
+
+    # 4. Log-likelihood with bounds checking
+    ll <- dnorm(R, mu, abs(sigma), log = TRUE) # Ensure sigma > 0
+    if (any(!is.finite(ll))) {
+      return(1e10)
+    }
+
+    -sum(ll)
   }
-  bino.mle <- mle(bino.LL, start = list(mu = 0, sigma = 0.1), nobs = length(p))
+
+  # Modified MLE call with robust settings
+  bino.mle <- tryCatch(
+    {
+      mle(bino.LL,
+        start = list(mu = mean(freq), sigma = sd(freq)), # Better starting values
+        method = "L-BFGS-B", # Constrained optimization
+        lower = list(mu = -1, sigma = 1e-6), # sigma must be positive
+        upper = list(mu = 1, sigma = 2),
+        nobs = length(p),
+        control = list(maxit = 1000, factr = 1e7)
+      ) # Looser convergence
+    },
+    error = function(e) {
+      message("MLE failed: ", conditionMessage(e))
+      NULL
+    }
+  )
+
 
   aic.bino <- AIC(bino.mle, k = 2)
   bic.bino <- BIC(bino.mle)
@@ -77,11 +111,46 @@ sncm.fit <- function(spp, pool = NULL, stats = TRUE, taxon = NULL) {
 
   ## Calculate AIC for Poisson model
   pois.LL <- function(mu, sigma) {
-    R <- freq - ppois(d, N * p, lower.tail = FALSE)
-    R <- dnorm(R, mu, sigma)
-    -sum(log(R))
+    # 1. Calculate Poisson probabilities with bounds
+    lambda <- N * p
+    pred <- ppois(d, lambda, lower.tail = FALSE)
+    pred <- pmax(pmin(pred, 1 - 1e-10), 1e-10) # Constrain to (0,1)
+
+    # 2. Calculate residuals safely
+    R <- freq - pred
+
+    # 3. Return high penalty for invalid values
+    if (any(!is.finite(R)) || any(!is.finite(lambda))) {
+      return(1e10)
+    }
+
+    # 4. Log-likelihood with bounds checking
+    ll <- dnorm(R, mu, abs(sigma), log = TRUE) # Ensure sigma > 0
+    if (any(!is.finite(ll))) {
+      return(1e10)
+    }
+
+    -sum(ll)
   }
-  pois.mle <- mle(pois.LL, start = list(mu = 0, sigma = 0.1), nobs = length(p))
+
+  # Modified MLE call with robust settings
+  pois.mle <- tryCatch(
+    {
+      mle(pois.LL,
+        start = list(mu = mean(freq), sigma = sd(freq)), # Better starting values
+        method = "L-BFGS-B", # Constrained optimization
+        lower = list(mu = -1, sigma = 1e-6), # sigma must be positive
+        upper = list(mu = 1, sigma = 2),
+        nobs = length(p),
+        control = list(maxit = 1000, factr = 1e7)
+      ) # Looser convergence
+    },
+    error = function(e) {
+      message("Poisson MLE failed: ", conditionMessage(e))
+      NULL
+    }
+  )
+
 
   aic.pois <- AIC(pois.mle, k = 2)
   bic.pois <- BIC(pois.mle)

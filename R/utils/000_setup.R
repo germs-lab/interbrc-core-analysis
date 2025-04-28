@@ -1,32 +1,34 @@
 # Package and Environment setup
-if (!require("pacman"))
-    install.packages("pacman")
+if (!require("pacman")) {
+  install.packages("pacman")
+}
 
 pacman::p_load(
-    conflicted,
-    styler,
-    phyloseq,
-    vegan,
-    tidyverse,
-    ggsci,
-    ggpubr,
-    hillR,
-    microViz,
-    magrittr,
-    lazyeval,
-    minpack.lm,
-    Hmisc,
-    stats4,
-    metagMisc
+  conflicted,
+  styler,
+  phyloseq,
+  vegan,
+  tidyverse,
+  janitor,
+  ggsci,
+  # ggpubr,
+  # hillR,
+  # microViz,
+  minpack.lm,
+  Hmisc,
+  stats4,
+  metagMisc,
+  BRCore,
+  furrr
 )
 
-# Scripts
 ## List files and source each
-list.files("R/functions/", full.names = TRUE) %>%
+list.files(here::here("R/functions"), pattern = "brc_", full.names = TRUE) %>%
   purrr::map(source)
 
 # Objects
-list.files("data/output",
+list.files(
+  here::here("data/output"),
   full.names = TRUE,
   recursive = TRUE,
   pattern = "\\.rda$"

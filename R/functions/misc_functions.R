@@ -15,7 +15,9 @@ extract_matrix <- function(physeq, .vec, keep_rows_sums = 0) {
     cli::cli_alert_info("Detected a 'phyloseq' object. Input object is valid!")
     physeq <- otu_table(physeq)
   } else {
-    cli::cli_alert_info("Detected a 'matrix' object. Proceeding with the input matrix.")
+    cli::cli_alert_info(
+      "Detected a 'matrix' object. Proceeding with the input matrix."
+    )
   }
 
   if (!inherits(physeq, "matrix")) {
@@ -38,7 +40,6 @@ extract_matrix <- function(physeq, .vec, keep_rows_sums = 0) {
 }
 
 
-
 # Borrowed subset.fasta from https://github.com/GuillemSalazar/FastaUtils/blob/master/R/FastaUtils_functions.R
 
 #' Select a subset of sequences from a fasta file
@@ -53,10 +54,15 @@ extract_matrix <- function(physeq, .vec, keep_rows_sums = 0) {
 #' @author Guillem Salazar <salazar@@icm.csic.es>
 #' @examples
 #' subset.fasta(file = "http://greengenes.lbl.gov/Data/JD_Tutorial/UnAligSeq24606.txt", subset = c("24.6jsd1.Tut", "24.6jsd2.Tut ", "24.6jsd3.Tut "), out = "out.fasta")
-subset_fasta <- function(file = NULL, subset = NULL, out = paste(file, ".subset", sep = "")) {
+subset_fasta <- function(
+  file = NULL,
+  subset = NULL,
+  out = paste(file, ".subset", sep = "")
+) {
   library(Biostrings)
   sequences <- readDNAStringSet(file)
-  if (all(as.character(subset) %in% names(sequences)) == FALSE) stop("There are names in 'subset' not present in the fasta file")
+  if (all(as.character(subset) %in% names(sequences)) == FALSE)
+    stop("There are names in 'subset' not present in the fasta file")
   pos <- match(as.character(subset), names(sequences))
   writeXStringSet(sequences[pos], filepath = out)
 }
@@ -66,14 +72,19 @@ subset_fasta <- function(file = NULL, subset = NULL, out = paste(file, ".subset"
 nmds_screen_parallel <- function(x, ncores = parallel::detectCores() - 1) {
   # Function to calculate stress for a given number of dimensions
   calculate_stress <- function(k) {
-    replicate(10, metaMDS(x, autotransform = FALSE, k = k, maxit = 100, trymax = 10)$stress)
+    replicate(
+      10,
+      metaMDS(x, autotransform = FALSE, k = k, maxit = 100, trymax = 10)$stress
+    )
   }
 
   # Use mclapply to parallelize the stress calculation
   stress_values <- parallel::mclapply(1:10, calculate_stress, mc.cores = ncores)
 
   # Plot the results
-  plot(rep(1, 10), stress_values[[1]],
+  plot(
+    rep(1, 10),
+    stress_values[[1]],
     xlim = c(1, 10),
     ylim = c(0, 0.30),
     xlab = "# of Dimensions",
@@ -86,18 +97,31 @@ nmds_screen_parallel <- function(x, ncores = parallel::detectCores() - 1) {
   }
 }
 
-# Standard NMDS plots
-gg_nmds <- function(.data, .color, .shape = NULL, .drop_na) {
-  .color <- enquo(.color)
-  .drop_na <- enquo(.drop_na)
+# Standard Ordination plot
+gg_ordi <- function(.data, .color, ordi, .drop_na = NULL) {
+  # Input validation
+  if (!inherits(.data, "data.frame")) {
+    cli::cli_abort("{.arg .data} must be a data frame")
+  }
 
-  .data %>%
-    drop_na(!!.drop_na) %>%
-    ggplot(., aes(x = NMDS1, y = NMDS2)) +
-    geom_point(aes(color = !!.color, stroke = 1),
-      alpha = 0.5,
-      na.rm = TRUE
-    ) +
+  # Capture quosures safely
+  .color <- rlang::enquo(.color)
+  .drop_na <- rlang::enquo(.drop_na)
+
+  ORDIS <- c("NMDS", "PCoA")
+
+  ordi <- match.arg(ordi, ORDIS)
+
+  # Base ggplot elements
+  base_plot <- .data %>%
+    {
+      if (!rlang::quo_is_null(.drop_na)) {
+        tidyr::drop_na(., !!.drop_na)
+      } else {
+        .
+      }
+    } %>%
+    ggplot() +
     geom_hline(
       yintercept = 0,
       colour = "grey70",
@@ -112,18 +136,33 @@ gg_nmds <- function(.data, .color, .shape = NULL, .drop_na) {
     theme(
       legend.position = "right",
       legend.title = element_text()
+    )
+
+  # Add coordinates based on ordination type
+  if (ordi == "NMDS") {
+    base_plot <- base_plot +
+      aes(x = NMDS1, y = NMDS2)
+  } else if (ordi == "PCoA") {
+    base_plot <- base_plot +
+      aes(x = Dim1, y = Dim2)
+  }
+
+  # Add points and ellipses
+  final_plot <- base_plot +
+    geom_point(
+      aes(color = !!.color),
+      stroke = 1,
+      alpha = 0.5,
+      na.rm = TRUE
     ) +
     stat_ellipse(
       aes(color = !!.color),
       geom = "path",
       linewidth = 1.3,
-      position = "identity",
       type = "t",
-      linetype = 1,
       level = 0.95,
-      segments = 51,
-      na.rm = FALSE,
-      show.legend = NA,
-      inherit.aes = TRUE
+      show.legend = TRUE
     )
+
+  return(final_plot)
 }
