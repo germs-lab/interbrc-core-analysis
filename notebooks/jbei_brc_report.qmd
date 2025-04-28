@@ -160,32 +160,18 @@ jbei_phyloseq <- phyloseq::subset_samples(
   brc == "jbei"
 )
 
-# Core selection
-jbei_core_summary_lists <- extract_core(
+# Core selection and plots
+filtered_jbei_core <- core_select_pipeline(
   jbei_phyloseq,
-  Var = "site",
-  method = "increase",
-  increase_value = 2
+  .title = "JBEI Core Microbial Community ranked",
+  .subtitle = "Core that contributes 2% to Bray-Curtis (subset from All BRCs)"
 )
-
-# Plot Bray-Curtis Dissimilarity Curve:
-jbei_bc_curve <- brc_bc_curve(core_summary_list = jbei_core_summary_lists)
-jbei_occabun_plot <- brc_bc_occ_curve(
-  core_summary_list = jbei_core_summary_lists
-)
-
 
 # Print
-jbei_bc_curve +
-  ggtitle(
-    str_glue("JBEI Core Microbial Community ranked"),
-    subtitle = "Core that contributes 2% to Bray-Curtis (subset from All BRCs)"
-  )
-jbei_occabun_plot +
-  ggtitle(
-    str_glue("JBEI Core Microbial Occurance Curve"),
-    subtitle = "Core that contributes 2% to Bray-Curtis (subset from All BRCs)"
-  )
+filtered_jbei_core$bc_curve_threshold
+
+filtered_jbei_core$occupancy_plot
+
 ```
 
 Notice the odd pattern! Not a smotth curve. It should look like the previous plot. The data is structure the same way. 
@@ -225,39 +211,22 @@ drought_jbei_filtered_20 <- filter_phyloseq(
   min_asv_reads = 20
 )
 
-# Extract core
-jbei_yen_summary_lists_20 <- extract_core(
+# Core selection and plots
+jbei_yen_core_20 <- core_select_pipeline(
   drought_jbei_filtered_20,
-  Var = "treatment",
-  method = "increase",
-  increase_value = 2
-)
-
-# Plot Bray-Curtis Dissimilarity Curve:
-jbei_yen_bc_curve_20 <- brc_bc_curve(
-  core_summary_list = jbei_yen_summary_lists_20
-)
-
-jbei_yen_occ_plot_20 <- brc_bc_occ_curve(
-  core_summary_list = jbei_yen_summary_lists_20
+  .title = "JBEI-Yen's Core Microbial Community ranked",
+  .subtitle = "Core that contributes 2% to Bray-Curtis (Yen's drought data)"
 )
 
 # Print
-jbei_yen_bc_curve_20 +
-  ggtitle(
-    str_glue("JBEI-Yen's Core Microbial Community ranked"),
-    subtitle = "Core that contributes 2% to Bray-Curtis (Yen's drought data)"
-  )
-jbei_yen_occ_plot_20 +
-  ggtitle(
-    str_glue("JBEI-Yen's Core Microbial Occurance Curve"),
-    subtitle = "Core that contributes 2% to Bray-Curtis (Yen's drought data)"
-  )
+jbei_yen_core_20$bc_curve_threshold
+
+jbei_yen_core_20$occupancy_plot
 ```
 
 Looking at the data closely, Phillip and I noticed that there ar many repeated read counts at low levels <100 reads. For example, we saw many ASV that had only 21 reads. They also formed a diagonal pattern. Much like a comparison matrix.
 
-Does increasing the filering parameters help? Let's change the minimum ASV reads counts.
+Does increasing the filtering parameters help? Let's change the minimum ASV reads counts.
 
 ```{r}
 # Filter
@@ -267,34 +236,18 @@ drought_jbei_filtered_100 <- filter_phyloseq(
   min_asv_reads = 100
 )
 
-# Extract core
-jbei_yen_summary_lists_100 <- extract_core(
+## Core selection and plots
+jbei_yen_core_100 <- core_select_pipeline(
   drought_jbei_filtered_100,
-  Var = "treatment",
-  method = "increase",
-  increase_value = 2
-)
-
-# Plot Bray-Curtis Dissimilarity Curve:
-jbei_yen_bc_curve_100 <- brc_bc_curve(
-  core_summary_list = jbei_yen_summary_lists_100
-)
-
-jbei_yen_occ_plot_100 <- brc_bc_occ_curve(
-  core_summary_list = jbei_yen_summary_lists_100
+  .title = "JBEI-Yen's Core Microbial Community ranked",
+  .subtitle = "Core that contributes 2% to Bray-Curtis (>= 100 reads)"
 )
 
 # Print
-jbei_yen_bc_curve_100 +
-  ggtitle(
-    str_glue("JBEI-Yen's Core Microbial Community ranked"),
-    subtitle = "Core that contributes 2% to Bray-Curtis (>= 100 reads)"
-  )
-jbei_yen_occ_plot_100 +
-  ggtitle(
-    str_glue("JBEI-Yen's Core Microbial Occurance Curve"),
-    subtitle = "Core that contributes 2% to Bray-Curtis (>= 100 reads)"
-  )
+jbei_yen_core_100$bc_curve_threshold
+
+jbei_yen_core_100$occupancy_plot
+
 ```
 
 *The result is a phyloseq object with 473 ASVs and 16 samples.* We have about ~10 core ASVs.
@@ -349,3 +302,79 @@ These patterns strongly suggest:
 An ASV present with 21 reads in one sample contribution is proportionally greater. Bray-Curstis dissimilarity is sensitive to this. 
 
 
+## PERMANOVA (dbRDA)
+
+Code from Yen. Use `drought_JBEI.rds` with transformed sample counts (relative abundance)
+
+```{r}
+# import and compute bray-curtis distance
+ps_jbei <- readRDS("data/output/phyloseq_objects/jbei/drought_JBEI.rds")
+
+ps_rel <- transform_sample_counts(ps_jbei, function(x) x / sum(x))
+BC.dist <- vegan::vegdist(t(otu_table(ps_rel)), method = "bray")
+
+## permanova looking at harvest and treatment effect
+vegan::adonis2(
+  BC.dist ~ Harvest * Treatment,
+  data = data.frame(sample_data(ps_rel)),
+  nperm = 1000,
+  method = "bray",
+  by = "terms"
+)
+
+## remove harvest effect
+vegan::adonis2(
+  BC.dist ~ Treatment,
+  data = data.frame(sample_data(ps_rel)),
+  nperm = 1000,
+  method = "bray",
+  by = "terms",
+  strata = sample_data(ps_rel)$Harvest
+)
+```
+
+
+## Applying `adonis2 analysis to filtered datasets
+```{r}
+# Phyloseq objects to analyze
+ps_list <- list(
+  filtered_jbei = jbei_phyloseq,
+  filtered_20 = drought_jbei_filtered_20,
+  filtered_100 = drought_jbei_filtered_100
+)
+
+formulas <- list(
+  full_model = "harvest * treatment",
+  treatment_only = "treatment"
+)
+# Strata
+strata_vars <- list(
+  full_model = NULL,
+  treatment_only = "harvest"
+)
+
+# Replicating Yen's results
+run_adonis2_analysis(ps_jbei, formula = "Harvest * Treatment")
+
+run_adonis2_analysis(ps_jbei, formula = "Treatment", strata = "Harvest")
+```
+
+
+### PERMANOVA on filtered datasets
+
+```{r}
+results_all <- map(ps_list, function(ps) {
+  map(formulas, ~ run_adonis2_analysis(ps, formula = .x))
+})
+
+
+results_with_strata <- map(ps_list, function(ps) {
+  map2(formulas, strata_vars, function(form, strat) {
+    run_adonis2_analysis(ps, formula = form, strata = strat)
+  })
+})
+
+# # Access results
+results_all
+results_with_strata
+```
