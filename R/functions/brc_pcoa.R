@@ -1,15 +1,23 @@
-calculate_pcoa <- function(asv_matrix,
-                           physeq,
-                           ncores = parallel::detectCores(),
-                           k = 2,
-                           eig = TRUE,
-                           add = FALSE,
-                           x.ret = FALSE) {
+brc_pcoa <- function(
+  asv_matrix,
+  physeq,
+  ncores = parallel::detectCores(),
+  k = 2,
+  eig = TRUE,
+  add = FALSE,
+  x.ret = FALSE
+) {
   set.seed(54641)
 
   # Validate inputs
-  if (!is.matrix(asv_matrix) && !is.data.frame(asv_matrix) && !"dist" %in% class(asv_matrix)) {
-    cli::cli_abort("{.arg asv_matrix} must be a matrix, distance or data frame.")
+  if (
+    !is.matrix(asv_matrix) &&
+      !is.data.frame(asv_matrix) &&
+      !"dist" %in% class(asv_matrix)
+  ) {
+    cli::cli_abort(
+      "{.arg asv_matrix} must be a matrix, distance or data frame."
+    )
   }
 
   if (!inherits(physeq, "phyloseq")) {
@@ -21,12 +29,7 @@ calculate_pcoa <- function(asv_matrix,
   }
 
   # Perform PCoA
-  ordi <- wcmdscale(asv_matrix,
-    k = k,
-    eig = eig,
-    add = add,
-    x.ret = x.ret
-  )
+  ordi <- wcmdscale(asv_matrix, k = k, eig = eig, add = add, x.ret = x.ret)
 
   # Extract PCoA scores and add metadata
   pcoa_df <- data.frame(
