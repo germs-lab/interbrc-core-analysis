@@ -1,4 +1,4 @@
-run_adonis2_analysis <- function(
+adonis2_analysis <- function(
   ps_object,
   formula,
   strata = NULL,

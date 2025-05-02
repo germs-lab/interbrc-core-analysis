@@ -4,7 +4,7 @@
 
 # Setup
 source("R/utils/000_setup.R")
-remove(phyloseq)
+if (exists("phyloseq")) remove(phyloseq)
 
 #################################################
 ###### Ordinations and Community Analysis #######

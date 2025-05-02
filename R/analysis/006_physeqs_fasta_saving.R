@@ -4,6 +4,7 @@
 
 # Setup
 source("R/utils/000_setup.R")
+if (exists("phyloseq")) remove(phyloseq)
 
 #################################################
 ### Core and Non_Core objects and fasta files ###

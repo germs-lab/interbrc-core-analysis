@@ -1,11 +1,10 @@
 ## Inter-BRC Core Analysis
-## Core & non_core dbRDA for JBEI
+## Core & non_core dbRDA per BRC
 ## By Bolívar Aponte Rolón
 
 # Setup
 source("R/utils/000_setup.R")
-remove(phyloseq)
-
+if (exists("phyloseq")) remove(phyloseq)
 
 #####################################
 ### Filtering for BRC of interest ###
@@ -21,7 +20,8 @@ physeq <- subset_samples(filtered_phyloseq, brc == BRC)
 ###############
 
 # Bray-Curtis core
-braycore_summary <- extract_core(physeq,
+braycore_summary <- extract_core(
+  physeq,
   Var = "site",
   method = "increase",
   increase_value = 2
@@ -29,33 +29,32 @@ braycore_summary <- extract_core(physeq,
 
 # Subset by "core" and "non-core"
 
-core <- subset_physeq(braycore_summary,
-  physeq,
-  .var = "otu",
-  type = "core"
-)
+core <- subset_physeq(braycore_summary, physeq, .var = "otu", type = "core")
 
-nocore <- subset_physeq(braycore_summary,
-  physeq,
-  .var = "otu",
-  type = "no"
-)
+nocore <- subset_physeq(braycore_summary, physeq, .var = "otu", type = "no")
 
 # Helper function to save phyloseqs of interest
 name_object <- function(brc, physeq, type) {
   obj_name <- stringr::str_glue("{brc}_{type}_phyloseq")
-  assign(obj_name,
-    value = physeq,
-    envir = .GlobalEnv
-  )
+  assign(obj_name, value = physeq, envir = .GlobalEnv)
 }
 
 # Save phyloseqs
 name_object(brc = BRC, physeq = physeq, type = "core") %>%
-  saveRDS(., file = stringr::str_glue("data/output/phyloseq_objects/{BRC}_{CORE}_phyloseq.rda")) # For some reason saving like this result sin magic number X
+  saveRDS(
+    .,
+    file = stringr::str_glue(
+      "data/output/phyloseq_objects/{BRC}_{CORE}_phyloseq.rda"
+    )
+  ) # For some reason saving like this result sin magic number X
 
 name_object(brc = BRC, physeq = physeq, type = "nocore") %>%
-  saveRDS(., file = stringr::str_glue("data/output/phyloseq_objects/{BRC}_{NOCORE}_phyloseq.rda"))
+  saveRDS(
+    .,
+    file = stringr::str_glue(
+      "data/output/phyloseq_objects/{BRC}_{NOCORE}_phyloseq.rda"
+    )
+  )
 
 
 # Transformed matrices
@@ -70,7 +69,8 @@ dbrda_traits <- braycore_summary$sample_metadata %>%
 
 
 # dbRDA Modelling
-dbrda_00_core <- dbrda(t(hell_matrix) ~ 1,
+dbrda_00_core <- dbrda(
+  t(hell_matrix) ~ 1,
   distance = "bray",
   dfun = vegdist,
   data = dbrda_traits,
@@ -78,7 +78,8 @@ dbrda_00_core <- dbrda(t(hell_matrix) ~ 1,
   na.action = na.omit
 )
 
-dbrda_01_core <- dbrda(t(hell_matrix) ~ .,
+dbrda_01_core <- dbrda(
+  t(hell_matrix) ~ .,
   distance = "bray",
   dfun = vegdist,
   data = dbrda_traits,
@@ -86,7 +87,8 @@ dbrda_01_core <- dbrda(t(hell_matrix) ~ .,
   na.action = na.omit
 ) # Model with all explanatory variables.
 
-dbrda_02_core <- dbrda(t(hell_matrix) ~ drought + block + harvest,
+dbrda_02_core <- dbrda(
+  t(hell_matrix) ~ drought + block + harvest,
   distance = "bray",
   dfun = vegdist,
   data = dbrda_traits,
@@ -112,7 +114,8 @@ dbrda_traits <- braycore_summary$sample_metadata %>%
 
 
 # dbRDA Modelling
-dbrda_00_nocore <- dbrda(t(hell_matrix) ~ 1,
+dbrda_00_nocore <- dbrda(
+  t(hell_matrix) ~ 1,
   distance = "bray",
   dfun = vegdist,
   data = dbrda_traits,
@@ -120,7 +123,8 @@ dbrda_00_nocore <- dbrda(t(hell_matrix) ~ 1,
   na.action = na.omit
 )
 
-dbrda_01_nocore <- dbrda(t(hell_matrix) ~ .,
+dbrda_01_nocore <- dbrda(
+  t(hell_matrix) ~ .,
   distance = "bray",
   dfun = vegdist,
   data = dbrda_traits,
@@ -128,7 +132,8 @@ dbrda_01_nocore <- dbrda(t(hell_matrix) ~ .,
   na.action = na.omit
 ) # Model with all explanatory variables.
 
-dbrda_02_nocore <- dbrda(t(hell_matrix) ~ drought + block + harvest,
+dbrda_02_nocore <- dbrda(
+  t(hell_matrix) ~ drought + block + harvest,
   distance = "bray",
   dfun = vegdist,
   data = dbrda_traits,
@@ -140,13 +145,17 @@ dbrda_02_nocore <- dbrda(t(hell_matrix) ~ drought + block + harvest,
 ### Visualizations ###
 ######################
 
-core_dbrda_gg <- brc_flex_ordi(dbrda_02_core, dbrda_traits,
+core_dbrda_gg <- brc_flex_ordi(
+  dbrda_02_core,
+  dbrda_traits,
   color_var = "treatment",
   sample_id_col = "sample_id"
 ) %>%
   +ggtitle(str_glue("{BRC}: Bray-Curtis Core"))
 
-nocore_dbrda_gg <- brc_flex_ordi(dbrda_02_nocore, dbrda_traits,
+nocore_dbrda_gg <- brc_flex_ordi(
+  dbrda_02_nocore,
+  dbrda_traits,
   color_var = "treatment",
   sample_id_col = "sample_id"
 ) %>%

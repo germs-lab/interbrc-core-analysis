@@ -307,8 +307,12 @@ An ASV present with 21 reads in one sample contribution is proportionally greate
 Code from Yen. Use `drought_JBEI.rds` with transformed sample counts (relative abundance)
 
 ```{r}
+#| echo: true
+#|
 # import and compute bray-curtis distance
-ps_jbei <- readRDS("data/output/phyloseq_objects/jbei/drought_JBEI.rds")
+ps_jbei <- readRDS(here::here(
+  "data/output/phyloseq_objects/jbei/drought_JBEI.rds"
+))
 
 ps_rel <- transform_sample_counts(ps_jbei, function(x) x / sum(x))
 BC.dist <- vegan::vegdist(t(otu_table(ps_rel)), method = "bray")
@@ -336,6 +340,7 @@ vegan::adonis2(
 
 ## Applying `adonis2 analysis to filtered datasets
 ```{r}
+#| echo: true
 # Phyloseq objects to analyze
 ps_list <- list(
   filtered_jbei = jbei_phyloseq,
@@ -354,23 +359,25 @@ strata_vars <- list(
 )
 
 # Replicating Yen's results
-run_adonis2_analysis(ps_jbei, formula = "Harvest * Treatment")
+adonis2_analysis(ps_jbei, formula = "Harvest * Treatment")
 
-run_adonis2_analysis(ps_jbei, formula = "Treatment", strata = "Harvest")
+adonis2_analysis(ps_jbei, formula = "Treatment", strata = "Harvest")
 ```
 
 
-### PERMANOVA on filtered datasets
+## PERMANOVA on filtered datasets
 
 ```{r}
+#| echo: true
+#|
 results_all <- map(ps_list, function(ps) {
-  map(formulas, ~ run_adonis2_analysis(ps, formula = .x))
+  map(formulas, ~ adonis2_analysis(ps, formula = .x))
 })
 
 
 results_with_strata <- map(ps_list, function(ps) {
   map2(formulas, strata_vars, function(form, strat) {
-    run_adonis2_analysis(ps, formula = form, strata = strat)
+    adonis2_analysis(ps, formula = form, strata = strat)
   })
 })
 
