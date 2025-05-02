@@ -2,7 +2,7 @@
 This repository contains code and data for analysis specific to the Bioenergy Research Centers (BRCs). The directory is organized to separate BRC-specific resources from common code and data applicable across all BRCs.
 
 ## Directory Structure
-
+```
 ├── brcs/
 │   ├── cabbi/              # R scripts and data files specific to CABBI analysis
 │   │   ├── R/              
@@ -23,7 +23,7 @@ This repository contains code and data for analysis specific to the Bioenergy Re
         ├── phyloseq_objects
         ├── plots
         └── seq_processing_results
-
+```
 ### `brcs/`
 This directory contains subdirectories for each of the Bioenergy Research Centers (BRCs):
 
