@@ -1,0 +1,387 @@
+---
+title: "Inter-BRC Core Microbiome"
+subtitle: "Determining a microbial 'core' in JBEI samples"
+author: "Bolívar Aponte Rolón"
+date: "2025-04-21"
+date-modified: "`r Sys.Date()`"
+date-format: "long"
+format:
+  html:
+    toc: true
+    toc-location: left
+    toc-depth: 2
+    number-sections: true
+    number-depth: 1
+    theme: lumen
+    highlight-style: github
+    code-overflow: wrap
+    code-fold: true
+    code-summary: "See code"
+    code-copy: true
+    code-link: false
+    code-tools: false
+    code-block-border-left: "#0C3823"
+    code-block-bg: "#eeeeee"
+    fig-cap-location: margin
+    fig-height: 7
+    fig-width: 7
+    linestretch: 1.25
+    fontsize: 14pt
+    embed-resources: true
+    #css: styles.css
+    mermaid:
+      theme: neutral
+execute:
+  echo: false
+  warning: false
+  message: false
+  keep-md: true
+editor:
+  markdown:
+    wrap: 72
+    canonical: true
+---
+
+# Objective
+Analyses for determining a microbial "core" using ASV contribution to Bray-Curtis dissimilarity.
+
+# Setup
+```{r}
+#| label: setup
+
+# Set CRAN mirror
+options(repos = c(CRAN = "https://cloud.r-project.org"))
+
+source(here::here("R/utils/000_setup.R"))
+if (exists("phyloseq")) remove(phyloseq)
+```
+
+# Microbiome Core Selection via `extract_core()` in all BRCs
+
+To obtain the microbial core determined by ASV's contribution to Bray-Curtis dissimilarity, we:
+
+- Pruned samples
+  - Used `prune_samples` and `sample_sums` to remove any samples that had fewer than 100 total reads
+
+- Filtered ASVs based on read counts
+  - Used `filter_taxa` function to keep only ASVs that had:
+    - More than 20 reads in at least one sample
+
+All these steps were performed in `002_phyloseq.R` not shown here.
+
+After which we:
+- Extracted the core microbiome across different sites
+  - Parameters:
+    - Variable of interest was "site"
+    - Used an "increase" method
+    - With an increase value of 2
+
+```{mermaid}
+flowchart LR
+    A[All BRCs Raw Data] --> B[DADA2 Pipeline]
+    B --> C[filtered_phyloseq<br/>All BRCs Dataset]
+    C -->|extract_core| D[BC-core]
+    subgraph "Initial Processing"
+        A
+        B
+    end
+    subgraph "Filtering Steps"
+        C
+        style C fill:#fff,stroke:#333
+    end
+    subgraph "All BRC core"
+        D
+        style D fill:#fff,stroke:#333
+    end
+```
+
+```{r}
+#| label: process-BRC-data
+
+# Extract the core microbiome across all sites.
+# core_summary_lists <- extract_core(
+#   filtered_phyloseq,
+#   Var = "site",
+#   method = "increase",
+#   increase_value = 2
+# ) # Minimum seq depth was ~10,000 reads.
+
+# Save, since it takes a long time.
+# save(core_summary_lists, file = "data/output/core_summary_lists.rda")
+
+# Plot Bray-Curtis Dissimilarity Curve:
+bray_curtis_curve <- brc_bc_curve(core_summary_list = core_summary_lists)
+occ_abun_plot <- brc_bc_occ_curve(core_summary_list = core_summary_lists)
+
+
+# Print
+bray_curtis_curve +
+  ggtitle(
+    str_glue("All BRCs Core Microbial Community ranked"),
+    subtitle = "Core that contributes 2% to Bray-Curtis"
+  )
+occ_abun_plot +
+  ggtitle(
+    str_glue("All BRCs Core Microbial Occurance Curve"),
+    subtitle = "Core that contributes 2% to Bray-Curtis"
+  )
+```
+
+
+# Microbiome Core Selection via `extract_core()` in JBEI dataset
+
+Now let's looks at the JBEI dataset subsetted from the filtered_phyloseq which contains all BRCs and was submitted to DADA2 pipeline and filtered as one data set. *The result is a phyloseq object with 59,961 ASvs and 16 samples.*
+
+```{mermaid}
+flowchart LR
+    A[All BRCs Raw Data] --> B[DADA2 Pipeline]
+    B --> C[filtered_phyloseq<br/>All BRCs Dataset]
+    C -->|subset_samples<br/>brc == 'jbei'| D[JBEI Dataset]
+    subgraph "Initial Processing"
+        A
+        B
+    end
+    subgraph "Filtering Steps"
+        C
+        style C fill:#fff,stroke:#333
+    end
+    subgraph "Final Dataset"
+        D
+        style D fill:#fff,stroke:#333
+    end
+```
+
+```{r}
+#| label: process-JBEI-data
+
+# Subsetting
+jbei_phyloseq <- phyloseq::subset_samples(
+  filtered_phyloseq,
+  brc == "jbei"
+)
+
+# Core selection and plots
+filtered_jbei_core <- core_select_pipeline(
+  jbei_phyloseq,
+  .title = "JBEI Core Microbial Community ranked",
+  .subtitle = "Core that contributes 2% to Bray-Curtis (subset from All BRCs)"
+)
+
+# Print
+filtered_jbei_core$bc_curve_threshold
+
+filtered_jbei_core$occupancy_plot
+
+```
+
+Notice the odd pattern! Not a smotth curve. It should look like the previous plot. The data is structure the same way. 
+
+Let's look at the JBEI dataset filtered and prepared by Yen.
+
+# JBEI core microbiome (Yen's version)
+
+Here we cleaned up the data set a little bit to make sure that the data type were the same as previous data set.Ruling out data type as an issue.
+
+We then filtered for minimum sample reads and ASV read counts in the same manner. *The result is a phyloseq object with 2,213 ASvs and 16 samples.*
+We have about ~10 core ASVs.
+
+```{r}
+#| label: process-JBE-YEN-data
+
+# # Minor clean up
+# new_metadata <- drought_jbei %>%
+#   sample_data() %>%
+#   as_tibble() %>%
+#   janitor::clean_names() %>%
+#   mutate(
+#     across(brc, ~ str_to_lower(.)),
+#     across(everything(.), ~ as.character(.)),
+#     new_row = x_sample_id
+#   ) %>%
+#   column_to_rownames(., var = "new_row") %>% # Workaround to inserting "sa1" type rownames
+#   sample_data()
+
+# # Update phyloseq object
+# sample_data(drought_jbei) <- new_metadata
+
+# Filter
+drought_jbei_filtered_20 <- filter_phyloseq(
+  drought_jbei,
+  min_sample_reads = 100,
+  min_asv_reads = 20
+)
+
+# Core selection and plots
+jbei_yen_core_20 <- core_select_pipeline(
+  drought_jbei_filtered_20,
+  .title = "JBEI-Yen's Core Microbial Community ranked",
+  .subtitle = "Core that contributes 2% to Bray-Curtis (Yen's drought data)"
+)
+
+# Print
+jbei_yen_core_20$bc_curve_threshold
+
+jbei_yen_core_20$occupancy_plot
+```
+
+Looking at the data closely, Phillip and I noticed that there ar many repeated read counts at low levels <100 reads. For example, we saw many ASV that had only 21 reads. They also formed a diagonal pattern. Much like a comparison matrix.
+
+Does increasing the filtering parameters help? Let's change the minimum ASV reads counts.
+
+```{r}
+# Filter
+drought_jbei_filtered_100 <- filter_phyloseq(
+  drought_jbei,
+  min_sample_reads = 100,
+  min_asv_reads = 100
+)
+
+## Core selection and plots
+jbei_yen_core_100 <- core_select_pipeline(
+  drought_jbei_filtered_100,
+  .title = "JBEI-Yen's Core Microbial Community ranked",
+  .subtitle = "Core that contributes 2% to Bray-Curtis (>= 100 reads)"
+)
+
+# Print
+jbei_yen_core_100$bc_curve_threshold
+
+jbei_yen_core_100$occupancy_plot
+
+```
+
+*The result is a phyloseq object with 473 ASVs and 16 samples.* We have about ~10 core ASVs.
+
+It still doesn't look great.
+
+# Analyzing read patterns for JBEI
+## Analysis Across Filtering Levels
+
+```{r}
+# Define the datasets and their labels
+datasets <- list(
+  original = list(
+    data = drought_jbei,
+    label = "Yen's original data"
+  ),
+  filtered_20 = list(
+    data = drought_jbei_filtered_20,
+    label = "More than 20 reads per ASV"
+  ),
+  filtered_100 = list(
+    data = drought_jbei_filtered_100,
+    label = "More than 100 reads per ASV"
+  )
+)
+
+# Define common threshold values
+thresholds <- c(60, 70, 80, 90)
+```
+
+```{r}
+# Apply analysis to each dataset
+invisible(lapply(datasets, function(dataset) {
+  analyze_dataset(dataset$data, dataset$label)
+}))
+```
+
+
+Concerning Patterns Identified:
+
+1. High frequency of exactly 21 reads in multiple ASVs
+2. Diagonal pattern formation in read count distribution
+3. "matrix-like" pattern at low read counts (<100)
+
+These patterns strongly suggest:
+
+* Potential technical artifacts in the sequencing or processing pipeline
+* Possible cross-contamination between samples
+* Risk of false positive ASVs
+* ***Selection of "core" with this method is not adequate due to sample size***
+
+An ASV present with 21 reads in one sample contribution is proportionally greater. Bray-Curstis dissimilarity is sensitive to this. 
+
+
+## PERMANOVA (dbRDA)
+
+Code from Yen. Use `drought_JBEI.rds` with transformed sample counts (relative abundance)
+
+```{r}
+#| echo: true
+#|
+# import and compute bray-curtis distance
+ps_jbei <- readRDS(here::here(
+  "data/output/phyloseq_objects/jbei/drought_JBEI.rds"
+))
+
+ps_rel <- transform_sample_counts(ps_jbei, function(x) x / sum(x))
+BC.dist <- vegan::vegdist(t(otu_table(ps_rel)), method = "bray")
+
+## permanova looking at harvest and treatment effect
+vegan::adonis2(
+  BC.dist ~ Harvest * Treatment,
+  data = data.frame(sample_data(ps_rel)),
+  nperm = 1000,
+  method = "bray",
+  by = "terms"
+)
+
+## remove harvest effect
+vegan::adonis2(
+  BC.dist ~ Treatment,
+  data = data.frame(sample_data(ps_rel)),
+  nperm = 1000,
+  method = "bray",
+  by = "terms",
+  strata = sample_data(ps_rel)$Harvest
+)
+```
+
+
+## Applying `adonis2 analysis to filtered datasets
+```{r}
+#| echo: true
+# Phyloseq objects to analyze
+ps_list <- list(
+  filtered_jbei = jbei_phyloseq,
+  filtered_20 = drought_jbei_filtered_20,
+  filtered_100 = drought_jbei_filtered_100
+)
+
+formulas <- list(
+  full_model = "harvest * treatment",
+  treatment_only = "treatment"
+)
+# Strata
+strata_vars <- list(
+  full_model = NULL,
+  treatment_only = "harvest"
+)
+
+# Replicating Yen's results
+adonis2_analysis(ps_jbei, formula = "Harvest * Treatment")
+
+adonis2_analysis(ps_jbei, formula = "Treatment", strata = "Harvest")
+```
+
+
+## PERMANOVA on filtered datasets
+
+```{r}
+#| echo: true
+#|
+results_all <- map(ps_list, function(ps) {
+  map(formulas, ~ adonis2_analysis(ps, formula = .x))
+})
+
+
+results_with_strata <- map(ps_list, function(ps) {
+  map2(formulas, strata_vars, function(form, strat) {
+    adonis2_analysis(ps, formula = form, strata = strat)
+  })
+})
+
+# # Access results
+results_all
+results_with_strata
+```

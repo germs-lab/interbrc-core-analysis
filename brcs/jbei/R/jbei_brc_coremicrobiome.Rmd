@@ -1,0 +1,25 @@
+---
+title: "brc_jbei"
+output: html_document
+date: "2025-04-24"
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+library(vegan)
+library(phyloseq)
+```
+
+```{r}
+#import and compute bray-curtis distance
+ps_jbei <- readRDS("drought_JBEI.rds")
+ps_rel <- transform_sample_counts(ps_jbei, function(x) x / sum(x))
+BC.dist <- vegan::vegdist(t(otu_table(ps_rel)), method="bray")
+
+## permanova looking at harvest and treatment effect
+vegan::adonis2(BC.dist ~ Harvest*Treatment, data=data.frame(sample_data(ps_rel)), nperm=1000, method="bray", by="terms")
+
+## remove harvest effect
+vegan::adonis2(BC.dist ~ Treatment, data=data.frame(sample_data(ps_rel)), nperm=1000, method="bray", by="terms", strata = sample_data(ps_rel)$Harvest )
+```
+
