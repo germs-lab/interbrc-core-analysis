@@ -1,23 +1,35 @@
-## Inter-BRC Core Analysis
-## This was part of the `core_microbiome_functions.R` by Brandon Kristy.
-## Split by Bolívar Aponte Rolón 2025-02-20
+#########################################################
+# CORE MICROBIOME SELECTION
+# Extract and analyze core microbiome across samples
+#
+# Project:  Inter-BRC-Core-Microbiome
+# Original Author: Brandon Kristy
+# Modified by: Bolívar Aponte Rolón
+# Date: 2025-02-20
+#########################################################
 
-# Setup
+# DESCRIPTION:
+# This script identifies the core microbiome across samples using multiple approaches:
+# 1. Extract_core() method based on Bray-Curtis dissimilarity
+# 2. Threshold-based approach
+# 3. Neutral model fitting for abundance-occupancy patterns
+
+#--------------------------------------------------------
+# SETUP AND DEPENDENCIES
+#--------------------------------------------------------
 source("R/utils/000_setup.R")
 if (exists("phyloseq")) remove(phyloseq)
 
-
-###################################################
-### Microbiome Core Selection via extract_core() ###
-###################################################
-
-# Check OTU table
+#--------------------------------------------------------
+# CORE EXTRACTION USING EXTRACT_CORE()
+#--------------------------------------------------------
+# Ensure minimum sample quality
 filtered_phyloseq <- prune_samples(
   sample_sums(filtered_phyloseq) >= 100,
   filtered_phyloseq
 )
 
-# Extract the 'spatial' core microbiome across all sites. The 'Var' in the ExtractCore is 'site'.
+# Extract core microbiome across all sites (with minimum 2% increase in Bray-Curtis)
 core_summary_lists <- extract_core(
   filtered_phyloseq,
   Var = "site",
@@ -25,15 +37,20 @@ core_summary_lists <- extract_core(
   increase_value = 2
 ) # Minimum seq depth was ~10,000 reads.
 
-# Save, since it takes a long time.
+# Save results to avoid recomputation
 # save(core_summary_lists, file = "data/output/core_summary_lists.rda")
 
-# Plot Bray-Curtis Dissimilarity Curve:
+#--------------------------------------------------------
+# VISUALIZATION OF BRAY-CURTIS AND OCCUPANCY PATTERNS
+#--------------------------------------------------------
+# Generate Bray-Curtis dissimilarity curve
 bray_curtis_curve <- brc_bc_curve(core_summary_list = core_summary_lists)
-occ_abun_plot <- brc_bc_occ_curve(core_summary_list = core_summary_lists)
 
+# Generate abundance-occupancy plot
+occ_abun_plot <- brc_bc_occ_curve(core_summary_list = core_summary_lists)
 occ_abun_plot
 
+# Save abundance-occupancy plot
 ggsave(
   filename = "abundance_occupancy.png",
   occ_abun_plot,
@@ -43,32 +60,30 @@ ggsave(
   height = 4
 )
 
-
-# Fit Abundance-Occupancy Distribution to a Neutral Model
-# Fit neutral model
+#--------------------------------------------------------
+# NEUTRAL MODEL FITTING FOR ABUNDANCE-OCCUPANCY
+#--------------------------------------------------------
+# Extract data for model fitting
 taxon <- core_summary_lists[[7]]
 spp <- t(core_summary_lists[[5]])
 occ_abun <- core_summary_lists[[4]]
 names(occ_abun)[names(occ_abun) == "otu"] <- "OTU_ID"
 
-# source community pool
-# meta <- core_summary_lists[[6]]
-
-# Fitting model
-
+# Fit neutral community model
 obs.np <- sncm.fit2(spp, taxon, stats = FALSE, pool = NULL)
 sta.np <- sncm.fit2(spp, taxon, stats = TRUE, pool = NULL)
 
+# Classify taxa based on model predictions
 obs.np$fit_class <- "As predicted"
-obs.np[which(obs.np$freq < obs.np$pred.lwr), "fit_class"] <-
-  "Below prediction"
-obs.np[which(obs.np$freq > obs.np$pred.upr), "fit_class"] <-
-  "Above prediction"
+obs.np[which(obs.np$freq < obs.np$pred.lwr), "fit_class"] <- "Below prediction"
+obs.np[which(obs.np$freq > obs.np$pred.upr), "fit_class"] <- "Above prediction"
 obs.np[which(is.na(obs.np$freq)), "fit_class"] <- "NA"
 
+# Combine data for visualization and analysis
 obs.np <- tibble::rownames_to_column(obs.np, "OTU_ID")
 as.data.frame(dplyr::left_join(occ_abun, obs.np, by = "OTU_ID")) -> fit_table
-#
+
+# Calculate model statistics
 sta.np$above.pred <-
   sum(obs.np$freq > (obs.np$pred.upr), na.rm = TRUE) / sta.np$Richness
 sta.np$below.pred <-
@@ -79,11 +94,15 @@ rownames(fit_res) <- "Value"
 fit_res
 list_tab <- list(fit_res, fit_table)
 
-# Plot Neutral Function
+#--------------------------------------------------------
+# NEUTRAL MODEL VISUALIZATION
+#--------------------------------------------------------
+# Prepare data for plotting
 obs1 <- as.data.frame(list_tab[[2]])
 obs1 <- obs1[!is.na(obs1$p), ]
 obs2 <- as.data.frame(list_tab[[1]])
 
+# Add categories for visualization
 obs1 <- obs1 %>%
   mutate(fill_fit_class = paste0(fill, ":", fit_class)) %>%
   mutate(
@@ -93,7 +112,7 @@ obs1 <- obs1 %>%
     )
   )
 
-
+# Plot neutral model fit
 obs1 %>%
   ggplot(aes(x = log10(otu_rel), y = otu_occ)) +
   scale_fill_npg(
@@ -169,40 +188,33 @@ obs1 %>%
     plot.margin = unit(c(.5, 1, .5, .5), "cm")
   )
 
-## Create Table
-# Generate a table of core OTUs combined with the fitted model predictions
+# Generate summary table of core ASVs
 core_table <- obs1 %>%
   filter(fill == "core") %>%
   select(OTU_ID, family, genus, fit_class)
 
 core_table
 
-
-##############################################
-### Microbiome Core Selection by Threshold ###
-##############################################
-# Analysis based on Jae's code
-# Depending on how your phyloseq object's otu table is structured (e.g., if taxa_are_rows = FALSE ),
-# you might have to play with nrow()/ncol() and rowSums/colSums()
-
-# Load phyloseq object
+#--------------------------------------------------------
+# THRESHOLD-BASED CORE SELECTION
+#--------------------------------------------------------
+# Extract core ASVs based on presence threshold (Jae's method)
 core_asvs_threshold <- filter_core(
   filtered_phyloseq,
   threshold = 0.6,
   as = "rows"
 )
 
+# Save threshold-based core ASVs
 save(
   core_asvs_threshold,
   file = "data/output/phyloseq_objects/core_asvs_threshold.rda"
 )
 
-
-########################################################
-### Core Selection of JBEI dataset via extract_core() ###
-########################################################
-
-# Data set clean up
+#--------------------------------------------------------
+# JBEI-SPECIFIC CORE ANALYSIS
+#--------------------------------------------------------
+# Clean up JBEI metadata
 new_metadata <- drought_jbei %>%
   sample_data() %>%
   as_tibble() %>%
@@ -212,15 +224,13 @@ new_metadata <- drought_jbei %>%
     across(everything(.), ~ as.character(.)),
     new_row = x_sample_id
   ) %>%
-  column_to_rownames(., var = "new_row") %>% # Workaround to inserting "sa1" type rownames
+  column_to_rownames(., var = "new_row") %>%
   sample_data()
 
-# Update phyloseq object
+# Update JBEI phyloseq object with cleaned metadata
 sample_data(drought_jbei) <- new_metadata
 
-# save(drought_jbei, file = "data/output/phyloseq_objects/jbei/drought_jbei.rda")
-
-# Check OTU table
+# Filter JBEI samples for quality
 drought_jbei <- prune_samples(
   sample_sums(drought_jbei) >= 100,
   drought_jbei
@@ -234,7 +244,7 @@ drought_jbei <- filter_taxa(
   TRUE
 )
 
-# Extract core
+# Extract JBEI-specific core
 jbei_core_summary_lists <- extract_core(
   drought_jbei,
   Var = "treatment",
@@ -242,7 +252,7 @@ jbei_core_summary_lists <- extract_core(
   increase_value = 2
 )
 
-# Plot Bray-Curtis Dissimilarity Curve:
+# Generate JBEI-specific visualizations
 bray_curtis_curve <- brc_bc_curve(
   core_summary_list = jbei_core_summary_lists,
   max_otus = 100,

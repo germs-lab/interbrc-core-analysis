@@ -1,6 +1,6 @@
 #########################################################
-# CORE SELECTION USING dbRDA
-# Distance-based redundancy analysis for BRC-specific core microbiome
+# DISTANCE-BASED REDUNDANCY ANALYSIS
+# dbRDA for JBEI core and non-core communities
 #
 # Project:  Inter-BRC-Core-Microbiome
 # Author: Bolívar Aponte Rolón
@@ -8,15 +8,15 @@
 #########################################################
 
 # DESCRIPTION:
-# This script performs distance-based redundancy analysis (dbRDA) to analyze
-# the relationship between environmental variables and core/non-core microbial
-# communities for a specific BRC.
+# This script performs distance-based redundancy analysis (dbRDA) on core and non-core
+# microbial communities specifically for the JBEI dataset. It analyzes the influence
+# of environmental variables on community structure.
 
 #--------------------------------------------------------
 # SETUP AND DEPENDENCIES
 #--------------------------------------------------------
 source("R/utils/000_setup.R")
-if (exists("phyloseq")) remove(phyloseq)
+remove(phyloseq)
 
 #--------------------------------------------------------
 # BRC SELECTION AND PARAMETERS
@@ -42,6 +42,7 @@ braycore_summary <- extract_core(
 
 # Subset by "core" and "non-core" taxa
 core <- subset_physeq(braycore_summary, physeq, .var = "otu", type = "core")
+
 nocore <- subset_physeq(braycore_summary, physeq, .var = "otu", type = "no")
 
 #--------------------------------------------------------

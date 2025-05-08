@@ -21,3 +21,6 @@ data/output/fasta_files/rep_asv_seqs.fasta
 notebooks/brc_report_files/*
 notebooks/jbei_brc_report_files/*
 
+R/references/REF_core_microbiome_functions.R
+R/references/selected_ASVs_high-low_edited.R
+R/references/Rarefaction.R
