@@ -30,29 +30,33 @@ filtered_phyloseq <- prune_samples(
 )
 
 # Extract core microbiome across all sites (with minimum 2% increase in Bray-Curtis)
-core_summary_lists <- extract_core(
-  filtered_phyloseq,
+braycore_summary <- extract_core(
+  physeq,
   Var = "site",
   method = "increase",
   increase_value = 2
-) # Minimum seq depth was ~10,000 reads.
+)
+
+# Minimum seq depth was ~10,000 reads.
 
 # Save results to avoid recomputation
-# save(core_summary_lists, file = "data/output/core_summary_lists.rda")
+# save(braycore_summary, file = "data/output/braycore_summary.rda")
 
 #--------------------------------------------------------
 # VISUALIZATION OF BRAY-CURTIS AND OCCUPANCY PATTERNS
 #--------------------------------------------------------
 # Generate Bray-Curtis dissimilarity curve
-bray_curtis_curve <- brc_bc_curve(core_summary_list = core_summary_lists)
+bray_curtis_curve <- brc_bc_curve(core_summary_list = braycore_summary)
+
 
 # Generate abundance-occupancy plot
-occ_abun_plot <- brc_bc_occ_curve(core_summary_list = core_summary_lists)
+occ_abun_plot <- brc_occ_curve(core_summary_list = braycore_summary)
 occ_abun_plot
+
 
 # Save abundance-occupancy plot
 ggsave(
-  filename = "abundance_occupancy.png",
+  filename = "bray_curtis_abundance_occupancy.png",
   occ_abun_plot,
   path = "data/output/plots/",
   dpi = 300,
@@ -64,9 +68,9 @@ ggsave(
 # NEUTRAL MODEL FITTING FOR ABUNDANCE-OCCUPANCY
 #--------------------------------------------------------
 # Extract data for model fitting
-taxon <- core_summary_lists[[7]]
-spp <- t(core_summary_lists[[5]])
-occ_abun <- core_summary_lists[[4]]
+taxon <- braycore_summary[[7]]
+spp <- t(braycore_summary[[5]])
+occ_abun <- braycore_summary[[4]]
 names(occ_abun)[names(occ_abun) == "otu"] <- "OTU_ID"
 
 # Fit neutral community model
@@ -245,7 +249,7 @@ drought_jbei <- filter_taxa(
 )
 
 # Extract JBEI-specific core
-jbei_core_summary_lists <- extract_core(
+jbei_braycore_summary <- extract_core(
   drought_jbei,
   Var = "treatment",
   method = "increase",
@@ -254,11 +258,11 @@ jbei_core_summary_lists <- extract_core(
 
 # Generate JBEI-specific visualizations
 bray_curtis_curve <- brc_bc_curve(
-  core_summary_list = jbei_core_summary_lists,
+  core_summary_list = jbei_braycore_summary,
   max_otus = 100,
   threshold = 1.02
 )
 bray_curtis_curve
 
-occ_abun_plot <- brc_bc_occ_curve(core_summary_list = jbei_core_summary_lists)
+occ_abun_plot <- brc_bc_occ_curve(core_summary_list = jbei_braycore_summary)
 occ_abun_plot

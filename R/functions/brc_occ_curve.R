@@ -7,8 +7,22 @@ brc_occ_curve <- function(
   y_lab = "Occupancy",
   theme_settings = NULL
 ) {
-  # Extract occupancy-abundance data from the list
-  occ_abun_data <- core_summary_list[[4]]
+  # Extract occupancy-abundance data based on input type
+  if (inherits(core_summary_list, "list")) {
+    # For list input, extract from the 4th element
+    occ_abun_data <- core_summary_list[[4]]
+  } else if (inherits(core_summary_list, c("data.frame", "tbl_df", "tbl"))) {
+    # For data frame input, use as is
+    occ_abun_data <- core_summary_list
+  } else {
+    stop(
+      "Input must be either a list or a data frame containing occupancy-abundance data"
+    )
+  }
+  # Handle empty
+  if (nrow(occ_abun_data) == 0 || ncol(occ_abun_data) < 3) {
+    stop("Data appears to be empty or missing columns. Check your input data.")
+  }
 
   # Create base plot
   p <- ggplot(
