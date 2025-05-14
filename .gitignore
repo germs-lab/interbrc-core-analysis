@@ -15,7 +15,6 @@ data/output/phyloseq_objects/unfiltered_phyloseq.rda
 data/output/phyloseq_objects/filtered_phyloseq.rda
 data/output/core_summary_lists.rda
 data/input/feature-table-modified.tsv 
-data/output/fasta_files/rep_asv_seqs.fasta
 
 # Reports
 notebooks/brc_report_files/*
@@ -24,3 +23,4 @@ notebooks/jbei_brc_report_files/*
 R/references/REF_core_microbiome_functions.R
 R/references/selected_ASVs_high-low_edited.R
 R/references/Rarefaction.R
+data/input/rep_asv_seqs.fasta

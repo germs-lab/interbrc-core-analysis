@@ -22,26 +22,29 @@ if (exists("phyloseq")) remove(phyloseq)
 # EXTRACT CORE AND NON-CORE TAXA
 #--------------------------------------------------------
 # Get ASV identifiers for core and non-core taxa
-core_asv_strings <- core_summary_lists[[4]] %>%
+bc_core_asv_ids <- core_summary_lists[[4]] %>%
   dplyr::filter(., .$fill == "core") %>%
   column_to_rownames(., var = "otu") %>%
   rownames()
 
-non_core_asv_strings <- core_summary_lists[[4]] %>%
+bc_noncore_asv_ids <- core_summary_lists[[4]] %>%
   dplyr::filter(., .$fill == "no") %>%
   column_to_rownames(., var = "otu") %>%
   rownames()
 
 # Extract ASV matrices for core and non-core communities
-core_asv_matrix <- extract_matrix(filtered_phyloseq, .vec = core_asv_strings)
-non_core_asv_matrix <- extract_matrix(
+bc_core_matrix <- extract_matrix(
   filtered_phyloseq,
-  .vec = non_core_asv_strings
+  .vec = bc_core_ids
+)
+bc_noncore_matrix <- extract_matrix(
+  filtered_phyloseq,
+  .vec = bc_noncore_ids
 )
 
 # Get sample names for core and non-core communities
-core_sample_strings <- rownames(core_asv_matrix)
-non_core_sample_strings <- rownames(non_core_asv_matrix)
+bc_core_sample_ids <- rownames(bc_core_matrix)
+bc_noncore_sample_ids <- rownames(bc_noncore_matrix)
 
 #--------------------------------------------------------
 # COMMUNITY COMPOSITION SUMMARY
@@ -55,32 +58,33 @@ non_core_sample_strings <- rownames(non_core_asv_matrix)
 # CREATE PHYLOSEQ OBJECTS
 #--------------------------------------------------------
 # Create core and non-core phyloseq objects
-core_brc_phyloseq <- prune_samples(
-  sort(sample_names(filtered_phyloseq)) %in% sort(core_sample_strings),
+braycurt_core <- prune_samples(
+  sort(sample_names(filtered_phyloseq)) %in% sort(bc_core_sample_ids),
   filtered_phyloseq
 ) %>%
-  prune_taxa(rownames(.@otu_table) %in% core_asv_strings, .)
+  prune_taxa(rownames(otu_table(.)) %in% bc_core_ids, .)
 
-non_core_brc_phyloseq <- prune_samples(
-  sort(sample_names(filtered_phyloseq)) %in% sort(non_core_sample_strings),
+braycurt_noncore <- prune_samples(
+  sort(sample_names(filtered_phyloseq)) %in%
+    sort(bc_noncore_sample_ids),
   filtered_phyloseq
 ) %>%
-  prune_taxa(rownames(.@otu_table) %in% non_core_asv_strings, .)
+  prune_taxa(rownames(otu_table(.)) %in% bc_noncore_asv_ids, .)
 
 # Verify proper filtering (should return all FALSE)
-rownames(core_brc_phyloseq@otu_table) %in% non_core_asv_strings
+rownames(braycurt_core@otu_table) %in% bc_noncore_sample_ids
 
 #--------------------------------------------------------
 # SAVE PHYLOSEQ OBJECTS
 #--------------------------------------------------------
 # Save core and non-core phyloseq objects
 save(
-  core_brc_phyloseq,
-  file = "data/output/phyloseq_objects/core_brc_phyloseq.rda"
+  braycurt_core,
+  file = "data/output/phyloseq_objects/braycurt_core.rda"
 )
 save(
-  non_core_brc_phyloseq,
-  file = "data/output/phyloseq_objects/non_core_brc_phyloseq.rda"
+  braycurt_noncore,
+  file = "data/output/phyloseq_objects/braycurt_noncore.rda"
 )
 
 #--------------------------------------------------------
@@ -88,24 +92,24 @@ save(
 #--------------------------------------------------------
 # Create FASTA files for core community
 subset_fasta(
-  file = "data/output/fasta_files/rep_asv_seqs.fasta",
-  subset = core_asv_strings,
-  out = "data/output/fasta_files/core_asv_seqs.fasta"
+  file = "data/input/rep_asv_seqs.fasta",
+  subset = bc_core_ids,
+  out = "data/output/fasta_files/braycurt_core_seqs.fasta"
 )
 
 # Create FASTA files for non-core community
 subset_fasta(
-  file = "data/output/fasta_files/rep_asv_seqs.fasta",
-  subset = non_core_asv_strings,
-  out = "data/output/fasta_files/non_core_asv_seqs.fasta"
+  file = "data/input/rep_asv_seqs.fasta",
+  subset = bc_noncore_ids,
+  out = "data/output/fasta_files/braycurt_noncore_seqs.fasta"
 )
 
 #--------------------------------------------------------
 # THRESHOLD-BASED CORE SELECTION
 #--------------------------------------------------------
 # Extract high and low occupancy ASVs from threshold-based approach
-physeq_high_occ <- core_asvs_threshold$physeq_high_occ
-physeq_low_occ <- core_asvs_threshold$physeq_low_occ
+physeq_high_occ <- prevalence_core$physeq_high_occ
+physeq_low_occ <- prevalence_core$physeq_low_occ
 
 # Create matrices for high and low occupancy ASVs
 high_occ_matrix <- physeq_high_occ@otu_table %>%
@@ -122,16 +126,16 @@ low_occ_matrix <- physeq_low_occ@otu_table %>%
 
 # Generate FASTA files for high occupancy ASVs
 subset_fasta(
-  file = "data/output/fasta_files/rep_asv_seqs.fasta",
+  file = "data/input/rep_asv_seqs.fasta",
   subset = colnames(high_occ_matrix),
-  out = "data/output/fasta_files/high_occ_asv_seqs.fasta"
+  out = "data/output/fasta_files/high_occ_seqs.fasta"
 )
 
 # Generate FASTA files for low occupancy ASVs
 subset_fasta(
-  file = "data/output/fasta_files/rep_asv_seqs.fasta",
+  file = "data/input/rep_asv_seqs.fasta",
   subset = colnames(low_occ_matrix),
-  out = "data/output/fasta_files/low_occ_asv_seqs.fasta"
+  out = "data/output/fasta_files/low_occ_seqs.fasta"
 )
 
 #--------------------------------------------------------
@@ -139,8 +143,8 @@ subset_fasta(
 #--------------------------------------------------------
 # Save all matrices as a single list object
 asv_matrices <- list(
-  core = core_asv_matrix,
-  non_core = non_core_asv_matrix,
+  bc_core = bc_core_matrix,
+  bc_noncore = bc_noncore_matrix,
   high_occ = high_occ_matrix,
   low_occ = low_occ_matrix
 )

@@ -193,5 +193,5 @@ brc_ggsave(save_gg, "data/output/plots/")
 # THRESHOLD-BASED ANALYSIS
 #--------------------------------------------------------
 # Extract high and low occupancy communities from threshold-based core analysis
-high_occ <- subset_samples(core_asvs_threshold$physeq_high_occ, brc == BRC)
-low_occ <- subset_samples(core_asvs_threshold$physeq_low_occ, brc == BRC)
+high_occ <- subset_samples(prevalence_core$physeq_high_occ, brc == BRC)
+low_occ <- subset_samples(prevalence_core$physeq_low_occ, brc == BRC)
