@@ -31,7 +31,7 @@ filtered_phyloseq <- prune_samples(
 
 # Extract core microbiome across all sites (with minimum 2% increase in Bray-Curtis)
 braycore_summary <- extract_core(
-  physeq,
+  filtered_phyloseq,
   Var = "site",
   method = "increase",
   increase_value = 2
