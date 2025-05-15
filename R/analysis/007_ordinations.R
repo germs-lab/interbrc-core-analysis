@@ -130,7 +130,7 @@ high_occ_nmds <- brc_nmds(
 )
 
 # Generate crop-based and BRC-based visualizations
-high_nmds_crops <- brc_gg_ordi(
+high_occ_nmds_crops <- brc_gg_ordi(
   .data = high_occ_nmds$nmds_df,
   ordi = "NMDS",
   .color = crop,
@@ -138,7 +138,7 @@ high_nmds_crops <- brc_gg_ordi(
 ) +
   ggtitle("12 high prevanlence ASVs in BRC crops (60% samples)")
 
-high_nmds_brc <- brc_gg_ordi(
+high_occ_nmds_brc <- brc_gg_ordi(
   .data = high_occ_nmds$nmds_df,
   ordi = "NMDS",
   .color = brc,
@@ -161,7 +161,7 @@ low_occ_nmds <- brc_nmds(
 save(low_occ_nmds, file = "data/output/low_occ_nmds.rda")
 
 # Generate crop-based and BRC-based visualizations
-low_nmds_crops <- brc_gg_ordi(
+low_occ_nmds_crops <- brc_gg_ordi(
   .data = low_occ_nmds$nmds_df,
   ordi = "NMDS",
   .color = crop,
@@ -169,7 +169,7 @@ low_nmds_crops <- brc_gg_ordi(
 ) +
   ggtitle("Low prevalence ASVs in BRC crops (<60% samples)")
 
-low_nmds_brc <- brc_gg_ordi(
+low_occ_nmds_brc <- brc_gg_ordi(
   .data = low_occ_nmds$nmds_df,
   ordi = "NMDS",
   .color = brc,
@@ -186,10 +186,10 @@ nmds_plots <- list(
   bc_core_nmds_crops,
   bc_noncore_nmds_brc,
   bc_noncore_nmds_crops,
-  high_nmds_crops,
-  high_nmds_brc,
-  low_nmds_crops,
-  low_nmds_brc
+  high_occ_nmds_crops,
+  high_occ_nmds_brc,
+  low_occ_nmds_crops,
+  low_occ_nmds_brc
 )
 plot_names <- c(
   "bc_core_nmds_brc",
@@ -198,8 +198,8 @@ plot_names <- c(
   "bc_noncore_nmds_crops",
   "high_occ_nmds_crops",
   "high_occ_nmds_brc",
-  "low_nmds_crops",
-  "low_nmds_brc"
+  "low_occ_nmds_crops",
+  "low_occ_nmds_brc"
 )
 
 plot_paths <- str_glue("data/output/plots/{tolower(plot_names)}.png")
@@ -255,8 +255,8 @@ bc_core_pcoa_crops <- brc_gg_ordi(
 #--------------------------------------------------------
 # Perform PCoA on non-core community
 bc_noncore_asv_pcoa <- brc_pcoa(
-  distance_matrices$bc_noncore,
-  non_braycurt_core
+  distance_matrices$non_core,
+  braycurt_noncore
 )
 
 # Generate crop-based and BRC-based visualizations
@@ -287,7 +287,7 @@ high_asv_pcoa <- brc_pcoa(
 )
 
 # Generate crop-based and BRC-based visualizations
-high_pcoa_brc <- brc_gg_ordi(
+high_occ_pcoa_brc <- brc_gg_ordi(
   .data = high_asv_pcoa$pcoa_df,
   ordi = "PCoA",
   .color = brc,
@@ -295,7 +295,7 @@ high_pcoa_brc <- brc_gg_ordi(
 ) +
   ggtitle("PCoA: High prevalence ASVs in BRCs")
 
-high_pcoa_crops <- brc_gg_ordi(
+high_occ_pcoa_crops <- brc_gg_ordi(
   .data = high_asv_pcoa$pcoa_df,
   ordi = "PCoA",
   .color = crop,
@@ -311,7 +311,7 @@ low_asv_pcoa <- brc_pcoa(
 )
 
 # Generate crop-based and BRC-based visualizations
-low_pcoa_brc <- brc_gg_ordi(
+low_occ_pcoa_brc <- brc_gg_ordi(
   .data = low_asv_pcoa$pcoa_df,
   ordi = "PCoA",
   .color = brc,
@@ -319,7 +319,7 @@ low_pcoa_brc <- brc_gg_ordi(
 ) +
   ggtitle("PCoA: Low prevalence ASVs in BRCs")
 
-low_pcoa_crops <- brc_gg_ordi(
+low_occ_pcoa_crops <- brc_gg_ordi(
   .data = low_asv_pcoa$pcoa_df,
   ordi = "PCoA",
   .color = crop,
@@ -336,20 +336,20 @@ pcoa_plots <- list(
   bc_core_pcoa_crops,
   bc_noncore_pcoa_brc,
   bc_noncore_pcoa_crops,
-  high_pcoa_crops,
-  high_pcoa_brc,
-  low_pcoa_crops,
-  low_pcoa_brc
+  high_occ_pcoa_crops,
+  high_occ_pcoa_brc,
+  low_occ_pcoa_crops,
+  low_occ_pcoa_brc
 )
 plot_names <- c(
   "bc_core_pcoa_brc",
   "bc_core_pcoa_crops",
   "bc_noncore_pcoa_brc",
   "bc_noncore_pcoa_crops",
-  "high_pcoa_crops",
-  "high_pcoa_brc",
-  "low_pcoa_crops",
-  "low_pcoa_brc"
+  "high_occ_pcoa_crops",
+  "high_occ_pcoa_brc",
+  "low_occ_pcoa_crops",
+  "low_occ_pcoa_brc"
 )
 
 plot_paths <- str_glue("data/output/plots/{tolower(plot_names)}.png")
