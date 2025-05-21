@@ -70,16 +70,17 @@ conflict_prefer("survival", "cluster")
 # PARALLEL PROCESSING SETUP FOR HPC
 #--------------------------------------------------------
 
-plan(multisession, workers = 16)
+nCores <- as.integer(Sys.getenv("SLURM_CPUS_PER_TASK")) # https://research.it.iastate.edu/guides/pronto/r/#using-the-parallel-library
+print(paste("nCores", nCores))
+myCluster <- parallel::makeCluster(nCores)
+doParallel::registerDoParallel(myCluster)
+
+
+# plan(multisession, workers = 16)
 
 #--------------------------------------------------------
 # CORE EXTRACTION USING EXTRACT_CORE()
 #--------------------------------------------------------
-# Ensure minimum sample quality
-filtered_phyloseq <- prune_samples(
-    sample_sums(filtered_phyloseq) >= 100,
-    filtered_phyloseq
-)
 
 # Extract core microbiome across all sites (with minimum 2% increase in Bray-Curtis)
 # Set .parallel = TRUE to use the future framework
@@ -89,10 +90,10 @@ braycore_summary <- extract_core_parallel(
     method = "increase",
     increase_value = 2,
     .parallel = TRUE,
-    ncores = 16
+    ncores = nCores
 )
 
-plan(sequential) # Close parallel processing
+# plan(sequential) # Close parallel processing
 
 # Save results to avoid recomputation
 save(

@@ -13,7 +13,7 @@
 #SBATCH --error="/work/adina/bolivar/interbrc-core-analysis/hpc/slurm-%j-004_core_selection.error"   # Job standard error file (%j will be replaced by the slurm job id)
 
 
-export OMP_NUM_THREADS=$SLURM_CPUS_PER_TASK # Set OMP_NUM_THREADS to the number of CPUs per task we asked for.
+#export OMP_NUM_THREADS=$SLURM_CPUS_PER_TASK # Set OMP_NUM_THREADS to the number of CPUs per task we asked for.
 
 ##Modules/Singularity
 module purge
