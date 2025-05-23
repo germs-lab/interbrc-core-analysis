@@ -75,7 +75,6 @@ print(paste("nCores", nCores))
 myCluster <- parallel::makeCluster(nCores)
 doParallel::registerDoParallel(myCluster)
 
-
 # plan(multisession, workers = 16)
 
 #--------------------------------------------------------
@@ -85,12 +84,12 @@ doParallel::registerDoParallel(myCluster)
 # Extract core microbiome across all sites (with minimum 2% increase in Bray-Curtis)
 # Set .parallel = TRUE to use the future framework
 braycore_summary <- extract_core_parallel(
-    filtered_phyloseq,
+    test_phyloseq,
     Var = "site",
     method = "increase",
     increase_value = 2,
     .parallel = TRUE,
-    ncores = nCores
+    ncores = 2
 )
 
 # plan(sequential) # Close parallel processing
