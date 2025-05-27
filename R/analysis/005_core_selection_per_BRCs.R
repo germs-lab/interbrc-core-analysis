@@ -1,6 +1,5 @@
 #########################################################
-# CORE SELECTION PER BRC and dbRDA
-# Distance-based redundancy analysis for BRC-specific core microbiome
+# CORE SELECTION PER BRC
 #
 # Project:  Inter-BRC-Core-Microbiome
 # Author: Bolívar Aponte Rolón
@@ -8,9 +7,10 @@
 #########################################################
 
 # DESCRIPTION:
-# This script performs distance-based redundancy analysis (dbRDA) to analyze
-# the relationship between environmental variables and core/non-core microbial
-# communities for a specific BRC.
+# This script identifies the core microbiome across samples for individual
+# BRCs using multiple approaches:
+# 1. extract_core() method based on Bray-Curtis dissimilarity
+# 2. Threshold-based approach
 
 #--------------------------------------------------------
 # SETUP AND DEPENDENCIES
@@ -69,129 +69,3 @@ name_object(brc = BRC, physeq = physeq, type = "nocore") %>%
       "data/output/phyloseq_objects/{BRC}_{NOCORE}_phyloseq.rda"
     )
   )
-
-#--------------------------------------------------------
-# CORE COMMUNITY dbRDA ANALYSIS
-#--------------------------------------------------------
-# Transform data using Hellinger transformation
-hell_matrix <- decostand(t(core$asv_matrix), method = "hellinger", MARGIN = 1)
-
-# Prepare environmental data
-dbrda_traits <- braycore_summary$sample_metadata %>%
-  as.data.frame() %>%
-  janitor::clean_names() %>%
-  select(., c(drought, treatment, block, harvest, sample_id)) %>%
-  dplyr::filter(rownames(.) %in% colnames(hell_matrix))
-
-# Build dbRDA models with different constraints
-dbrda_00_core <- dbrda(
-  t(hell_matrix) ~ 1,
-  distance = "bray",
-  dfun = vegdist,
-  data = dbrda_traits,
-  parallel = 8,
-  na.action = na.omit
-)
-
-dbrda_01_core <- dbrda(
-  t(hell_matrix) ~ .,
-  distance = "bray",
-  dfun = vegdist,
-  data = dbrda_traits,
-  parallel = 8,
-  na.action = na.omit
-)
-
-dbrda_02_core <- dbrda(
-  t(hell_matrix) ~ drought + block + harvest,
-  distance = "bray",
-  dfun = vegdist,
-  data = dbrda_traits,
-  parallel = 8,
-  na.action = na.omit
-)
-
-#--------------------------------------------------------
-# NON-CORE COMMUNITY dbRDA ANALYSIS
-#--------------------------------------------------------
-# Transform non-core data using Hellinger transformation
-hell_matrix <- decostand(t(nocore$asv_matrix), method = "hellinger", MARGIN = 1)
-
-# Prepare environmental data for non-core analysis
-dbrda_traits <- braycore_summary$sample_metadata %>%
-  as.data.frame() %>%
-  janitor::clean_names() %>%
-  select(., c(drought, treatment, block, harvest, sample_id)) %>%
-  dplyr::filter(rownames(.) %in% colnames(hell_matrix))
-
-# Build dbRDA models for non-core community
-dbrda_00_nocore <- dbrda(
-  t(hell_matrix) ~ 1,
-  distance = "bray",
-  dfun = vegdist,
-  data = dbrda_traits,
-  parallel = 8,
-  na.action = na.omit
-)
-
-dbrda_01_nocore <- dbrda(
-  t(hell_matrix) ~ .,
-  distance = "bray",
-  dfun = vegdist,
-  data = dbrda_traits,
-  parallel = 8,
-  na.action = na.omit
-)
-
-dbrda_02_nocore <- dbrda(
-  t(hell_matrix) ~ drought + block + harvest,
-  distance = "bray",
-  dfun = vegdist,
-  data = dbrda_traits,
-  parallel = 8,
-  na.action = na.omit
-)
-
-#--------------------------------------------------------
-# STATISTICAL TESTING
-#--------------------------------------------------------
-# Perform permutation tests on models
-set.seed(123)
-anova.cca(dbrda_02_nocore, by = "margin", permutations = 999, parallel = 8)
-anova(dbrda_02_core, by = "axis")
-anova(dbrda_02_core, by = "axis", perm.max = 500)
-
-#--------------------------------------------------------
-# VISUALIZATION
-#--------------------------------------------------------
-# Generate ordination plots for core and non-core communities
-core_dbrda_gg <- brc_flex_ordi(
-  dbrda_02_core,
-  dbrda_traits,
-  color_var = "treatment",
-  sample_id_col = "sample_id"
-) %>%
-  +ggtitle(str_glue("{BRC}: Bray-Curtis Core"))
-
-nocore_dbrda_gg <- brc_flex_ordi(
-  dbrda_02_nocore,
-  dbrda_traits,
-  color_var = "treatment",
-  sample_id_col = "sample_id"
-) %>%
-  +ggtitle(str_glue("{BRC}: Bray-Curtis Non-Core "))
-
-# Save plots to output directory
-save_gg <- list(core_dbrda_gg, nocore_dbrda_gg) %>%
-  purrr::set_names(
-    stringr::str_glue("{BRC}_{c(CORE, NOCORE)}_dbrda")
-  )
-
-brc_ggsave(save_gg, "data/output/plots/")
-
-#--------------------------------------------------------
-# THRESHOLD-BASED ANALYSIS
-#--------------------------------------------------------
-# Extract high and low occupancy communities from threshold-based core analysis
-high_occ <- subset_samples(prevalence_core$physeq_high_occ, brc == BRC)
-low_occ <- subset_samples(prevalence_core$physeq_low_occ, brc == BRC)

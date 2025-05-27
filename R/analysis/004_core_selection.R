@@ -1,16 +1,16 @@
-#########################################################
+##################################################################
 # CORE MICROBIOME SELECTION
-# Extract and analyze core microbiome across samples
+# Extract and analyze core microbiome across samples from all BRCs
 #
 # Project:  Inter-BRC-Core-Microbiome
 # Original Author: Brandon Kristy
 # Modified by: Bolívar Aponte Rolón
 # Date: 2025-02-20
-#########################################################
+##################################################################
 
 # DESCRIPTION:
 # This script identifies the core microbiome across samples using multiple approaches:
-# 1. Extract_core() method based on Bray-Curtis dissimilarity
+# 1. extract_core() method based on Bray-Curtis dissimilarity
 # 2. Threshold-based approach
 # 3. Neutral model fitting for abundance-occupancy patterns
 
