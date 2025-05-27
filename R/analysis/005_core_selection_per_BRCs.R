@@ -1,5 +1,5 @@
 #########################################################
-# CORE SELECTION USING dbRDA
+# CORE SELECTION PER BRC and dbRDA
 # Distance-based redundancy analysis for BRC-specific core microbiome
 #
 # Project:  Inter-BRC-Core-Microbiome

@@ -54,7 +54,7 @@ plan(sequential) # Close parallel processing
 #--------------------------------------------------------
 # Perform NMDS on core community
 bc_core_nmds <- brc_nmds(
-  asv_matrix = asv_matrices$core,
+  asv_matrix = asv_matrices$bc_core,
   physeq = braycurt_core,
   ncores = parallel::detectCores() - 1,
   k = 3,
@@ -98,6 +98,8 @@ bc_noncore_nmds <- brc_nmds(
   trymax = 9999
 )
 
+save(bc_noncore_nmds, file = "data/output/bc_noncore_nmds.rda")
+
 # Generate crop-based and BRC-based visualizations
 bc_noncore_nmds_crops <- brc_gg_ordi(
   .data = bc_noncore_nmds$nmds_df,
@@ -116,7 +118,6 @@ bc_noncore_nmds_brc <- brc_gg_ordi(
   ggtitle("Non-core ASVs in BRC (100% samples)")
 
 
-save(bc_noncore_nmds, file = "data/output/bc_noncore_nmds.rda")
 #--------------------------------------------------------
 # NMDS ANALYSIS: THRESHOLD-BASED CORE
 #--------------------------------------------------------
@@ -136,7 +137,7 @@ high_occ_nmds_crops <- brc_gg_ordi(
   .color = crop,
   .drop_na = brc
 ) +
-  ggtitle("12 high prevanlence ASVs in BRC crops (60% samples)")
+  ggtitle("12 high prevalence ASVs in BRC crops (>60% samples)")
 
 high_occ_nmds_brc <- brc_gg_ordi(
   .data = high_occ_nmds$nmds_df,
@@ -144,7 +145,7 @@ high_occ_nmds_brc <- brc_gg_ordi(
   .color = brc,
   .drop_na = brc
 ) +
-  ggtitle("12 high prevalence ASVs in BRCs (60% samples)")
+  ggtitle("12 high prevalence ASVs in BRCs (>60% samples)")
 
 #--------------------------------------------------------
 # NMDS ANALYSIS: THRESHOLD-BASED NON-CORE

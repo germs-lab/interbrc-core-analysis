@@ -121,7 +121,7 @@ high_occ_matrix <- physeq_high_occ@otu_table %>%
 low_occ_matrix <- physeq_low_occ@otu_table %>%
   t() %>% # Samples as rows
   as.data.frame() %>%
-  .[rowSums(.) > 0, ] %>% # Keep only samples with a non-zero sum
+  .[rowSums(.) > 0, ] %>%
   as.matrix()
 
 # Generate FASTA files for high occupancy ASVs
