@@ -22,9 +22,9 @@ if (exists("phyloseq")) remove(phyloseq)
 # BRC SELECTION AND PARAMETERS
 #--------------------------------------------------------
 # Define BRC of interest and output naming parameters
-BRC <- "jbei"
-CORE <- "core"
-NOCORE <- "nocore"
+BRC <- "cbi"
+CORE <- "bc_core"
+NOCORE <- "bc_noncore"
 
 # Filter phyloseq object for the selected BRC
 physeq <- subset_samples(filtered_phyloseq, brc == BRC)
@@ -41,8 +41,8 @@ braycore_summary <- extract_core(
 )
 
 # Subset by "core" and "non-core" taxa
-core <- subset_physeq(braycore_summary, physeq, .var = "otu", type = "core")
-nocore <- subset_physeq(braycore_summary, physeq, .var = "otu", type = "no")
+bc_core <- subset_physeq(braycore_summary, physeq, .var = "otu", type = "core")
+bc_noncore <- subset_physeq(braycore_summary, physeq, .var = "otu", type = "no")
 
 #--------------------------------------------------------
 # SAVE BRC-SPECIFIC PHYLOSEQ OBJECTS

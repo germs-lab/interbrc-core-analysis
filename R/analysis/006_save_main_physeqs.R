@@ -75,6 +75,19 @@ braycurt_noncore <- prune_samples(
 rownames(braycurt_core@otu_table) %in% bc_noncore_sample_ids
 
 #--------------------------------------------------------
+# CREATE SUBSET PHYLOSEQS PER BRC
+#--------------------------------------------------------
+# Filter phyloseq object for the selected BRC
+physeq <- subset_samples(filtered_phyloseq, brc == BRC)
+
+test <- physeq@otu_table %>%
+  #t() %>% # Samples as rows
+  as.data.frame() %>%
+  .[rowSums(.) > 0, ] %>% # Keep only samples with a non-zero sum
+  as.matrix()
+
+
+#--------------------------------------------------------
 # SAVE PHYLOSEQ OBJECTS
 #--------------------------------------------------------
 # Save core and non-core phyloseq objects
