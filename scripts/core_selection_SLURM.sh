@@ -30,7 +30,10 @@ echo job id: $SLURM_JOB_ID
 echo Number of tasks: $SLURM_NTASKS
 
 #Run R script
-R CMD BATCH R/analysis/004_core_selection_HPC.R # Add your script here
+R CMD BATCH scripts/package_install.R 
+#R CMD BATCH R/analysis/004_core_selection_HPC.R
+
+micromamba deactivate interbrc_env
 
 module purge
 

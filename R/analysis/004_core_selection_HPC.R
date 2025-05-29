@@ -27,30 +27,34 @@
 #--------------------------------------------------------
 # SETUP AND DEPENDENCIES
 #--------------------------------------------------------
-# Package and Environment setup
-if (!require("pacman")) {
-    install.packages("pacman")
-}
-
-pacman::p_load(
-    conflicted,
-    styler,
-    phyloseq,
-    vegan,
-    tidyverse,
-    minpack.lm,
-    Hmisc,
-    stats4,
-    metagMisc,
-    BRCore,
-    furrr,
-    future,
-    future.batchtools,
-    batchtools # Installed by future.batchtools. Being explicit here.
-)
+# Load the packages
+# Installed via /scripts/package_install.R
+invisible(lapply(
+    c(
+        "conflicted",
+        "styler",
+        "phyloseq",
+        "vegan",
+        "tidyverse",
+        "minpack.lm",
+        "Hmisc",
+        "stats4",
+        "metagMisc",
+        "BRCore",
+        "furrr",
+        "parallelly",
+        "doParallel",
+        "future"
+    ),
+    library,
+    character.only = TRUE
+))
 
 source(
     "/work/adina/bolivar/interbrc-core-analysis/R/functions/extract_core_parallel.R"
+)
+source(
+    "/work/adina/bolivar/interbrc-core-analysis/R/functions/parallel_helpers.R"
 )
 load(
     "/work/adina/bolivar/interbrc-core-analysis/data/output/phyloseq_objects/filtered_phyloseq.rda"
@@ -70,10 +74,10 @@ conflict_prefer("survival", "cluster")
 # PARALLEL PROCESSING SETUP FOR HPC
 #--------------------------------------------------------
 
-nCores <- as.integer(Sys.getenv("SLURM_CPUS_PER_TASK")) # https://research.it.iastate.edu/guides/pronto/r/#using-the-parallel-library
-print(paste("nCores", nCores))
-myCluster <- parallel::makeCluster(nCores)
-doParallel::registerDoParallel(myCluster)
+# nCores <- as.integer(Sys.getenv("SLURM_CPUS_PER_TASK")) # https://research.it.iastate.edu/guides/pronto/r/#using-the-parallel-library
+# print(paste("nCores", nCores))
+# myCluster <- parallel::makeCluster(nCores)
+# doParallel::registerDoParallel(myCluster)
 
 # plan(multisession, workers = 16)
 
@@ -88,8 +92,7 @@ braycore_summary <- extract_core_parallel(
     Var = "site",
     method = "increase",
     increase_value = 2,
-    .parallel = TRUE,
-    ncores = 2
+    .parallel = TRUE
 )
 
 # plan(sequential) # Close parallel processing
