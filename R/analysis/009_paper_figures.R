@@ -13,6 +13,13 @@
 source("R/utils/000_setup.R")
 if (exists("phyloseq")) remove(phyloseq)
 
+library(microeco)
+library(file2meco)
+library(patchwork)
+library(ggh4x)
+library(ggplot2)
+pak::pkg_install("gmteunisse/ggnested")
+library(ggnested)
 
 #--------------------------------------------------------
 # BRC BRAY-CURTIS CORE AND ASSOCIATED
@@ -145,3 +152,117 @@ ggsave(
   height = 250,
   units = "mm"
 )
+
+
+#---------------------------------------------------
+# Relative abundance visualization per BRC and Crop
+#---------------------------------------------------
+# Due to the size of the dataset, the following code needs to be executed in 
+# machine with >32GB RAM.
+
+
+# First convert phyloseq to microtable object
+micro_obj <- file2meco::phyloseq2meco(filtered_phyloseq)
+
+
+# Relative Abundance
+abund_obj <- trans_abund$new(micro_obj, 
+                             taxrank = "phylum", 
+                             #high_level = "phylum", 
+                             #high_level_fix_nsub = 3,
+                             delete_taxonomy_prefix = TRUE)
+rel_abund <- abund_obj$plot_bar(others_color = "grey70", 
+                   facet = c("brc", "crop"),
+                   #ggnested = TRUE, 
+                   #high_level_add_other = TRUE,
+                   barwidth = 1,
+                   xtext_keep = FALSE, 
+                   legend_text_italic = FALSE, 
+                   )
+
+# Fixing labels
+new_labels <- as_labeller(c(`cabbi` = "CABBI", 
+                            `cbi` = "CBI", 
+                            `jbei` = "JBEI",
+                            `glbrc` = "GLBRC",
+                            `Sorghum` = "Sorghum", 
+                            `poplar` = "Poplar",
+                            `Restored_Prairie` = "Restored Prairie",
+                            `Switchgrass` = "Switchgrass",
+                            `Corn` = "Corn",
+                            `Miscanthus` = "Miscanthus",
+                            `Soy` = "Soy",
+                            `Sorghum + Rye` = "Sorghum + Rye"))
+
+# Vertical faceted nested plot
+rel_abund_vertical <- rel_abund +
+    guides(fill = guide_legend(title = "Phylum")) +
+    facet_nested(
+        ~ brc + crop,
+        labeller = new_labels,
+        scales = "free_x",
+        strip = strip_nested(
+            background_x = elem_list_rect(fill = "#F0F7E6"),
+            text_x = elem_list_text(face = "bold")
+        )
+    )
+
+# Horizontal faceted nested rapped plot
+rel_abund_horizon <- rel_abund +
+    guides(fill = guide_legend(title = "Phylum")) +
+    facet_nested_wrap(
+        ~ brc + crop,
+        labeller = new_labels,
+        scales = "free_x",
+        strip = strip_nested(
+            background_x = elem_list_rect(fill = "#F0F7E6"),
+            text_x = elem_list_text(face = "bold")
+        )
+    )
+
+ggsave(
+    "data/output/plots/brc_crop_relabund_vertical.png",
+    plot = rel_abund_vertical,
+    dpi = 300,
+    width = 350,
+    height = 250,
+    units = "mm"
+)
+
+ggsave(
+    "data/output/plots/brc_crop_relabund_horizon.png",
+    plot = rel_abund_horizon,
+    dpi = 300,
+    width = 300,
+    height = 300,
+    units = "mm"
+)
+
+
+#-------------
+# Maybe useful
+#-------------
+
+# Create the trans_venn object for visualization
+# venn_obj <- trans_venn$new(micro_obj)
+# 
+# # Generate Venn diagrams for phyla
+# venn_obj$plot_venn(use_taxonomy = TRUE, taxonomy_rank = "phylum", 
+#                    fill_alpha = 0.5, 
+#                    plot_text_size = 3)
+# phyla_venn <- venn_obj$result_plot
+
+
+# # Alpha diversity
+# alpha_obj <- trans_alpha$new(micro_obj, group = "crop")
+# 
+# # Plot alpha diversity for phyla
+# alpha_obj$plot_alpha(measure = "Chao1",
+#                      add = "jitter", 
+#                      add.params = list(alpha = 0.3),
+#                      y_start = 0.1, 
+#                      y_increase = 0.1, 
+#                      add_stat = TRUE) 
+# 
+# # Create a trans_upset object for UpSet plots
+# upset_obj <- trans_upset$new(micro_obj, group = "crop")
