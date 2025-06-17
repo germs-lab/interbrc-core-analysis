@@ -3,6 +3,7 @@ brc_occ_curve <- function(
   point_size = 2.5,
   point_alpha = 1,
   point_shape = 21,
+  color_values = NULL,
   x_lab = "log10(Mean Relative Abundance)",
   y_lab = "Occupancy",
   theme_settings = NULL
@@ -41,6 +42,10 @@ brc_occ_curve <- function(
     labs(x = x_lab, y = y_lab) +
     theme_bw()
 
+  if (!is.null(color_values)) {
+    p <- p +
+      scale_fill_manual(values = color_values)
+  }
   # Apply custom theme settings if provided, otherwise use defaults
   if (is.null(theme_settings)) {
     p <- p +

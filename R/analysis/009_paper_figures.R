@@ -11,7 +11,9 @@
 # SETUP AND DEPENDENCIES
 #--------------------------------------------------------
 source("R/utils/000_setup.R")
-if (exists("phyloseq")) remove(phyloseq)
+if (exists("phyloseq")) {
+  remove(phyloseq)
+}
 
 library(microeco)
 library(file2meco)
@@ -25,8 +27,12 @@ library(ggnested)
 # BRC BRAY-CURTIS CORE AND ASSOCIATED
 #--------------------------------------------------------
 
-occ_abun_plot <- brc_occ_curve(core_summary_list = core_summary_lists)
-occ_abun_plot
+occ_abun_plot <- brc_occ_curve(
+  core_summary_list = core_summary_lists,
+  color_values = RColorBrewer::brewer.pal(3, name = "Set1")
+) +
+  ggtitle("ASVs contributing >2% to Bray-Curtis Dissimilarity") +
+  guides(fill = guide_legend(title = "ASV Association"))
 
 # Generate crop-based and BRC-based visualizations
 bc_core_nmds_crops <- brc_gg_ordi(
@@ -38,43 +44,48 @@ bc_core_nmds_crops <- brc_gg_ordi(
   ggtitle(
     "50 core ASVs in BRC crops"
     # subtitle = "Core that contributes 2% to Bray-Curtis"
-  )
+  ) +
+  scale_color_brewer(palette = "Set2") +
+  theme(title = element_text(size = 8))
+
 
 bc_core_nmds_brc <- brc_gg_ordi(
   .data = bc_core_nmds$nmds_df,
   ordi = "NMDS",
+  .shape = brc,
   .color = brc,
+  color_values = c("#FC4E07", "#E7B800"),
+  .labels = c("GLBRC", "CABBI"),
+  .size = 2.5,
+  .alpha = 0.5,
   .drop_na = brc
 ) +
   ggtitle(
-    "50 core ASVs in BRC crops"
+    "50 core ASVs in BRCs"
     # subtitle = "Core that contributes 2% to Bray-Curtis"
-  )
+  ) +
+  theme(title = element_text(size = 8))
 
+# bc_plots <- ggpubr::ggarrange(
+#   # Top row
+#   occ_abun_plot,
 
-bc_plots <- ggpubr::ggarrange(
-  # Top row
-  occ_abun_plot +
-    ggtitle("ASVs contributing >2% to Bray-Curtis Dissimilarity") +
-    guides(fill = guide_legend(title = "ASV Association")),
-
-  # Bottom row
-  ggpubr::ggarrange(
-    bc_core_nmds_crops,
-    bc_core_nmds_brc,
-    ncol = 2,
-    labels = c("B", "C"),
-    common.legend = TRUE,
-    legend = "bottom"
-  ),
-  # Arrangement parameters
-  nrow = 2,
-  labels = c("A", ""),
-  heights = c(1.5, 1),
-  common.legend = TRUE,
-  legend = "bottom"
-)
-
+#   # Bottom row
+#   ggpubr::ggarrange(
+#     bc_core_nmds_crops,
+#     bc_core_nmds_brc,
+#     ncol = 2,
+#     labels = c("B", "C"),
+#     common.legend = TRUE,
+#     legend = "bottom"
+#   ),
+#   # Arrangement parameters
+#   nrow = 2,
+#   labels = c("A", ""),
+#   heights = c(1.5, 1),
+#   common.legend = TRUE,
+#   legend = "bottom"
+# )
 
 #--------------------------------------------------------
 # BRC CORES SELECTED BY THRESHOLD
@@ -82,7 +93,13 @@ bc_plots <- ggpubr::ggarrange(
 
 thres_core_60 <- filtered_phyloseq %>%
   brc_occore(.) %>%
-  brc_occ_curve(core_summary_list = .)
+  brc_occ_curve(
+    core_summary_list = .,
+    color_values = RColorBrewer::brewer.pal(3, name = "Set1")
+  ) +
+  geom_hline(yintercept = 0.6, linetype = 2, linewidth = 1, color = "red") +
+  ggtitle("ASVs in >60% Samples Across Crops and BRCs") +
+  guides(fill = guide_legend(title = "ASV Association"))
 
 # Generate crop-based and BRC-based visualizations
 high_occ_nmds_crops <- brc_gg_ordi(
@@ -91,58 +108,80 @@ high_occ_nmds_crops <- brc_gg_ordi(
   .color = crop,
   .drop_na = brc
 ) +
-  ggtitle("12 high prevalence ASVs in BRC crops (60% samples)")
+  ggtitle("12 high prevalence ASVs in BRC crops") +
+  scale_color_brewer(palette = "Set2") +
+  theme(title = element_text(size = 8))
+
 
 high_occ_nmds_brc <- brc_gg_ordi(
   .data = high_occ_nmds$nmds_df,
   ordi = "NMDS",
+  .shape = brc,
   .color = brc,
+  color_values = c("#FC4E07", "#E7B800"),
+  .labels = c("GLBRC", "CABBI"),
+  .size = 2.5,
+  .alpha = 0.5,
   .drop_na = brc
 ) +
-  ggtitle("12 high prevalence ASVs in BRCs (60% samples)")
+  ggtitle("12 high prevalence ASVs in BRCs") +
+  theme(title = element_text(size = 8))
 
 
-threshold_plots <- ggpubr::ggarrange(
-  # Top row
-  thres_core_60 +
-    geom_hline(yintercept = 0.6, linetype = 2, linewidth = 1, color = "red") +
-    ggtitle("ASVs in >60% Samples Across Crops and BRCs") +
-    guides(fill = guide_legend(title = "ASV Association")),
-  # Second row
+# threshold_plots <- ggpubr::ggarrange(
+#   # Top row
+#   thres_core_60,
+#   # Second row
+#   ggpubr::ggarrange(
+#     high_occ_nmds_crops,
+#     high_occ_nmds_brc,
+#     ncol = 2,
+#     labels = c("E", "F"),
+#     common.legend = FALSE,
+#     legend = "bottom"
+#   ),
+
+#   # Overall arrangement settings
+#   nrow = 2,
+#   labels = c("D", ""),
+#   heights = c(1.5, 1),
+#   common.legend = TRUE,
+#   legend = "bottom"
+# )
+
+final_plot <- ggpubr::ggarrange(
+  # First row - 2 plots
   ggpubr::ggarrange(
+    occ_abun_plot,
+    thres_core_60,
+    ncol = 2,
+    labels = c("A", "D"),
+    common.legend = TRUE,
+    legend = "bottom"
+  ),
+  " ",
+  # Second row - 4 plots
+  ggpubr::ggarrange(
+    bc_core_nmds_crops,
+    bc_core_nmds_brc,
     high_occ_nmds_crops,
     high_occ_nmds_brc,
-    ncol = 2,
-    labels = c("E", "F"),
+    ncol = 4,
+    labels = c("B", "C", "E", "F"),
     common.legend = TRUE,
     legend = "bottom"
   ),
 
-  # Overall arrangement settings
-  nrow = 2,
-  labels = c("D", ""),
-  heights = c(1.5, 1),
+  nrow = 3,
+  heights = c(1.5, 0.1, 1),
   common.legend = TRUE,
   legend = "bottom"
-)
-
-# Add a common title if needed
-final_plot <- ggpubr::ggarrange(
-  bc_plots,
-  threshold_plots,
-  ncol = 2,
-  common.legend = TRUE,
-  legend = "bottom"
-
-  # top = ggpubr::text_grob(
-  #   "ASVs in >60% Samples Across Crops and BRCs",
-  #   face = "bold",
-  #   size = 14
-  # )
 )
 
 # Display the final arranged plot
 final_plot
+
+## Need final legend arrangement in inkscape
 
 ggsave(
   "data/output/plots/combined_multicores_nmds.png",
