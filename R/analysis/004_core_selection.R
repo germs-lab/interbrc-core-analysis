@@ -34,7 +34,8 @@ braycore_summary <- extract_core(
   filtered_phyloseq,
   Var = "site",
   method = "increase",
-  increase_value = 2
+  increase_value = 2,
+  .parallel = TRUE
 )
 
 # Minimum seq depth was ~10,000 reads.
