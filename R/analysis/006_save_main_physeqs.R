@@ -16,7 +16,9 @@
 # SETUP AND DEPENDENCIES
 #--------------------------------------------------------
 source("R/utils/000_setup.R")
-if (exists("phyloseq")) remove(phyloseq)
+if (exists("phyloseq")) {
+  remove(phyloseq)
+}
 
 #--------------------------------------------------------
 # EXTRACT CORE AND NON-CORE TAXA
@@ -35,11 +37,11 @@ bc_noncore_asv_ids <- core_summary_lists[[4]] %>%
 # Extract ASV matrices for core and non-core communities
 bc_core_matrix <- extract_matrix(
   filtered_phyloseq,
-  .vec = bc_core_ids
+  .vec = bc_core_asv_ids
 )
 bc_noncore_matrix <- extract_matrix(
   filtered_phyloseq,
-  .vec = bc_noncore_ids
+  .vec = bc_noncore_asv_ids
 )
 
 # Get sample names for core and non-core communities
@@ -62,7 +64,7 @@ braycurt_core <- prune_samples(
   sort(sample_names(filtered_phyloseq)) %in% sort(bc_core_sample_ids),
   filtered_phyloseq
 ) %>%
-  prune_taxa(rownames(otu_table(.)) %in% bc_core_ids, .)
+  prune_taxa(rownames(otu_table(.)) %in% bc_core_asv_ids, .)
 
 braycurt_noncore <- prune_samples(
   sort(sample_names(filtered_phyloseq)) %in%
@@ -78,14 +80,13 @@ rownames(braycurt_core@otu_table) %in% bc_noncore_sample_ids
 # CREATE SUBSET PHYLOSEQS PER BRC
 #--------------------------------------------------------
 # Filter phyloseq object for the selected BRC
-physeq <- subset_samples(filtered_phyloseq, brc == BRC)
+# physeq <- subset_samples(filtered_phyloseq, brc == BRC)
 
-test <- physeq@otu_table %>%
-  #t() %>% # Samples as rows
-  as.data.frame() %>%
-  .[rowSums(.) > 0, ] %>% # Keep only samples with a non-zero sum
-  as.matrix()
-
+# test <- physeq@otu_table %>%
+#   #t() %>% # Samples as rows
+#   as.data.frame() %>%
+#   .[rowSums(.) > 0, ] %>% # Keep only samples with a non-zero sum
+#   as.matrix()
 
 #--------------------------------------------------------
 # SAVE PHYLOSEQ OBJECTS
@@ -132,7 +133,7 @@ high_occ_matrix <- physeq_high_occ@otu_table %>%
   as.matrix()
 
 low_occ_matrix <- physeq_low_occ@otu_table %>%
-  t() %>% # Samples as rows
+  t() %>%
   as.data.frame() %>%
   .[rowSums(.) > 0, ] %>%
   as.matrix()
@@ -159,7 +160,11 @@ asv_matrices <- list(
   bc_core = bc_core_matrix,
   bc_noncore = bc_noncore_matrix,
   high_occ = high_occ_matrix,
-  low_occ = low_occ_matrix
+  low_occ = low_occ_matrix,
+  full_asv_matrix = as.matrix(as.data.frame(otu_table(
+    filtered_phyloseq,
+    taxa_are_rows = TRUE
+  )))
 )
 
 save(asv_matrices, file = "data/output/asv_matrices.rda")

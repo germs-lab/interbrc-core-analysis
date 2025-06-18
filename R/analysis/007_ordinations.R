@@ -19,7 +19,9 @@
 # SETUP AND DEPENDENCIES
 #--------------------------------------------------------
 source("R/utils/000_setup.R")
-if (exists("phyloseq")) remove(phyloseq)
+if (exists("phyloseq")) {
+  remove(phyloseq)
+}
 
 #--------------------------------------------------------
 # DATA TRANSFORMATION
@@ -50,6 +52,8 @@ distance_matrices <- hell_matrices %>%
   purrr::set_names(names(hell_matrices))
 
 plan(sequential) # Close parallel processing
+
+save(distance_matrices, file = "data/output/distance_matrices.rda")
 
 # Note: Two dimensions keeps stress below 0.20 (from previous analysis)
 
@@ -212,7 +216,7 @@ plot_paths <- str_glue("data/output/plots/{tolower(plot_names)}.png")
 purrr::walk2(
   plot_paths,
   nmds_plots,
-  \(path, plot)
+  \(path, plot) {
     ggsave(
       filename = path,
       plot = plot,
@@ -221,6 +225,7 @@ purrr::walk2(
       height = 200,
       units = "mm"
     )
+  }
 )
 
 #--------------------------------------------------------
@@ -362,7 +367,7 @@ plot_paths <- str_glue("data/output/plots/{tolower(plot_names)}.png")
 purrr::walk2(
   plot_paths,
   pcoa_plots,
-  \(path, plot)
+  \(path, plot) {
     ggsave(
       filename = path,
       plot = plot,
@@ -371,6 +376,7 @@ purrr::walk2(
       height = 200,
       units = "mm"
     )
+  }
 )
 
 #--------------------------------------------------------

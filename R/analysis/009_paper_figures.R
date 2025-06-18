@@ -184,7 +184,7 @@ final_plot
 ## Need final legend arrangement in inkscape
 
 ggsave(
-  "data/output/plots/combined_multicores_nmds.png",
+  "data/output/plots/combined_multicores_nmds.svg",
   plot = final_plot,
   dpi = 300,
   width = 300,
@@ -192,6 +192,9 @@ ggsave(
   units = "mm"
 )
 
+
+#---------------------------------------------------
+#
 
 #---------------------------------------------------
 # Relative abundance visualization per BRC and Crop
