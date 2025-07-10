@@ -1,19 +1,32 @@
-## Inter-BRC Core Analysis
-## Core & non_core Ordinations
-## By Bolívar Aponte Rolón
+#########################################################
+# COMMUNITY ORDINATION ANALYSIS
+# NMDS and PCoA ordinations and dbRDA analysis and ordinations
+# of core and non-core communities from extract_core()
+#
+# Project:  Inter-BRC-Core-Microbiome
+# Author: Bolívar Aponte Rolón
+# Date: 2025-05-08
+#########################################################
 
-# Setup
+# DESCRIPTION:
+# This script performs ordination analyses (NMDS and PCoA) to visualize and compare
+# community structure of core and non-core microbiomes across different BRCs. As well as,
+# performs distance-based redundancy analysis (dbRDA) on core and non-core
+# microbial communities specifically for the JBEI dataset. It analyzes the influence
+# of environmental variables on community structure.
+
+#--------------------------------------------------------
+# SETUP AND DEPENDENCIES
+#--------------------------------------------------------
 source("R/utils/000_setup.R")
-if (exists("phyloseq")) remove(phyloseq)
+if (exists("phyloseq")) {
+  remove(phyloseq)
+}
 
-#################################################
-###### Ordinations and Community Analysis #######
-#################################################
-
-#####################################
-### Number of dimensions for NMDS ###
-#####################################
-# Transformed matrices
+#--------------------------------------------------------
+# DATA TRANSFORMATION
+#--------------------------------------------------------
+# Transform community matrices using Hellinger transformation
 hell_matrices <- purrr::map(
   asv_matrices,
   ~ {
@@ -21,8 +34,8 @@ hell_matrices <- purrr::map(
   }
 )
 
-# Distance matrices
-plan(multicore, workers = parallel::detectCores() - 1) # Set up parallel backend
+# Calculate distance matrices in parallel
+plan(multicore, workers = parallel::detectCores() - 1)
 
 distance_matrices <- hell_matrices %>%
   future_map(
@@ -38,30 +51,29 @@ distance_matrices <- hell_matrices %>%
   ) %>%
   purrr::set_names(names(hell_matrices))
 
-plan(sequential) # Close background work by changing plans
+plan(sequential) # Close parallel processing
 
+save(distance_matrices, file = "data/output/distance_matrices.rda")
 
-# set.seed(484035)
-# nmds_screen_parallel(distance_matrices$core, ncores = 2)
-# Results: Two dimensions keeps stress below 0.20
-###############################################################
+# Note: Two dimensions keeps stress below 0.20 (from previous analysis)
 
-####################################
-### NMDS: Core by extract_core() ###
-####################################
-core_ext_nmds <- brc_nmds(
-  asv_matrix = asv_matrices$core, # brc_nmds() computes Hellinger transformations
-  physeq = core_brc_phyloseq,
+#--------------------------------------------------------
+# NMDS ANALYSIS: BC_CORE COMMUNITY
+#--------------------------------------------------------
+# Perform NMDS on BC_CORE COMMUNITY
+bc_core_nmds <- brc_nmds(
+  asv_matrix = asv_matrices$bc_core,
+  physeq = braycurt_core,
   ncores = parallel::detectCores() - 1,
   k = 3,
   trymax = 9999
-) # Best solution repeated 1 times (k = 3)
+)
 
-save(core_ext_nmds, file = "data/output/core_ext_nmds.rda")
+save(bc_core_nmds, file = "data/output/bc_core_nmds.rda")
 
-# Core NMDS Aesthetics ####
-core_nmds_crops <- brc_gg_ordi(
-  .data = core_ext_nmds$nmds_df,
+# Generate crop-based and BRC-based visualizations
+bc_core_nmds_crops <- brc_gg_ordi(
+  .data = bc_core_nmds$nmds_df,
   ordi = "NMDS",
   .color = crop,
   .drop_na = brc
@@ -71,8 +83,8 @@ core_nmds_crops <- brc_gg_ordi(
     subtitle = "Core that contributes 2% to Bray-Curtis"
   )
 
-core_nmds_brc <- brc_gg_ordi(
-  .data = core_ext_nmds$nmds_df,
+bc_core_nmds_brc <- brc_gg_ordi(
+  .data = bc_core_nmds$nmds_df,
   ordi = "NMDS",
   .color = brc,
   .drop_na = brc
@@ -82,31 +94,31 @@ core_nmds_brc <- brc_gg_ordi(
     subtitle = "Core that contributes 2% to Bray-Curtis"
   )
 
-########################################
-### NMDS: Non-Core by extract_core() ###
-########################################
-non_core_ext_nmds <- brc_nmds(
-  asv_matrix = asv_matrices$non_core,
-  physeq = non_core_brc_phyloseq,
+#--------------------------------------------------------
+# NMDS ANALYSIS: BC_NONCORE COMMUNITY
+#--------------------------------------------------------
+# Perform NMDS on BC_NONCORE COMMUNITY
+bc_noncore_nmds <- brc_nmds(
+  asv_matrix = asv_matrices$bc_noncore,
+  physeq = braycurt_noncore,
   ncores = parallel::detectCores() - 1,
   k = 3,
   trymax = 9999
-) # Best solution was not repeated (k = 3)
+)
 
-# save(non_core_ext_nmds, file = "data/output/non_core_ext_nmds.rda")
+save(bc_noncore_nmds, file = "data/output/bc_noncore_nmds.rda")
 
-# Non-Core NMDS Aesthetics ####
-non_core_nmds_crops <- brc_gg_ordi(
-  .data = non_core_ext_nmds$nmds_df,
+# Generate crop-based and BRC-based visualizations
+bc_noncore_nmds_crops <- brc_gg_ordi(
+  .data = bc_noncore_nmds$nmds_df,
   ordi = "NMDS",
   .color = crop,
   .drop_na = brc
 ) +
   ggtitle("Non-core ASVs in BRC crops (100% samples)")
 
-
-non_core_nmds_brc <- brc_gg_ordi(
-  .data = non_core_ext_nmds$nmds_df,
+bc_noncore_nmds_brc <- brc_gg_ordi(
+  .data = bc_noncore_nmds$nmds_df,
   ordi = "NMDS",
   .color = brc,
   .drop_na = brc
@@ -114,41 +126,42 @@ non_core_nmds_brc <- brc_gg_ordi(
   ggtitle("Non-core ASVs in BRC (100% samples)")
 
 
-############################################
-### NMDS: Core and Non-Core by Threshold ###
-############################################
-# High occupancy
+#--------------------------------------------------------
+# NMDS ANALYSIS: THRESHOLD-BASED CORE
+#--------------------------------------------------------
+# Perform NMDS on high-occupancy (threshold-based core) community
 high_occ_nmds <- brc_nmds(
   asv_matrix = asv_matrices$high_occ,
-  physeq = core_asvs_threshold$physeq_high_occ,
+  physeq = prevalence_core$physeq_high_occ,
   ncores = parallel::detectCores() - 1,
   k = 3,
   trymax = 9999
 )
 
-# save(high_occ_nmds, file = "data/output/high_occ_nmds.rda")
-
-high_nmds_crops <- brc_gg_ordi(
+# Generate crop-based and BRC-based visualizations
+high_occ_nmds_crops <- brc_gg_ordi(
   .data = high_occ_nmds$nmds_df,
   ordi = "NMDS",
   .color = crop,
   .drop_na = brc
 ) +
-  ggtitle("12 high prevanlence ASVs in BRC crops (60% samples)")
+  ggtitle("12 high prevalence ASVs in BRC crops (>60% samples)")
 
-high_nmds_brc <- brc_gg_ordi(
+high_occ_nmds_brc <- brc_gg_ordi(
   .data = high_occ_nmds$nmds_df,
   ordi = "NMDS",
   .color = brc,
   .drop_na = brc
 ) +
-  ggtitle("12 high prevalence ASVs in BRCs (60% samples)")
+  ggtitle("12 high prevalence ASVs in BRCs (>60% samples)")
 
-
-# Low occupancy
+#--------------------------------------------------------
+# NMDS ANALYSIS: THRESHOLD-BASED NON-CORE
+#--------------------------------------------------------
+# Perform NMDS on low-occupancy (threshold-based non-core) community
 low_occ_nmds <- brc_nmds(
   asv_matrix = asv_matrices$low_occ,
-  physeq = subset_samples(core_asvs_threshold$physeq_low_occ, brc != "jbei"), # Remove "jbei"
+  physeq = subset_samples(prevalence_core$physeq_low_occ, brc != "jbei"),
   ncores = parallel::detectCores() - 1,
   k = 3,
   trymax = 9999
@@ -156,8 +169,8 @@ low_occ_nmds <- brc_nmds(
 
 save(low_occ_nmds, file = "data/output/low_occ_nmds.rda")
 
-
-low_nmds_crops <- brc_gg_ordi(
+# Generate crop-based and BRC-based visualizations
+low_occ_nmds_crops <- brc_gg_ordi(
   .data = low_occ_nmds$nmds_df,
   ordi = "NMDS",
   .color = crop,
@@ -165,7 +178,7 @@ low_nmds_crops <- brc_gg_ordi(
 ) +
   ggtitle("Low prevalence ASVs in BRC crops (<60% samples)")
 
-low_nmds_brc <- brc_gg_ordi(
+low_occ_nmds_brc <- brc_gg_ordi(
   .data = low_occ_nmds$nmds_df,
   ordi = "NMDS",
   .color = brc,
@@ -173,38 +186,37 @@ low_nmds_brc <- brc_gg_ordi(
 ) +
   ggtitle("Low prevalence ASVs in BRCs (<60% samples)")
 
-########################
-## Saving NMDS plots ###
-########################
-
+#--------------------------------------------------------
+# SAVE NMDS VISUALIZATIONS
+#--------------------------------------------------------
+# Combine all NMDS plots and save to output directory
 nmds_plots <- list(
-  core_nmds_brc,
-  core_nmds_crops,
-  non_core_nmds_brc,
-  non_core_nmds_crops,
-  high_nmds_crops,
-  high_nmds_brc,
-  low_nmds_crops,
-  low_nmds_brc
+  bc_core_nmds_brc,
+  bc_core_nmds_crops,
+  bc_noncore_nmds_brc,
+  bc_noncore_nmds_crops,
+  high_occ_nmds_crops,
+  high_occ_nmds_brc,
+  low_occ_nmds_crops,
+  low_occ_nmds_brc
 )
 plot_names <- c(
-  "core_nmds_brc",
-  "core_nmds_crops",
-  "non_core_nmds_brc",
-  "non_core_nmds_crops",
+  "bc_core_nmds_brc",
+  "bc_core_nmds_crops",
+  "bc_noncore_nmds_brc",
+  "bc_noncore_nmds_crops",
   "high_occ_nmds_crops",
   "high_occ_nmds_brc",
-  "low_nmds_crops",
-  "low_nmds_brc"
+  "low_occ_nmds_crops",
+  "low_occ_nmds_brc"
 )
-
 
 plot_paths <- str_glue("data/output/plots/{tolower(plot_names)}.png")
 
 purrr::walk2(
   plot_paths,
   nmds_plots,
-  \(path, plot)
+  \(path, plot) {
     ggsave(
       filename = path,
       plot = plot,
@@ -213,22 +225,21 @@ purrr::walk2(
       height = 200,
       units = "mm"
     )
+  }
 )
 
-
-############
-### PCoA ###
-############
-####################################
-### PCoA: Core by extract_core() ###
-####################################
-core_asv_pcoa <- brc_pcoa(
+#--------------------------------------------------------
+# PCOA ANALYSIS: BC_CORE COMMUNITY
+#--------------------------------------------------------
+# Perform PCoA on BC_CORE COMMUNITY
+bc_core_asv_pcoa <- brc_pcoa(
   distance_matrices$core,
-  core_brc_phyloseq
-) # Need a distance matric from vegdist()
+  braycurt_core
+)
 
-core_pcoa_brc <- brc_gg_ordi(
-  .data = core_asv_pcoa$pcoa_df,
+# Generate crop-based and BRC-based visualizations
+bc_core_pcoa_brc <- brc_gg_ordi(
+  .data = bc_core_asv_pcoa$pcoa_df,
   ordi = "PCoA",
   .color = brc,
   .drop_na = brc
@@ -238,8 +249,8 @@ core_pcoa_brc <- brc_gg_ordi(
     subtitle = "Core that contributes 2% to Bray-Curtis"
   )
 
-core_pcoa_crops <- brc_gg_ordi(
-  .data = core_asv_pcoa$pcoa_df,
+bc_core_pcoa_crops <- brc_gg_ordi(
+  .data = bc_core_asv_pcoa$pcoa_df,
   ordi = "PCoA",
   .color = crop,
   .drop_na = brc
@@ -249,44 +260,44 @@ core_pcoa_crops <- brc_gg_ordi(
     subtitle = "Core that contributes 2% to Bray-Curtis"
   )
 
-
-########################################
-### PCoA: Non-Core by extract_core() ###
-########################################
-non_core_asv_pcoa <- brc_pcoa(
+#--------------------------------------------------------
+# PCOA ANALYSIS: BC_NONCORE COMMUNITY
+#--------------------------------------------------------
+# Perform PCoA on BC_NONCORE COMMUNITY
+bc_noncore_asv_pcoa <- brc_pcoa(
   distance_matrices$non_core,
-  non_core_brc_phyloseq
+  braycurt_noncore
 )
 
-non_core_pcoa_brc <- brc_gg_ordi(
-  .data = non_core_asv_pcoa$pcoa_df,
+# Generate crop-based and BRC-based visualizations
+bc_noncore_pcoa_brc <- brc_gg_ordi(
+  .data = bc_noncore_asv_pcoa$pcoa_df,
   ordi = "PCoA",
   .color = brc,
   .drop_na = brc
 ) +
   ggtitle("PCoA: Non-Core ASVs in BRCs")
 
-non_core_pcoa_crops <- brc_gg_ordi(
-  .data = non_core_asv_pcoa$pcoa_df,
+bc_noncore_pcoa_crops <- brc_gg_ordi(
+  .data = bc_noncore_asv_pcoa$pcoa_df,
   ordi = "PCoA",
   .color = crop,
   .drop_na = brc
 ) +
   ggtitle("PCoA: Non-Core ASVs in BRC crops")
 
-
-############################################
-### PCoA: Core and Non-Core by threshold ###
-############################################
-
-## High occupancy
+#--------------------------------------------------------
+# PCOA ANALYSIS: THRESHOLD-BASED COMMUNITIES
+#--------------------------------------------------------
+# Perform PCoA on high-occupancy (threshold-based core) community
 high_asv_pcoa <- brc_pcoa(
   distance_matrices$high_occ,
-  core_asvs_threshold$physeq_high_occ %>%
-    prune_samples(sample_sums(.) > 0, .) # Making the matrix and phyloseq the same: 1732 samples
+  prevalence_core$physeq_high_occ %>%
+    prune_samples(sample_sums(.) > 0, .)
 )
 
-high_pcoa_brc <- brc_gg_ordi(
+# Generate crop-based and BRC-based visualizations
+high_occ_pcoa_brc <- brc_gg_ordi(
   .data = high_asv_pcoa$pcoa_df,
   ordi = "PCoA",
   .color = brc,
@@ -294,7 +305,7 @@ high_pcoa_brc <- brc_gg_ordi(
 ) +
   ggtitle("PCoA: High prevalence ASVs in BRCs")
 
-high_pcoa_crops <- brc_gg_ordi(
+high_occ_pcoa_crops <- brc_gg_ordi(
   .data = high_asv_pcoa$pcoa_df,
   ordi = "PCoA",
   .color = crop,
@@ -302,14 +313,15 @@ high_pcoa_crops <- brc_gg_ordi(
 ) +
   ggtitle("PCoA: High prevalence ASVs in BRC crops")
 
-## Low prevalence
+# Perform PCoA on low-occupancy (threshold-based non-core) community
 low_asv_pcoa <- brc_pcoa(
   distance_matrices$low_occ,
-  core_asvs_threshold$physeq_low_occ %>%
-    prune_samples(sample_sums(.) > 0, .) # Making the matrix and phyloseq the same: 1732 samples
+  prevalence_core$physeq_low_occ %>%
+    prune_samples(sample_sums(.) > 0, .)
 )
 
-low_pcoa_brc <- brc_gg_ordi(
+# Generate crop-based and BRC-based visualizations
+low_occ_pcoa_brc <- brc_gg_ordi(
   .data = low_asv_pcoa$pcoa_df,
   ordi = "PCoA",
   .color = brc,
@@ -317,7 +329,7 @@ low_pcoa_brc <- brc_gg_ordi(
 ) +
   ggtitle("PCoA: Low prevalence ASVs in BRCs")
 
-low_pcoa_crops <- brc_gg_ordi(
+low_occ_pcoa_crops <- brc_gg_ordi(
   .data = low_asv_pcoa$pcoa_df,
   ordi = "PCoA",
   .color = crop,
@@ -325,39 +337,37 @@ low_pcoa_crops <- brc_gg_ordi(
 ) +
   ggtitle("PCoA: Low prevalence ASVs in BRC crops")
 
-
-########################
-## Saving PCoA plots ###
-########################
-
+#--------------------------------------------------------
+# SAVE PCOA VISUALIZATIONS
+#--------------------------------------------------------
+# Combine all PCoA plots and save to output directory
 pcoa_plots <- list(
-  core_pcoa_brc,
-  core_pcoa_crops,
-  non_core_pcoa_brc,
-  non_core_pcoa_crops,
-  high_pcoa_crops,
-  high_pcoa_brc,
-  low_pcoa_crops,
-  low_pcoa_brc
+  bc_core_pcoa_brc,
+  bc_core_pcoa_crops,
+  bc_noncore_pcoa_brc,
+  bc_noncore_pcoa_crops,
+  high_occ_pcoa_crops,
+  high_occ_pcoa_brc,
+  low_occ_pcoa_crops,
+  low_occ_pcoa_brc
 )
 plot_names <- c(
-  "core_pcoa_brc",
-  "core_pcoa_crops",
-  "non_core_pcoa_brc",
-  "non_core_pcoa_crops",
-  "high_pcoa_crops",
-  "high_pcoa_brc",
-  "low_pcoa_crops",
-  "low_pcoa_brc"
+  "bc_core_pcoa_brc",
+  "bc_core_pcoa_crops",
+  "bc_noncore_pcoa_brc",
+  "bc_noncore_pcoa_crops",
+  "high_occ_pcoa_crops",
+  "high_occ_pcoa_brc",
+  "low_occ_pcoa_crops",
+  "low_occ_pcoa_brc"
 )
-
 
 plot_paths <- str_glue("data/output/plots/{tolower(plot_names)}.png")
 
 purrr::walk2(
   plot_paths,
   pcoa_plots,
-  \(path, plot)
+  \(path, plot) {
     ggsave(
       filename = path,
       plot = plot,
@@ -366,4 +376,177 @@ purrr::walk2(
       height = 200,
       units = "mm"
     )
+  }
 )
+
+#--------------------------------------------------------
+# DISTANCE-BASED REDUNDANCY ANALYSIS
+#--------------------------------------------------------
+
+#########################################################
+# Ignore this section is performing for ALL BRCs
+# Script 005_core_selection_per_BRCs.R performs the same
+#--------------------------------------------------------
+# BRC SELECTION AND PARAMETERS
+#--------------------------------------------------------
+# Define BRC of interest and output naming parameters
+BRC <- "jbei"
+CORE <- "bc_core"
+NOCORE <- "bc_noncore"
+
+# Filter phyloseq object for the selected BRC
+physeq <- subset_samples(filtered_phyloseq, brc == BRC)
+
+
+# Extract core microbiome using Bray-Curtis dissimilarity
+braycore_summary <- extract_core(
+  physeq,
+  Var = "site",
+  method = "increase",
+  increase_value = 2
+)
+
+##########################################################
+
+#--------------------------------------------------------
+# Subset by "core" and "non-core" taxa
+#--------------------------------------------------------
+
+bc_core <- subset_physeq(braycore_summary, physeq, .var = "otu", type = "core")
+bc_noncore <- subset_physeq(braycore_summary, physeq, .var = "otu", type = "no")
+
+
+#--------------------------------------------------------
+# dbRDA BC_CORE COMMUNITY ANALYSIS
+#--------------------------------------------------------
+# Transform data using Hellinger transformation
+hell_matrix <- decostand(
+  t(bc_core$asv_matrix),
+  method = "hellinger",
+  MARGIN = 1
+)
+
+# Prepare environmental data
+dbrda_traits <- braycore_summary$sample_metadata %>%
+  as.data.frame() %>%
+  janitor::clean_names() %>%
+  select(., c(drought, treatment, block, harvest, sample_id)) %>%
+  dplyr::filter(rownames(.) %in% colnames(hell_matrix))
+
+# Build dbRDA models with different constraints
+dbrda_00_bc_core <- dbrda(
+  t(hell_matrix) ~ 1,
+  distance = "bray",
+  dfun = vegdist,
+  data = dbrda_traits,
+  parallel = 8,
+  na.action = na.omit
+)
+
+dbrda_01_bc_core <- dbrda(
+  t(hell_matrix) ~ .,
+  distance = "bray",
+  dfun = vegdist,
+  data = dbrda_traits,
+  parallel = 8,
+  na.action = na.omit
+)
+
+dbrda_02_bc_core <- dbrda(
+  t(hell_matrix) ~ drought + block + harvest,
+  distance = "bray",
+  dfun = vegdist,
+  data = dbrda_traits,
+  parallel = 8,
+  na.action = na.omit
+)
+
+#--------------------------------------------------------
+# dbRDA BC_NONCORE COMMUNITY ANALYSIS
+#--------------------------------------------------------
+# Transform non-core data using Hellinger transformation
+hell_matrix <- decostand(
+  t(bc_noncore$asv_matrix),
+  method = "hellinger",
+  MARGIN = 1
+)
+
+# Prepare environmental data for non-core analysis
+dbrda_traits <- braycore_summary$sample_metadata %>%
+  as.data.frame() %>%
+  janitor::clean_names() %>%
+  select(., c(drought, treatment, block, harvest, sample_id)) %>%
+  dplyr::filter(rownames(.) %in% colnames(hell_matrix))
+
+# Build dbRDA models for non-core community
+dbrda_00_bc_noncore <- dbrda(
+  t(hell_matrix) ~ 1,
+  distance = "bray",
+  dfun = vegdist,
+  data = dbrda_traits,
+  parallel = 8,
+  na.action = na.omit
+)
+
+dbrda_01_bc_nocore <- dbrda(
+  t(hell_matrix) ~ .,
+  distance = "bray",
+  dfun = vegdist,
+  data = dbrda_traits,
+  parallel = 8,
+  na.action = na.omit
+)
+
+dbrda_02_bc_noncore <- dbrda(
+  t(hell_matrix) ~ drought + block + harvest,
+  distance = "bray",
+  dfun = vegdist,
+  data = dbrda_traits,
+  parallel = 8,
+  na.action = na.omit
+)
+
+#--------------------------------------------------------
+# dbRDA STATISTICAL TESTING
+#--------------------------------------------------------
+# Perform permutation tests on models
+set.seed(123)
+anova.cca(dbrda_02_bc_noncore, by = "margin", permutations = 999, parallel = 8)
+anova(dbrda_02_bc_core, by = "axis")
+anova(dbrda_02_bc_core, by = "axis", perm.max = 500)
+
+
+#--------------------------------------------------------
+# dbRDA VISUALIZATION
+#--------------------------------------------------------
+# Generate ordination plots for core and non-core communities
+bc_core_dbrda_gg <- brc_flex_ordi(
+  dbrda_02_bc_core,
+  dbrda_traits,
+  color_var = "treatment",
+  sample_id_col = "sample_id"
+) %>%
+  +ggtitle(str_glue("All {BRC}: Bray-Curtis Core"))
+
+bc_noncore_dbrda_gg <- brc_flex_ordi(
+  dbrda_02_bc_noncore,
+  dbrda_traits,
+  color_var = "treatment",
+  sample_id_col = "sample_id"
+) %>%
+  +ggtitle(str_glue("All {BRC}s: Bray-Curtis Non-Core "))
+
+# Save plots to output directory
+save_gg <- list(bc_core_dbrda_gg, bc_noncore_dbrda_gg) %>%
+  purrr::set_names(
+    stringr::str_glue("brc_{c(CORE, NOCORE)}_dbrda")
+  )
+
+brc_ggsave(save_gg, "data/output/plots/")
+
+#--------------------------------------------------------
+# THRESHOLD-BASED ANALYSIS
+#--------------------------------------------------------
+# Extract high and low occupancy communities from threshold-based core analysis
+high_occ <- subset_samples(prevalence_core$physeq_high_occ, brc == BRC)
+low_occ <- subset_samples(prevalence_core$physeq_low_occ, brc == BRC)
