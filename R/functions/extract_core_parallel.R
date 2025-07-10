@@ -141,7 +141,7 @@ extract_core_parallel <- function(
     Level = NULL,
     trimOTUs = TRUE,
     .parallel = FALSE,
-    ncores = detectCores() - 1
+    ncores = get_available_cores()
 ) {
     set.seed(37920)
 
@@ -307,7 +307,13 @@ extract_core_parallel <- function(
     }
 
     if (.parallel) {
-        cli::cli_alert_info("Running in parallel with {ncores} cores")
+        # Backend
+        if (!parallelly::supportsMulticore()) {
+            cl <- setup_parallel_backend()
+            doParallel::registerDoParallel(cl)
+        } else {
+            cli::cli_alert_info("Running in parallel with {ncores} cores")
+        }
 
         # Run in parallel
         parallel_results <- parallel::mclapply(

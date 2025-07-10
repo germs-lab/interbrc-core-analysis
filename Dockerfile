@@ -9,19 +9,38 @@ WORKDIR /workspace
 # Copy only the files needed for package restoration
 COPY renv.lock ./
 
-# Install renv and restore packages
-# System dependencies are handled by `pak` package
-RUN Rscript -e "renv_1.1.1 <- 'https://cran.r-project.org/src/contrib/Archive/renv/renv_1.1.1.tar.gz'; install.packages(renv_1.1.1, repos=NULL, type = 'source')" && \
-    Rscript -e "options(renv.consent = TRUE, renv.config.pak.enabled = TRUE); renv::restore(lockfile = 'renv.lock', clean = TRUE)"
+# Install system dependencies
+RUN apt-get update && \
+    apt-get install -y \
+        cmake \
+        git \
+        libcurl4-openssl-dev \
+        libssl-dev \
+        libfontconfig1-dev \
+        libfreetype6-dev \
+        libgit2-dev \
+        libglpk-dev \
+        libx11-dev \
+        libxml2-dev \
+        libjpeg-turbo8-dev \
+        # Add any other system dependencies your R packages need
+        && apt-get clean \
+        && rm -rf /var/lib/apt/lists/*
 
+# Install R packages using pak
+RUN Rscript -e "install.packages('pak'); pak::pkg_install(c('conflicted', 'styler', 'phyloseq', 'vegan', 'tidyverse', 'minpack.lm', 'Hmisc', 'stats4', 'vmikk/metagMisc', 'germs-lab/BRCore@b391575', 'furrr', 'parallelly', 'doParallel', 'future'))"
+
+# Alternative: Use renv for better reproducibility
+# RUN Rscript -e "install.packages('renv', repos='https://cloud.r-project.org/')" && \
+#     Rscript -e "renv::restore()"
 
 # Copy the rest of the project files
 COPY . .
 
 # Optional: Set a non-root user for better security
-RUN useradd -m r-user \
-    && chown -R r-user:r-user /workspace
+RUN useradd -m r-user && \
+    chown -R r-user:r-user /workspace
 USER r-user
 
 # Set default command
-CMD ["R"]
+CMD ["R", "--no-save"]
