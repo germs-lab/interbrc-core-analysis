@@ -13,19 +13,19 @@
 
 # List of packages to load
 packages <- c(
-  'styler',
+  'conflicted',
   'phyloseq',
   'vegan',
   'tidyverse',
   'minpack.lm',
   'Hmisc',
   'stats4',
-  'vmikk/metagMisc',
-  'germs-lab/BRCore@b391575',
+  'BRCore',
   'furrr',
   'parallelly',
   'doParallel',
-  'future'
+  'future',
+  'here'
 )
 
 
@@ -35,11 +35,11 @@ invisible(lapply(packages, library, character.only = TRUE))
 #purrr::walk(packages, library, character.only = TRUE)
 
 ## List files and source each
-list.files(here::here("R/functions"), pattern = "brc_", full.names = TRUE) %>%
-  purrr::map(source)
+# list.files(here::here("R/functions"), pattern = "brc_", full.names = TRUE) %>%
+#   purrr::map(source)
 
-load("data/output/phyloseq_objects/filtered_phyloseq.rda")
-load("data/output/asv_matrices.rda")
+load(here::here("data/output/phyloseq_objects/filtered_phyloseq.rda"))
+load(here::here("data/output/asv_matrices.rda"))
 
 #--------------------------------------------------------
 # NMDS ANALYSIS: FULL COMMUNITY
