@@ -38,8 +38,13 @@ invisible(lapply(packages, library, character.only = TRUE))
 # list.files(here::here("R/functions"), pattern = "brc_", full.names = TRUE) %>%
 #   purrr::map(source)
 
+cat("Loading data")
 load(here::here("data/output/phyloseq_objects/filtered_phyloseq.rda"))
 load(here::here("data/output/asv_matrices.rda"))
+cat("Data ready")
+
+cat("Session info")
+print(sessionInfo())
 
 #--------------------------------------------------------
 # NMDS ANALYSIS: FULL COMMUNITY
@@ -48,7 +53,8 @@ load(here::here("data/output/asv_matrices.rda"))
 # cl <- parallelly::makeClusterPSOCK(length(workers) - 1L, autoStop = TRUE)
 # doParallel::registerDoParallel(cl)
 # plan(multicore, workers = parallel::detectCores() - 1)
-all_brc_nmds <- brc_nmds(
+cat("Starting NMDS calculations")
+all_brc_nmds <- BRCore::brc_nmds(
   asv_matrix = asv_matrices$full_asv_matrix,
   physeq = filtered_phyloseq,
   ncores = parallel::detectCores() - 1,
@@ -57,5 +63,19 @@ all_brc_nmds <- brc_nmds(
 )
 
 # plan(sequential)
+cat("Finished NMDS")
+#save(all_brc_nmds, file = "data/output/all_brc_nmds.rda")
+cat("Process complete")
 
-save(all_brc_nmds, file = "data/output/all_brc_nmds.rda")
+singularity
+exec -
+  B / home / baponte / gdrive_local / post_doc / DOE -
+  CABBI / SRO -
+  Core -
+  Datasets / interbrc -
+  core -
+  analysis:opt / interbrc -
+  core -
+  analysis
+interbrc - lite.sif
+Rscript / opt / interbrc - core - analysis / R / analysis / your - script.R
