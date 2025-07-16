@@ -9,26 +9,30 @@
 
 # Package and Environment setup
 # First, install pak if not already installed
-if (!requireNamespace("pak", quietly = TRUE)) {
-  install.packages("pak")
+if (!requireNamespace(c("pak", "renv)", quietly = TRUE)) {
+  install.packages(c("pak", "renv"))
 }
 
 # Use pak to install and load all required packages
-pak::pkg_install(c(
-  "conflicted",
-  "styler",
-  "phyloseq",
-  "vegan",
-  "tidyverse",
-  "minpack.lm",
-  "Hmisc",
-  "stats4",
-  "vmikk/metagMisc",
-  "germs-lab/BRCore@b391575",
-  "furrr",
-  "parallelly",
-  "doParallel",
-  "future"
-  # "future.batchtools",
-  # "batchtools" # Installed by future.batchtools. Being explicit here.
-))
+# pak::pkg_install(c(
+#   "conflicted",
+#   "styler",
+#   "phyloseq",
+#   "vegan",
+#   "tidyverse",
+#   "minpack.lm",
+#   "Hmisc",
+#   "stats4",
+#   "vmikk/metagMisc",
+#   "germs-lab/BRCore@b391575",
+#   "furrr",
+#   "parallelly",
+#   "doParallel",
+#   "future"
+#   # "future.batchtools",
+#   # "batchtools" # Installed by future.batchtools. Being explicit here.
+# ))
+
+
+options(renv.config.pak.enabled = TRUE)
+renv::restore()

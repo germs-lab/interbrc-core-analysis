@@ -54,7 +54,7 @@ RUN Rscript -e "install.packages('renv', repos='https://cloud.r-project.org/')"
 RUN cd /opt/interbrc-core-analysis 
 RUN Rscript -e "renv::install('pak')"
 RUN Rscript -e "options(renv.config.pak.enabled = TRUE)"
-RUN Rscript -e "renv::restore(rebuild = TRUE)"
+RUN Rscript -e "renv::restore()"
 RUN mkdir -p /opt/Rlibsymlinks 
 RUN mv $(Rscript -e "cat(paste0(renv::paths\$library()))") /opt/Rlibsymlinks
 RUN echo "R_LIBS=/opt/Rlibsymlinks" >> $(R RHOME)/etc/Renviron.site
