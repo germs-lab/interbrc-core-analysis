@@ -30,8 +30,7 @@ RUN mkdir -p /opt/interbrc-core-analysis \
     && mkdir -p /opt/Rlibsymlinks 
 
 # Set renv environment variables in Renviron.site
-RUN echo "RENV_PATHS_CACHE=/opt/renvcache" >> $(R RHOME)/etc/Renviron.site \
-    && echo "RENV_CONFIG_PAK_ENABLED=TRUE" >> $(R RHOME)/etc/Renviron.site
+RUN echo "RENV_PATHS_CACHE='/opt/renvcache'" >> $(R RHOME)/etc/Renviron.site
 
 
 # Set working directory
@@ -56,8 +55,8 @@ RUN cd /opt/interbrc-core-analysis
 RUN Rscript -e "options(renv.config.pak.enabled = TRUE)"
 RUN Rscript -e "renv::install('pak@0.8.0.1')"
 RUN Rscript -e "renv::restore()"
-RUN mv $(Rscript -e "cat(paste0(renv::paths\$library()))") /opt/Rlibsymlinks
-RUN echo "R_LIBS=/opt/Rlibsymlinks" >> $(R RHOME)/etc/Renviron.site
+RUN mv $(cd /opt/interbrc-core-analysis && Rscript -e "cat(paste0(renv::paths\$library()))") /opt/Rlibsymlinks && \
+    echo "R_LIBS=/opt/Rlibsymlinks" >> $(R RHOME)/etc/Renviron.site
 
 # Run ldconfig to update the shared library cache
 RUN ldconfig
