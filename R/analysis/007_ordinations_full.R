@@ -11,9 +11,24 @@
 # THis is a version of the 007_ordinations.R focuse on  performing an NMDS on the full dataset
 # using a Docker/Singularity container in Nova HPC at Iowa State
 
+# First, install pak if not already installed
+#if (!requireNamespace(c("renv"), quietly = TRUE)) {
+#  install.packages(c("renv"))
+#}
+
+#options(renv.config.pak.enabled = TRUE)
+#renv::install("pak@0.9.0")
+#renv::restore(rebuild = TRUE)
+
+# Clear existing library paths and set only the renvcache path
+.libPaths("/opt/renvcache/v5/linux-ubuntu-jammy/R-4.4/x86_64-pc-linux-gnu")
+
+# Print the current library paths to verify
+print(.libPaths())
+
 # List of packages to load
 packages <- c(
-  'conflicted',
+  #'conflicted',
   'phyloseq',
   'vegan',
   'tidyverse',
