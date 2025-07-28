@@ -26,11 +26,12 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
 
 # Create a directory for app installation and renv cache
 RUN mkdir -p /opt/interbrc-core-analysis \
-    && mkdir -p /opt/renvcache
+    && mkdir -p /opt/renvcache \
+    && mkdir -p /opt/Rlibsymlinks 
 
 # Set renv environment variables in Renviron.site
-RUN echo "RENV_PATHS_CACHE='/opt/renvcache'" >> $(R RHOME)/etc/Renviron.site \
-    && echo "RENV_CONFIG_PAK_ENABLED='TRUE'" >> $(R RHOME)/etc/Renviron.site
+RUN echo "RENV_PATHS_CACHE=/opt/renvcache" >> $(R RHOME)/etc/Renviron.site \
+    && echo "RENV_CONFIG_PAK_ENABLED=TRUE" >> $(R RHOME)/etc/Renviron.site
 
 
 # Set working directory
@@ -52,10 +53,9 @@ COPY R/ /opt/interbrc-core-analysis/R/
 # Install R packages using renv for better reproducibility
 RUN Rscript -e "install.packages('renv', repos='https://cloud.r-project.org/')" 
 RUN cd /opt/interbrc-core-analysis 
-RUN Rscript -e "renv::install('pak')"
 RUN Rscript -e "options(renv.config.pak.enabled = TRUE)"
+RUN Rscript -e "renv::install('pak@0.8.0.1')"
 RUN Rscript -e "renv::restore()"
-RUN mkdir -p /opt/Rlibsymlinks 
 RUN mv $(Rscript -e "cat(paste0(renv::paths\$library()))") /opt/Rlibsymlinks
 RUN echo "R_LIBS=/opt/Rlibsymlinks" >> $(R RHOME)/etc/Renviron.site
 

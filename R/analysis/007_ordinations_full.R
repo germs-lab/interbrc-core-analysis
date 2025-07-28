@@ -66,16 +66,4 @@ all_brc_nmds <- BRCore::brc_nmds(
 cat("Finished NMDS")
 #save(all_brc_nmds, file = "data/output/all_brc_nmds.rda")
 cat("Process complete")
-
-singularity
-exec -
-  B / home / baponte / gdrive_local / post_doc / DOE -
-  CABBI / SRO -
-  Core -
-  Datasets / interbrc -
-  core -
-  analysis:opt / interbrc -
-  core -
-  analysis
-interbrc - lite.sif
-Rscript / opt / interbrc - core - analysis / R / analysis / your - script.R
+print
