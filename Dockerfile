@@ -45,21 +45,16 @@ COPY renv/ /opt/interbrc-core-analysis/renv/
 COPY R/ /opt/interbrc-core-analysis/R/
 
 
-# Install R packages globally (not in /root or /home)
-# Using pak
-#RUN Rscript -e "install.packages('pak'); pak::pkg_install(c('conflicted', 'styler', 'phyloseq', 'vegan', 'tidyverse', 'minpack.lm', 'Hmisc', 'stats4', 'germs-lab/BRCore@b391575', 'furrr', 'parallelly', 'doParallel', 'future', 'here'))"
-
 # Install R packages using renv for better reproducibility
 RUN Rscript -e "install.packages('renv', repos='https://cloud.r-project.org/')" 
-RUN cd /opt/interbrc-core-analysis 
-RUN Rscript -e "options(renv.config.pak.enabled = TRUE)"
-RUN Rscript -e "renv::install('pak@0.8.0.1')"
-RUN Rscript -e "renv::restore()"
-RUN mv $(cd /opt/interbrc-core-analysis && Rscript -e "cat(paste0(renv::paths\$library()))") /opt/Rlibsymlinks && \
-    echo "R_LIBS=/opt/Rlibsymlinks" >> $(R RHOME)/etc/Renviron.site
-
-# Run ldconfig to update the shared library cache
-RUN ldconfig
+RUN cd /opt/interbrc-core-analysis \
+    && Rscript -e "options(renv.config.pak.enabled = TRUE)" \
+    && Rscript -e "renv::install('pak@0.9.0')" \
+    && Rscript -e "renv::restore()" \
+    && mv $(Rscript -e "cat(paste0(renv::paths\$library()))") /opt/Rlibsymlinks \
+    && echo "R_LIBS=/opt/Rlibsymlinks" >> $(R RHOME)/etc/Renviron.site \
+    ldconfig 
+    # Run ldconfig to update the shared library cache
 
 # Set permissions for the non-root user
 RUN useradd -m r-user \

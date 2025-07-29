@@ -9,8 +9,8 @@
 
 # Package and Environment setup
 # First, install pak if not already installed
-if (!requireNamespace(c("pak", "renv)", quietly = TRUE)) {
-  install.packages(c("pak", "renv"))
+if (!requireNamespace(c("renv"), quietly = TRUE)) {
+  install.packages(c("renv"))
 }
 
 # Use pak to install and load all required packages
@@ -33,6 +33,7 @@ if (!requireNamespace(c("pak", "renv)", quietly = TRUE)) {
 #   # "batchtools" # Installed by future.batchtools. Being explicit here.
 # ))
 
-
+#options(renv.config.ppm.enabled = FALSE)
 options(renv.config.pak.enabled = TRUE)
-renv::restore()
+renv::install("pak@0.9.0")
+renv::restore(rebuild = TRUE)
