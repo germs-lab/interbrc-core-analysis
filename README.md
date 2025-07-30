@@ -55,23 +55,38 @@ singularity exec --no-home --pwd /opt/interbrc-core-analysis interbrc-lite_v4.si
 
 Docker and Singularity differ in their file structure and library path management. Singularity automatically binds host directories, causing R to look for packages on host system. To run analyses in an isolated environment, we avoid mounting local machine or HPC home directories.
 
+Here we bind host file system to the containers file system to ensure that the analyses results save to the host system. See documentation on using `--bind` and ``no-home` flags [here](https://docs.sylabs.io/guides/4.3/user-guide/bind_paths_and_mounts.html#using-bind-or-mount-with-the-writable-flag).
+
 ### Example 1: Core Selection Analysis
 
 ```bash
-singularity exec --no-home --pwd /opt/interbrc-core-analysis interbrc-lite_v4.sif Rscript "R/analysis/004_core_selection.R"
+singularity exec -bind /path/to/your/output:/opt/interbrc-core-analysis/data/output \
+ --no-home --pwd /opt/interbrc-core-analysis interbrc-lite_v4.sif Rscript "R/analysis/004_core_selection.R"
 ```
 
 ### Example 2: Full Ordination Analysis (HPC)
 
 ```bash
-singularity exec --no-home --pwd /opt/interbrc-core-analysis interbrc-lite_v4.sif Rscript "R/analysis/007_ordinations_full.R"
+singularity exec -bind /path/to/your/output:/opt/interbrc-core-analysis/data/output \
+--no-home --pwd /opt/interbrc-core-analysis interbrc-lite_v4.sif Rscript "R/analysis/007_ordinations_full.R"
 ```
 
-### Example 3: Maximum Isolation
-
+### Example 3: Multiple Bind Mounts
 ```bash
-singularity exec --containall --pwd /opt/interbrc-core-analysis interbrc-lite_v4.sif Rscript "R/analysis/007_ordinations_full.R"
+singularity exec \
+  --bind /path/to/your/output:/opt/interbrc-core-analysis/data/output \
+  --bind /path/to/your/plots:/opt/interbrc-core-analysis/data/output/plots \
+  --no-home --pwd /opt/interbrc-core-analysis \
+  interbrc-lite_v4.sif Rscript "R/analysis/007_ordinations_full.R"
 ```
+### Example 4 HPC Example
+```bash
+# On HPC, typically you'd bind your work directory
+singularity exec --bind $PWD/output:/opt/interbrc-core-analysis/data/output \
+  --no-home --pwd /opt/interbrc-core-analysis \
+  interbrc-lite_v4.sif Rscript "R/analysis/007_ordinations_full.R"
+```  
+Key Point: Without bind mounts, all output stays inside the read-only container and is lost when the container stops running.
 
 ## Build Process
 

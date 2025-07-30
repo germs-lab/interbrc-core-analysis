@@ -233,7 +233,7 @@ purrr::walk2(
 #--------------------------------------------------------
 # Perform PCoA on BC_CORE COMMUNITY
 bc_core_asv_pcoa <- brc_pcoa(
-  distance_matrices$core,
+  distance_matrices$bc_core,
   braycurt_core
 )
 
@@ -265,7 +265,7 @@ bc_core_pcoa_crops <- brc_gg_ordi(
 #--------------------------------------------------------
 # Perform PCoA on BC_NONCORE COMMUNITY
 bc_noncore_asv_pcoa <- brc_pcoa(
-  distance_matrices$non_core,
+  distance_matrices$bc_noncore,
   braycurt_noncore
 )
 
