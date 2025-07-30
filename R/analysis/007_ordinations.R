@@ -53,7 +53,7 @@ distance_matrices <- hell_matrices %>%
 
 plan(sequential) # Close parallel processing
 
-save(distance_matrices, file = "data/output/distance_matrices.rda")
+save(distance_matrices, file = here::here("data/output/distance_matrices.rda"))
 
 # Note: Two dimensions keeps stress below 0.20 (from previous analysis)
 
@@ -69,7 +69,7 @@ bc_core_nmds <- brc_nmds(
   trymax = 9999
 )
 
-save(bc_core_nmds, file = "data/output/bc_core_nmds.rda")
+save(bc_core_nmds, file = here::here("data/output/bc_core_nmds.rda"))
 
 # Generate crop-based and BRC-based visualizations
 bc_core_nmds_crops <- brc_gg_ordi(
@@ -106,7 +106,7 @@ bc_noncore_nmds <- brc_nmds(
   trymax = 9999
 )
 
-save(bc_noncore_nmds, file = "data/output/bc_noncore_nmds.rda")
+save(bc_noncore_nmds, file = here::here("data/output/bc_noncore_nmds.rda"))
 
 # Generate crop-based and BRC-based visualizations
 bc_noncore_nmds_crops <- brc_gg_ordi(
@@ -167,7 +167,7 @@ low_occ_nmds <- brc_nmds(
   trymax = 9999
 )
 
-save(low_occ_nmds, file = "data/output/low_occ_nmds.rda")
+save(low_occ_nmds, file = here::here("data/output/low_occ_nmds.rda"))
 
 # Generate crop-based and BRC-based visualizations
 low_occ_nmds_crops <- brc_gg_ordi(
@@ -211,7 +211,7 @@ plot_names <- c(
   "low_occ_nmds_brc"
 )
 
-plot_paths <- str_glue("data/output/plots/{tolower(plot_names)}.png")
+plot_paths <- str_glue(here::here("data/output/plots/{tolower(plot_names)}.png"))
 
 purrr::walk2(
   plot_paths,
@@ -362,7 +362,7 @@ plot_names <- c(
   "low_occ_pcoa_brc"
 )
 
-plot_paths <- str_glue("data/output/plots/{tolower(plot_names)}.png")
+plot_paths <- str_glue(here::here("data/output/plots/{tolower(plot_names)}.png"))
 
 purrr::walk2(
   plot_paths,
@@ -542,7 +542,7 @@ save_gg <- list(bc_core_dbrda_gg, bc_noncore_dbrda_gg) %>%
     stringr::str_glue("brc_{c(CORE, NOCORE)}_dbrda")
   )
 
-brc_ggsave(save_gg, "data/output/plots/")
+brc_ggsave(save_gg, here::here("data/output/plots/"))
 
 #--------------------------------------------------------
 # THRESHOLD-BASED ANALYSIS

@@ -65,6 +65,6 @@ all_brc_nmds <- BRCore::brc_nmds(
 
 # plan(sequential)
 cat("Finished NMDS")
-#save(all_brc_nmds, file = "data/output/all_brc_nmds.rda")
+save(all_brc_nmds, file = here::here("data/output/all_brc_nmds.rda"))
 cat("Process complete")
 print

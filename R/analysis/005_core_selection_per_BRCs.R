@@ -58,7 +58,7 @@ name_object(brc = BRC, physeq = physeq, type = "core") %>%
   saveRDS(
     .,
     file = stringr::str_glue(
-      "data/output/phyloseq_objects/{BRC}_{CORE}_phyloseq.rda"
+      here::here("data/output/phyloseq_objects/{BRC}_{CORE}_phyloseq.rda")
     )
   )
 
@@ -66,6 +66,6 @@ name_object(brc = BRC, physeq = physeq, type = "nocore") %>%
   saveRDS(
     .,
     file = stringr::str_glue(
-      "data/output/phyloseq_objects/{BRC}_{NOCORE}_phyloseq.rda"
+      here::here("data/output/phyloseq_objects/{BRC}_{NOCORE}_phyloseq.rda")
     )
   )
