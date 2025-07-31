@@ -9,8 +9,8 @@
 
 # Package and Environment setup
 # First, install pak if not already installed
-if (!requireNamespace(c("renv"), quietly = TRUE)) {
-  install.packages(c("renv"))
+if (!requireNamespace("renv", quietly = TRUE)) {
+  install.packages("renv")
 }
 
 # Use pak to install and load all required packages
