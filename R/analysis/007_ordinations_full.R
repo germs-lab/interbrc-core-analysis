@@ -121,4 +121,3 @@ all_brc_nmds <- BRCore::brc_nmds(
 cat("Finished NMDS")
 save(all_brc_nmds, file = here::here("data/output/all_brc_nmds.rda"))
 cat("Process complete")
-print
