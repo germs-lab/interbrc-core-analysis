@@ -99,6 +99,5 @@ braycore_summary <- extract_core_parallel(
 # Save results to avoid recomputation
 save(
     braycore_summary,
-
     file = here::here("data/output/braycore_summary_batch.rda")
 )
