@@ -71,6 +71,7 @@ bc_core_nmds <- brc_nmds(
 
 save(bc_core_nmds, file = here::here("data/output/bc_core_nmds.rda"))
 
+
 # Generate crop-based and BRC-based visualizations
 bc_core_nmds_crops <- brc_gg_ordi(
   .data = bc_core_nmds$nmds_df,
@@ -105,6 +106,7 @@ bc_noncore_nmds <- brc_nmds(
   k = 3,
   trymax = 9999
 )
+
 
 save(bc_noncore_nmds, file = here::here("data/output/bc_noncore_nmds.rda"))
 

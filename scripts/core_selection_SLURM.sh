@@ -20,6 +20,7 @@ module purge
 #module load micromamba/1.4.2-lcemqbe # Latest in Nova
 module load singularity
 
+
 # Basic session info
 echo Start Job
 echo nodes: $SLURM_JOB_NODELIST

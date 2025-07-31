@@ -43,6 +43,7 @@ braycore_summary <- extract_core(
 # Save results to avoid recomputation
 save(braycore_summary, file = here::here("data/output/braycore_summary.rda"))
 
+
 #--------------------------------------------------------
 # VISUALIZATION OF BRAY-CURTIS AND OCCUPANCY PATTERNS
 #--------------------------------------------------------
