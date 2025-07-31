@@ -114,7 +114,7 @@ subset_fasta(
 # Create FASTA files for non-core community
 subset_fasta(
   file = here::here("data/input/rep_asv_seqs.fasta"),
-  subset = bc_noncore_ids,
+  subset = bc_noncore_asv_ids,
   out = here::here("data/output/fasta_files/braycurt_noncore_seqs.fasta")
 )
 
