@@ -51,14 +51,13 @@ invisible(lapply(
 ))
 
 source(
-    "/work/adina/bolivar/interbrc-core-analysis/R/functions/extract_core_parallel.R"
+    here::here("R/functions/extract_core_parallel.R")
 )
 source(
-    "/work/adina/bolivar/interbrc-core-analysis/R/functions/parallel_helpers.R"
+    here::here("R/functions/parallel_helpers.R")
 )
 load(
-    "/work/adina/bolivar/interbrc-core-analysis/data/output/phyloseq_objects/filtered_phyloseq.rda"
-)
+    here::here("data/output/phyloseq_objects/filtered_phyloseq.rda")
 
 
 # Solve known conflicts
@@ -88,7 +87,7 @@ conflict_prefer("survival", "cluster")
 # Extract core microbiome across all sites (with minimum 2% increase in Bray-Curtis)
 # Set .parallel = TRUE to use the future framework
 braycore_summary <- extract_core_parallel(
-    test_phyloseq,
+    filtered_phyloseq,
     Var = "site",
     method = "increase",
     increase_value = 2,
@@ -100,5 +99,5 @@ braycore_summary <- extract_core_parallel(
 # Save results to avoid recomputation
 save(
     braycore_summary,
-    file = "/work/adina/bolivar/interbrc-core-analysis/data/output/braycore_summary_batch.rda"
+    file = here::here("data/output/braycore_summary_batch.rda")
 )

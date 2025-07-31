@@ -13,6 +13,7 @@ data/output/qc_reports/cabbi_sabr
 data/output/phyloseq_objects/filtered_phyloseq_df.csv
 data/output/phyloseq_objects/unfiltered_phyloseq.rda
 data/output/phyloseq_objects/filtered_phyloseq.rda
+data/output/distance_matrices.rda
 data/output/core_summary_lists.rda
 data/input/feature-table-modified.tsv 
 
@@ -24,3 +25,15 @@ R/references/REF_core_microbiome_functions.R
 R/references/selected_ASVs_high-low_edited.R
 R/references/Rarefaction.R
 data/input/rep_asv_seqs.fasta
+README_files/libs/bootstrap/bootstrap-5c3d04c81265a0f0162edbc2a0bae0e0.min.css
+README_files/libs/bootstrap/bootstrap-icons.css
+README_files/libs/bootstrap/bootstrap-icons.woff
+README_files/libs/bootstrap/bootstrap.min.js
+README_files/libs/clipboard/clipboard.min.js
+README_files/libs/quarto-html/anchor.min.js
+README_files/libs/quarto-html/popper.min.js
+README_files/libs/quarto-html/quarto-syntax-highlighting-37eea08aefeeee20ff55810ff984fec1.css
+README_files/libs/quarto-html/quarto.js
+README_files/libs/quarto-html/tippy.css
+README_files/libs/quarto-html/tippy.umd.min.js
+README_files/libs/quarto-html/tabsets/tabsets.js

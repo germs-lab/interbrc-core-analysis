@@ -41,7 +41,8 @@ braycore_summary <- extract_core(
 # Minimum seq depth was ~10,000 reads.
 
 # Save results to avoid recomputation
-# save(braycore_summary, file = "data/output/braycore_summary.rda")
+save(braycore_summary, file = here::here("data/output/braycore_summary.rda"))
+
 
 #--------------------------------------------------------
 # VISUALIZATION OF BRAY-CURTIS AND OCCUPANCY PATTERNS
@@ -59,7 +60,7 @@ occ_abun_plot
 ggsave(
   filename = "bray_curtis_abundance_occupancy.png",
   occ_abun_plot,
-  path = "data/output/plots/",
+  path = here::here("data/output/plots/"),
   dpi = 300,
   width = 6,
   height = 4

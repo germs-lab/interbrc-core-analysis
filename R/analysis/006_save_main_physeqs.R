@@ -94,11 +94,11 @@ rownames(braycurt_core@otu_table) %in% bc_noncore_sample_ids
 # Save core and non-core phyloseq objects
 save(
   braycurt_core,
-  file = "data/output/phyloseq_objects/braycurt_core.rda"
+  file = here::here("data/output/phyloseq_objects/braycurt_core.rda")
 )
 save(
   braycurt_noncore,
-  file = "data/output/phyloseq_objects/braycurt_noncore.rda"
+  file = here::here("data/output/phyloseq_objects/braycurt_noncore.rda")
 )
 
 #--------------------------------------------------------
@@ -106,16 +106,16 @@ save(
 #--------------------------------------------------------
 # Create FASTA files for core community
 subset_fasta(
-  file = "data/input/rep_asv_seqs.fasta",
-  subset = bc_core_ids,
-  out = "data/output/fasta_files/braycurt_core_seqs.fasta"
+  file = here::here("data/input/rep_asv_seqs.fasta"),
+  subset = bc_core_asv_ids,
+  out = here::here("data/output/fasta_files/braycurt_core_seqs.fasta")
 )
 
 # Create FASTA files for non-core community
 subset_fasta(
-  file = "data/input/rep_asv_seqs.fasta",
-  subset = bc_noncore_ids,
-  out = "data/output/fasta_files/braycurt_noncore_seqs.fasta"
+  file = here::here("data/input/rep_asv_seqs.fasta"),
+  subset = bc_noncore_asv_ids,
+  out = here::here("data/output/fasta_files/braycurt_noncore_seqs.fasta")
 )
 
 #--------------------------------------------------------
@@ -140,16 +140,16 @@ low_occ_matrix <- physeq_low_occ@otu_table %>%
 
 # Generate FASTA files for high occupancy ASVs
 subset_fasta(
-  file = "data/input/rep_asv_seqs.fasta",
+  file = here::here("data/input/rep_asv_seqs.fasta"),
   subset = colnames(high_occ_matrix),
-  out = "data/output/fasta_files/high_occ_seqs.fasta"
+  out = here::here("data/output/fasta_files/high_occ_seqs.fasta")
 )
 
 # Generate FASTA files for low occupancy ASVs
 subset_fasta(
-  file = "data/input/rep_asv_seqs.fasta",
+  file = here::here("data/input/rep_asv_seqs.fasta"),
   subset = colnames(low_occ_matrix),
-  out = "data/output/fasta_files/low_occ_seqs.fasta"
+  out = here::here("data/output/fasta_files/low_occ_seqs.fasta")
 )
 
 #--------------------------------------------------------
@@ -167,4 +167,4 @@ asv_matrices <- list(
   )))
 )
 
-save(asv_matrices, file = "data/output/asv_matrices.rda")
+save(asv_matrices, file = here::here("data/output/asv_matrices.rda"))

@@ -8,47 +8,109 @@
 # Date: 2025-07-10
 #########################################################
 
-# THis is a version of the 007_ordinations.R focuse on  performing an NMDS on the full dataset
+# This is a version of the 007_ordinations.R focused on performing an NMDS on the full dataset
 # using a Docker/Singularity container in Nova HPC at Iowa State
+
+
+# Print the current library paths to verify
+print(.libPaths())
 
 # List of packages to load
 packages <- c(
-  'styler',
+  'conflicted',
   'phyloseq',
   'vegan',
   'tidyverse',
   'minpack.lm',
   'Hmisc',
   'stats4',
-  'vmikk/metagMisc',
-  'germs-lab/BRCore@b391575',
+  'BRCore',
   'furrr',
   'parallelly',
   'doParallel',
-  'future'
+  'future',
+  'here'
 )
 
 
 # Load packages using lapply
 invisible(lapply(packages, library, character.only = TRUE))
 
-#purrr::walk(packages, library, character.only = TRUE)
+cat("Session info")
+print(sessionInfo())
 
-## List files and source each
-list.files(here::here("R/functions"), pattern = "brc_", full.names = TRUE) %>%
-  purrr::map(source)
+cat("Loading data")
+load(here::here("data/output/phyloseq_objects/filtered_phyloseq.rda"))
+load(here::here("data/output/asv_matrices.rda"))
+source(here::here("R/functions/brc_pcoa.R"))
+cat("Data ready")
 
-load("data/output/phyloseq_objects/filtered_phyloseq.rda")
-load("data/output/asv_matrices.rda")
+
 
 #--------------------------------------------------------
-# NMDS ANALYSIS: FULL COMMUNITY
+# ORDINATIONS ANALYSIS: FULL COMMUNITY
 #--------------------------------------------------------
 # workers <- parallelly::availableWorkers()
 # cl <- parallelly::makeClusterPSOCK(length(workers) - 1L, autoStop = TRUE)
 # doParallel::registerDoParallel(cl)
 # plan(multicore, workers = parallel::detectCores() - 1)
-all_brc_nmds <- brc_nmds(
+
+#--------------------------------------------------------
+# DATA TRANSFORMATION
+#--------------------------------------------------------
+# Transform community matrices using Hellinger transformation
+cat("Start data transformations")
+set.seed(54645)
+
+hell_matrices <- purrr::map(
+  asv_matrices,
+  ~ {
+    decostand(t(.x), method = "hellinger", MARGIN = 1)
+  }
+)
+
+# Calculate distance matrices in parallel
+plan(multicore, workers = parallel::detectCores() - 1)
+
+distance_matrices <- hell_matrices %>%
+  future_map(
+    ~ vegdist(
+      t(.x),
+      method = "bray",
+      upper = FALSE,
+      binary = FALSE,
+      na.rm = TRUE
+    ),
+    .progress = TRUE,
+    .options = furrr_options(seed = TRUE)
+  ) %>%
+  purrr::set_names(names(hell_matrices))
+
+plan(sequential) # Close parallel processing
+
+save(distance_matrices, file = here::here("data/output/distance_matrices.rda"))
+
+#----------------------
+# PCoA
+#----------------------
+cat("Starting PCoA calculations")
+
+all_brc_pcoa <- brc_pcoa(
+  distance_matrices$full_asv_matrix,
+  filtered_phyloseq
+)
+
+cat("Finished PCoA")
+save(all_brc_pcoa, file = here::here("data/output/all_brc_pcoa.rda"))
+cat("Saved PCoA")
+
+#----------------------
+# NMDS
+#----------------------
+
+cat("Starting NMDS calculations")
+
+all_brc_nmds <- BRCore::brc_nmds(
   asv_matrix = asv_matrices$full_asv_matrix,
   physeq = filtered_phyloseq,
   ncores = parallel::detectCores() - 1,
@@ -56,6 +118,6 @@ all_brc_nmds <- brc_nmds(
   trymax = 100
 )
 
-# plan(sequential)
-
-save(all_brc_nmds, file = "data/output/all_brc_nmds.rda")
+cat("Finished NMDS")
+save(all_brc_nmds, file = here::here("data/output/all_brc_nmds.rda"))
+cat("Process complete")
