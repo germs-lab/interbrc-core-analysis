@@ -88,7 +88,7 @@ conflict_prefer("survival", "cluster")
 # Extract core microbiome across all sites (with minimum 2% increase in Bray-Curtis)
 # Set .parallel = TRUE to use the future framework
 braycore_summary <- extract_core_parallel(
-    test_phyloseq,
+    filtered_phyloseq,
     Var = "site",
     method = "increase",
     increase_value = 2,
