@@ -17,11 +17,8 @@
 
 ##Modules/Singularity
 module purge
-module load micromamba/1.4.2-lcemqbe # Latest in Nova
-
-# Initialize micromamba
-eval "$(micromamba shell hook --shell=bash)"
-micromamba activate interbrc_env
+#module load micromamba/1.4.2-lcemqbe # Latest in Nova
+module load singularity
 
 # Basic session info
 echo Start Job
@@ -29,11 +26,11 @@ echo nodes: $SLURM_JOB_NODELIST
 echo job id: $SLURM_JOB_ID
 echo Number of tasks: $SLURM_NTASKS
 
-#Run R script
-R CMD BATCH scripts/package_install.R 
-#R CMD BATCH R/analysis/004_core_selection_HPC.R
+#Run R script in Singularity CE container
+singularity exec --bind $PWD/data/output:/opt/interbrc-core-analysis/data/output \
+  --no-home --pwd /opt/interbrc-core-analysis \
+  interbrc-lite_v5.sif Rscript "R/analysis/004_core_selection.R"
 
-micromamba deactivate interbrc_env
 
 module purge
 
