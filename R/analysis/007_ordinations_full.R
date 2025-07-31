@@ -8,7 +8,7 @@
 # Date: 2025-07-10
 #########################################################
 
-# This is a version of the 007_ordinations.R focuse on  performing an NMDS on the full dataset
+# This is a version of the 007_ordinations.R focused on performing an NMDS on the full dataset
 # using a Docker/Singularity container in Nova HPC at Iowa State
 
 
