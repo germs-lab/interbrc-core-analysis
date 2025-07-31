@@ -107,7 +107,7 @@ save(
 # Create FASTA files for core community
 subset_fasta(
   file = here::here("data/input/rep_asv_seqs.fasta"),
-  subset = bc_core_ids,
+  subset = bc_core_asv_ids,
   out = here::here("data/output/fasta_files/braycurt_core_seqs.fasta")
 )
 
