@@ -3,6 +3,8 @@
 # Template image
 FROM rocker/r-ubuntu:22.04 
 
+LABEL org.opencontainers.image.source = "https://github.com/germs-lab/interbrc-core-analysis"
+
 # Install system dependencies 
 RUN apt-get update && apt-get install -y --no-install-recommends \
     cmake \
