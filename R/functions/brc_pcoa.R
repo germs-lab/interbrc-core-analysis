@@ -1,7 +1,7 @@
 brc_pcoa <- function(
   asv_matrix,
   physeq,
-  ncores = parallel::detectCores() - 1,
+  ncores = get_available_cores() - 1,
   k = 2,
   eig = TRUE,
   add = FALSE,
