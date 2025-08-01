@@ -58,7 +58,7 @@ source(
 )
 load(
     here::here("data/output/phyloseq_objects/filtered_phyloseq.rda")
-
+)
 
 # Solve known conflicts
 conflict_prefer("select", "dplyr")
@@ -83,7 +83,11 @@ conflict_prefer("survival", "cluster")
 #--------------------------------------------------------
 # CORE EXTRACTION USING EXTRACT_CORE()
 #--------------------------------------------------------
-
+# Ensure minimum sample quality
+filtered_phyloseq <- prune_samples(
+  sample_sums(filtered_phyloseq) >= 100,
+  filtered_phyloseq
+)
 # Extract core microbiome across all sites (with minimum 2% increase in Bray-Curtis)
 # Set .parallel = TRUE to use the future framework
 braycore_summary <- extract_core_parallel(
