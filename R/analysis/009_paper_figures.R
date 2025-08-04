@@ -284,6 +284,26 @@ ggsave(
   units = "mm"
 )
 
+
+#----------------------------------------------
+# Full data set visualizations
+#----------------------------------------------
+# Based on "007_ordinations_full.R" results
+# sample_reads_500_asv_reads_20
+# 1809 sample 59951 ASVs
+
+test <- brc_gg_ordi(
+  .data = nmds_result_filtered$nmds_df,
+  ordi = "NMDS",
+  .color = crop,
+  .drop_na = brc
+) 
+test <- brc_gg_ordi(
+  .data = pcoa_results_filtered$sample_reads_500_asv_reads_20$pcoa_df,
+  ordi = "PCoA",
+  .color = crop,
+  .drop_na = brc
+) 
 #-------------
 # Maybe useful
 #-------------
