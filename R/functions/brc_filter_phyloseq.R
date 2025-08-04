@@ -33,7 +33,10 @@ filter_phyloseq <- function(
 filter_zero_asvs <- function(phyloseq_obj, max_zero_percent = 90) {
   otu_mat <- as.matrix(otu_table(phyloseq_obj))
   
+  # Calculate percentage of zeros per ASV (row-wise)
   zero_percentages <- apply(otu_mat, 1, function(x) sum(x == 0) / length(x) * 100)
+  
+  # Identify ASVs to keep
   asvs_to_keep <- names(zero_percentages[zero_percentages <= max_zero_percent])
   
   # Filter phyloseq object

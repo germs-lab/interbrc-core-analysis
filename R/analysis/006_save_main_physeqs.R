@@ -161,10 +161,10 @@ asv_matrices <- list(
   bc_noncore = bc_noncore_matrix,
   high_occ = high_occ_matrix,
   low_occ = low_occ_matrix,
-  full_asv_matrix = as.matrix(as.data.frame(otu_table(
+  full_asv_matrix = as.matrix(as.data.frame(t(otu_table(
     filtered_phyloseq,
     taxa_are_rows = TRUE
-  )))
+  ))))
 )
 
 save(asv_matrices, file = here::here("data/output/asv_matrices.rda"))
