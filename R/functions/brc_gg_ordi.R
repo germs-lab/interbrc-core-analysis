@@ -129,7 +129,7 @@ brc_gg_ordi <- function(
             )
     }
 
-    # Add guide titles
+    # Apply custom labels and colors
     if (!rlang::quo_is_null(.color) && rlang::quo_is_null(.shape)) {
         # Only color, no shape
         .color2 <- rlang::as_label(.color)
@@ -143,8 +143,16 @@ brc_gg_ordi <- function(
             guides(color = do.call(guide_legend, guide_params))
 
         if (!is.null(color_values)) {
+            if (!is.null(.labels)) {
+                final_plot <- final_plot +
+                    scale_color_manual(values = color_values, labels = .labels)
+            } else {
+                final_plot <- final_plot +
+                    scale_color_manual(values = color_values)
+            }
+        } else if (!is.null(.labels)) {
             final_plot <- final_plot +
-                scale_color_manual(values = color_values, labels = .labels)
+                scale_color_discrete(labels = .labels)
         }
     }
 
@@ -172,8 +180,16 @@ brc_gg_ordi <- function(
             )
 
         if (!is.null(color_values)) {
+            if (!is.null(.labels)) {
+                final_plot <- final_plot +
+                    scale_color_manual(values = color_values, labels = .labels)
+            } else {
+                final_plot <- final_plot +
+                    scale_color_manual(values = color_values)
+            }
+        } else if (!is.null(.labels)) {
             final_plot <- final_plot +
-                scale_color_manual(values = color_values, labels = .labels)
+                scale_color_discrete(labels = .labels)
         }
     }
 
@@ -188,6 +204,12 @@ brc_gg_ordi <- function(
 
         final_plot <- final_plot +
             guides(shape = do.call(guide_legend, guide_params))
+
+        if (!is.null(.labels)) {
+            final_plot <- final_plot +
+                scale_shape_discrete(labels = .labels)
+        }
     }
+
     return(final_plot)
 }

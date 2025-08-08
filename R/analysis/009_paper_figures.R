@@ -1,7 +1,7 @@
 #########################################################
 # CORE MICROBIOME SELECTION
 # Figures publish ready
-# For the most part it is ordinations already explored in 
+# For the most part it is ordinations already explored in
 # 007_ordinations.R but with different aesthetics and arrangement.
 #
 # We focus on PCoA for the publication
@@ -61,32 +61,59 @@ load(here::here("data/output/phyloseq_objects/filtered_phyloseq.rda"))
 #--------------------------------------------------------
 # GGTITLES & THEMES
 #--------------------------------------------------------
+title_size <- list(theme(title = element_text(size = 6)))
+crop_labels <- c(
+  "Corn",
+  "Miscanthus",
+  "Poplar",
+  "Restored Prairie",
+  "Sorghum",
+  "Sorghum + Rye",
+  "Soy",
+  "Switchgrass"
+)
+
 core_50_crops <- list(
   ggtitle("50 core ASVs in BRC crops"),
   scale_color_brewer(palette = "Set2"),
-  theme(title = element_text(size = 8))
+  title_size
 )
 
 core_50_brc <- list(
   ggtitle("50 core ASVs in BRCs"),
-  theme(title = element_text(size = 8))
+  title_size
 )
 
 threshold_60_core <- list(
   ggtitle("ASVs in >60% Samples Across Crops and BRCs"),
-  guides(fill = guide_legend(title = "ASV Association"))
+  guides(fill = guide_legend(title = "ASV Association")),
+  title_size
 )
 
 threshold_60_crops <- list(
   ggtitle("12 high prevalence ASVs in BRC crops"),
   scale_color_brewer(palette = "Set2"),
-  theme(title = element_text(size = 8))
+  title_size
 )
 
 threshold_60_brc <- list(
   ggtitle("12 high prevalence ASVs in BRCs"),
-  theme(title = element_text(size = 8))
+  title_size
 )
+
+threshold_100_palette <- list(
+  scale_color_brewer(
+    palette = "Set2",
+    labels = crop_labels
+  ),
+  title_size
+)
+
+override_scale <- list(scale_fill_manual(
+  labels = c("Core", "Non-core"),
+  values = c("#E41A1C", "#377EB8")
+))
+
 
 #--------------------------------------------------------
 # Pre-processing
@@ -119,9 +146,12 @@ high_asv_pcoa <- brc_pcoa(
 # Abundance/Occupancy curves
 core_abun_plot <- brc_occ_curve(
   core_summary_list = core_summary_lists,
-  color_values = RColorBrewer::brewer.pal(3, name = "Set1")
+  color_values = NULL
 ) +
+  override_scale +
+  geom_hline(yintercept = 0.1688, linetype = 2, linewidth = 1, color = "red") +
   ggtitle("ASVs contributing >2% to Bray-Curtis Dissimilarity") +
+  title_size +
   guides(fill = guide_legend(title = "ASV Association"))
 
 #--------------------
@@ -135,15 +165,17 @@ core_nmds_pcoa_plots <- brc_paper_ordinations(
   pcoa_colors = c("#E7B800", "#383961", "#FC4E07"),
   nmds_labels = c("CABBI", "GLBRC"),
   pcoa_labels = c("CABBI", "CBI", "GLBRC"),
+  nmds_crop_labels = crop_labels,
+  pcoa_crop_labels = crop_labels,
+  point_size = 1.25,
   crop_theme = core_50_crops,
   brc_theme = core_50_brc
 )
 
-# core_nmds_pcoa_plots$nmds$crops
+core_nmds_pcoa_plots$nmds$crops
 # core_nmds_pcoa_plots$nmds$brc
 # core_nmds_pcoa_plots$pcoa$crops
 # core_nmds_pcoa_plots$pcoa$brc
-
 
 #--------------------------------------------------------
 # NMDS & PCoA: BRC CORES SELECTED BY THRESHOLD
@@ -152,8 +184,9 @@ thres_core_60_curve <- filtered_phyloseq %>%
   brc_occore(.) %>%
   brc_occ_curve(
     core_summary_list = .,
-    color_values = RColorBrewer::brewer.pal(3, name = "Set1")
+    color_values = NULL
   ) +
+  override_scale +
   geom_hline(yintercept = 0.6, linetype = 2, linewidth = 1, color = "red") +
   threshold_60_core
 
@@ -164,6 +197,9 @@ high_nmds_pcoa_plots <- brc_paper_ordinations(
   nmds_colors = c("#E7B800", "#FC4E07"),
   pcoa_colors = c("#E7B800", "#FC4E07"),
   pcoa_labels = c("CABBI", "GLBRC"),
+  nmds_crop_labels = crop_labels,
+  pcoa_crop_labels = crop_labels,
+  point_size = 1.25,
   crop_theme = threshold_60_crops,
   brc_theme = threshold_60_brc
 )
@@ -178,16 +214,37 @@ high_nmds_pcoa_plots <- brc_paper_ordinations(
 # NMDS & PCoA: FULL ASV COMMUNITY
 #--------------------------------------------------------
 
-# Testing 
-test <- brc_gg_ordi(
-  .data = pcoa_results_filtered[[1]]$pcoa_df,
-  ordi = "PCoA",
-  .color = brc,
-  .drop_na = brc
+thres_core_100_curve <- filtered_phyloseq %>%
+  brc_occore(., threshold = 0) %>%
+  brc_occ_curve(
+    core_summary_list = .,
+    color_values = NULL
+  ) +
+  scale_fill_manual(
+    labels = c("Non-core"),
+    values = c("#377EB8")
+  ) +
+  ggtitle("All ASVs Across Crops and BRCs") +
+  title_size +
+  guides(fill = "none")
+
+
+all_asv_nmds_pcoa_plots <- brc_paper_ordinations(
+  nmds_data = nmds_result_filtered$nmds_df,
+  pcoa_data = pcoa_results_filtered$sample_reads_500_asv_reads_20$pcoa_df,
+  nmds_colors = c("#E7B800", "#383961", "#FC4E07", "#1E692D"),
+  pcoa_colors = c("#E7B800", "#383961", "#FC4E07", "#1E692D"),
+  nmds_labels = c("CABBI", "CBI", "GLBRC", "JBEI"),
+  pcoa_labels = c("CABBI", "CBI", "GLBRC", "JBEI"),
+  point_size = 1.25,
+  crop_theme = list(
+    ggtitle("All ASVs across BRC crops"),
+    threshold_100_palette
+  ),
+  brc_theme = list(ggtitle("All ASVs across BRCs"), title_size)
 )
 
-#TODO
-# We need four colors for the BRCs
+# all_asv_nmds_pcoa_plots$pcoa$crops
 
 #--------------------------------------------------------
 # ARRANGEMENT
@@ -196,29 +253,32 @@ test <- brc_gg_ordi(
 final_plot <- ggpubr::ggarrange(
   # First row - 2 plots
   ggpubr::ggarrange(
-    core_abun_plot,
-    thres_core_60_curve,
-    ncol = 2,
-    labels = c("A", "D"),
+    thres_core_100_curve + scale_y_continuous(labels = scales::percent),
+    thres_core_60_curve + scale_y_continuous(labels = scales::percent),
+    core_abun_plot + scale_y_continuous(labels = scales::percent),
+    ncol = 3,
+    labels = c("A", "D", "G"),
     common.legend = TRUE,
     legend = "bottom"
   ),
   " ",
   # Second row - 4 plots
   ggpubr::ggarrange(
-    core_nmds_pcoa_plots$nmds$crops,
-    core_nmds_pcoa_plots$nmds$brc,
-    high_nmds_pcoa_plots$nmds$crops,
-    high_nmds_pcoa_plots$nmds$brc,
-    ncol = 4,
-    labels = c("B", "C", "E", "F"),
+    all_asv_nmds_pcoa_plots$pcoa$crops,
+    all_asv_nmds_pcoa_plots$pcoa$brc,
+    high_nmds_pcoa_plots$pcoa$crops,
+    high_nmds_pcoa_plots$pcoa$brc,
+    core_nmds_pcoa_plots$pcoa$crops,
+    core_nmds_pcoa_plots$pcoa$brc,
+    ncol = 6,
+    labels = c("B", "C", "E", "F", "H", "I"),
     common.legend = TRUE,
     legend = "bottom"
   ),
 
   nrow = 3,
   heights = c(1.5, 0.1, 1),
-  common.legend = TRUE,
+  common.legend = FALSE,
   legend = "bottom"
 )
 
@@ -228,10 +288,10 @@ final_plot
 ## Need final legend arrangement in inkscape
 
 ggsave(
-  "data/output/plots/combined_multicores_nmds.svg",
+  "data/output/plots/combined_multicores_pcoa.svg",
   plot = final_plot,
   dpi = 300,
-  width = 300,
+  width = 375,
   height = 250,
   units = "mm"
 )
@@ -295,13 +355,23 @@ ggsave(
 # ) +
 #   ggtitle("PCoA: Non-Core ASVs in BRCs")
 
-# bc_noncore_pcoa_crops <- brc_gg_ordi(
-#   .data = bc_noncore_asv_pcoa$pcoa_df,
-#   ordi = "PCoA",
-#   .color = crop,
-#   .drop_na = brc
-# ) +
-#   ggtitle("PCoA: Non-Core ASVs in BRC crops")
+bc_noncore_pcoa_crops <- brc_gg_ordi(
+  .data = bc_noncore_asv_pcoa$pcoa_df,
+  ordi = "PCoA",
+  .labels = c(
+    "Corn",
+    "Miscanthus",
+    "Poplar",
+    "Restored Prairie",
+    "Sorghum",
+    "Sorghum + Rye",
+    "Soy",
+    "Switchgrass"
+  ),
+  .color = crop,
+  .drop_na = brc
+) +
+  ggtitle("PCoA: Non-Core ASVs in BRC crops")
 
 #--------------------------------------------------------
 # PCOA ANALYSIS: THRESHOLD-BASED COMMUNITIES
@@ -330,7 +400,6 @@ ggsave(
 #   .drop_na = brc
 # ) +
 #   ggtitle("PCoA: Low prevalence ASVs in BRC crops")
-
 
 #---------------------------------------------------
 # Relative abundance visualization per BRC and Crop
@@ -433,13 +502,13 @@ test <- brc_gg_ordi(
   ordi = "NMDS",
   .color = crop,
   .drop_na = brc
-) 
+)
 test <- brc_gg_ordi(
   .data = pcoa_results_filtered$sample_reads_500_asv_reads_20$pcoa_df,
   ordi = "PCoA",
   .color = brc,
   .drop_na = brc
-) 
+)
 #-------------
 # Maybe useful
 #-------------
