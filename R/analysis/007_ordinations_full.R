@@ -234,6 +234,10 @@ if (!is.null(best_filter)) {
 # ORIGINAL FULL DATASET ANALYSIS (if computationally feasible)
 #--------------------------------------------------------
 # Try original analysis if not too large
+# Load original distance matrices if not already loaded
+if (!exists("distance_matrices")) {
+    load(here::here("data/output/distance_matrices.rda"))  # loads 'distance_matrices'
+}
 if ("full_asv_matrix" %in% names(distance_matrices)) {
     matrix_size_full <- attr(distance_matrices$full_asv_matrix, "Size")
     memory_estimate_full <- (matrix_size_full^2 * 8) / (1024^3)
