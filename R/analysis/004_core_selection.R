@@ -214,7 +214,7 @@ prevalence_core <- filter_core(
 # Save threshold-based core ASVs
 save(
   prevalence_core,
-  file = "data/output/phyloseq_objects/prevalence_core.rda"
+  file = here::here("data/output/phyloseq_objects/prevalence_core.rda")
 )
 
 #--------------------------------------------------------

@@ -30,7 +30,7 @@ echo Number of tasks: $SLURM_NTASKS
 #Run R script in Singularity CE container
 singularity exec --bind $PWD/data/output:/opt/interbrc-core-analysis/data/output \
   --no-home --pwd /opt/interbrc-core-analysis \
-  interbrc-lite_v5.sif Rscript "R/analysis/004_core_selection.R"
+  interbrc-lite_v5.sif Rscript "R/analysis/004_core_selection_HPC.R"
 
 
 module purge
