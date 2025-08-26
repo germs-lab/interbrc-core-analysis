@@ -57,12 +57,15 @@ load(here::here("data/output/phyloseq_objects/braycurt_core.rda"))
 load(here::here("data/output/phyloseq_objects/braycurt_noncore.rda"))
 load(here::here("data/output/phyloseq_objects/prevalence_core.rda"))
 load(here::here("data/output/phyloseq_objects/filtered_phyloseq.rda"))
+raw <- read_csv("data/input/seq-percentage_count_data.csv")
 
 #--------------------------------------------------------
 # GGTITLES & THEMES
 #--------------------------------------------------------
-title_size <- list(theme(title = element_text(size = 10), 
-                         legend.title = element_text(size = 10, face = "bold")))
+title_size <- list(theme(
+  title = element_text(size = 10),
+  legend.title = element_text(size = 10, face = "bold")
+))
 crop_labels <- c(
   "Corn",
   "Miscanthus",
@@ -365,7 +368,7 @@ rel_abund_vertical <- rel_abund +
       text_x = elem_list_text(face = "bold")
     )
   ) +
-    title_size
+  title_size
 
 # Horizontal faceted nested rapped plot
 rel_abund_horizon <- rel_abund +
@@ -398,49 +401,138 @@ ggsave(
   units = "mm"
 )
 
+#-------------------------------------------------------------
+# Clustering threshold analysis by Jae
+#-------------------------------------------------------------
+if (is.na(names(raw)[1]) || names(raw)[1] == "") {
+  names(raw)[1] <- "Clustering"
+}
+
+# long format
+long_df <- raw %>%
+  pivot_longer(
+    cols = -1,
+    names_to = "Occurrence",
+    values_to = "Proportion"
+  ) %>%
+  mutate(
+    Occurrence = gsub("%", "", Occurrence),
+    Occurrence = as.numeric(Occurrence),
+    Clustering = as.character(.[[1]])
+  )
+
+# ==== axis, legend order ====
+occ_levels <- c(50, 55, 60, 65, 70, 75, 80, 85, 90, 95, 100)
+clust_levels <- c(85, 87, 90, 93, 95, 97, 100)
+
+plot_df <- long_df %>%
+  mutate(
+    Occurrence = factor(
+      Occurrence,
+      levels = occ_levels,
+      ordered = TRUE,
+      labels = paste0(occ_levels, "%")
+    ),
+    Clustering = factor(
+      Clustering,
+      levels = paste0(clust_levels, "%"),
+      ordered = TRUE
+    )
+  )
+
+# color designation
+custom_colors <- c(
+  "85%" = "#FF68A1",
+  "87%" = "#E68613",
+  "90%" = "#0CB702",
+  "93%" = "#00A9FF",
+  "95%" = "#C77CFF",
+  "97%" = "#999999",
+  "100%" = "#ABA300"
+)
+
+cluster_plot <- ggplot(
+  plot_df,
+  aes(x = Occurrence, y = Proportion, color = Clustering, group = Clustering)
+) +
+  geom_line(linewidth = 1.2) +
+  geom_point(size = 2) +
+  labs(
+    title = "Core OTU Sequence Proportions across Clustering and Occurrence Thresholds",
+    x = "Occurrence Threshold (%)",
+    y = "Proportion of Sequences (%)",
+    color = "Clustering\nThreshold"
+  ) +
+  scale_color_manual(values = custom_colors) +
+  scale_y_continuous(
+    limits = c(0, 100),
+    breaks = seq(0, 100, 10)
+  ) +
+  theme_bw(base_size = 13) +
+  theme(
+    plot.title = element_text(face = "bold", size = 20, hjust = 0.5),
+    axis.title.x = element_text(size = 16, face = "bold"),
+    axis.title.y = element_text(size = 16, face = "bold"),
+    axis.text.x = element_text(size = 14),
+    axis.text.y = element_text(size = 14),
+    legend.title = element_text(size = 16, face = "bold"),
+    legend.text = element_text(size = 14),
+    legend.position = "right"
+  )
+
+cluster_plot
+
 
 #-------------------------------------------------------------
-# Combined Relative Abundance  and ABundance/Occupancy Curves
+# Combined Relative Abundance, Abundance/Occupancy Curves
+# & Clustering threshold analysis
 #-------------------------------------------------------------
-
 
 box_2 <- ggpubr::ggarrange(
-    ggpubr::ggarrange(
-        rel_abund_vertical,
-        ncol = 1,
-        labels = c("A"),
-        common.legend = TRUE,
-        legend = "bottom"
-    ),
-    " ",
-    # Second row - 4 plots
-    ggpubr::ggarrange(
-        thres_core_100_curve,
-        core_abun_plot,
-        ncol = 2,
-        labels = c("B", "C"),
-        common.legend = TRUE,
-        legend = "bottom"
-    ),
-    
-    nrow = 3,
-    heights = c(1.5, 0.1, 1),
-    common.legend = FALSE,
+  ggpubr::ggarrange(
+    rel_abund_vertical,
+    ncol = 1,
+    labels = c("A"),
+    common.legend = TRUE,
     legend = "bottom"
+  ),
+  " ",
+  # Second row - 4 plots
+  ggpubr::ggarrange(
+    thres_core_100_curve,
+    core_abun_plot,
+    ncol = 2,
+    labels = c("B", "C"),
+    common.legend = TRUE,
+    legend = "bottom"
+  ),
+  # Third row
+  ggpubr::ggarrange(
+    cluster_plot,
+    ncol = 1,
+    labels = c("D"),
+    common.legend = TRUE,
+    legend = "bottom"
+  ),
+
+  nrow = 5,
+  heights = c(1.5, 0.1, 1, 0.1, 1),
+  common.legend = FALSE,
+  legend = "bottom"
 )
 
 
- box_2
+box_2
 
- ggsave(
-     "data/output/plots/box_2.png",
-     plot = box_2,
-     dpi = 300,
-     width = 325,
-     height = 275,
-     units = "mm"
- )
- 
+ggsave(
+  "data/output/plots/box_2.png",
+  plot = box_2,
+  dpi = 300,
+  width = 325,
+  height = 275,
+  units = "mm"
+)
+
 #-------------
 # Maybe useful
 #-------------
