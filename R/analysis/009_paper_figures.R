@@ -57,15 +57,20 @@ load(here::here("data/output/phyloseq_objects/braycurt_core.rda"))
 load(here::here("data/output/phyloseq_objects/braycurt_noncore.rda"))
 load(here::here("data/output/phyloseq_objects/prevalence_core.rda"))
 load(here::here("data/output/phyloseq_objects/filtered_phyloseq.rda"))
-raw <- read_csv("data/input/seq-percentage_count_data.csv")
 
 #--------------------------------------------------------
 # GGTITLES & THEMES
 #--------------------------------------------------------
 title_size <- list(theme(
-  title = element_text(size = 10),
-  legend.title = element_text(size = 10, face = "bold")
+  title = element_text(size = 12),
+  legend.title = element_text(size = 12, face = "bold"),
+  axis.title.x = element_text(size = 14, face = "bold"),
+  axis.title.y = element_text(size = 14, face = "bold"),
+  axis.text.x = element_text(size = 12),
+  axis.text.y = element_text(size = 12),
+  legend.text = element_text(size = 12),
 ))
+
 crop_labels <- c(
   "Corn",
   "Miscanthus",
@@ -79,7 +84,7 @@ crop_labels <- c(
 
 
 scale_y_limits <- list(
-  scale_y_continuous(labels = scales::percent, limits = c(0, 1))
+    scale_y_continuous(labels = scales::percent_format(suffix = ""), limits = c(0, 1))
 )
 
 core_50_crops <- list(
@@ -168,6 +173,7 @@ core_abun_plot <- brc_occ_curve(
   #geom_hline(yintercept = 0.1688, linetype = 2, linewidth = 1, color = "red") +
   ggtitle("ASVs contributing >2% to Bray-Curtis Dissimilarity") +
   title_size +
+    labs(y = "Occupancy (%)") +
   guides(fill = "none") #guide_legend(title = "ASV Association"))
 
 #--------------------
@@ -203,6 +209,7 @@ thres_core_60_curve <- filtered_phyloseq %>%
     color_values = NULL
   ) +
   override_scale +
+    labs(y = "Occupancy (%)") +
   geom_hline(yintercept = 0.6, linetype = 2, linewidth = 1, color = "red") +
   threshold_60_core
 
@@ -243,6 +250,7 @@ thres_core_100_curve <- filtered_phyloseq %>%
   ) +
   ggtitle("All ASVs Across Crops and BRCs") +
   title_size +
+    labs(y = "Occupancy (%)") +
   guides(fill = guide_legend(title = "Individual ASVs"))
 
 
@@ -368,7 +376,9 @@ rel_abund_vertical <- rel_abund +
       text_x = elem_list_text(face = "bold")
     )
   ) +
-  title_size
+    ggtitle("Relative Abundance of Bacterial Taxa across Samples") +
+  title_size +
+    theme(axis.text.x = element_blank())
 
 # Horizontal faceted nested rapped plot
 rel_abund_horizon <- rel_abund +
@@ -404,6 +414,8 @@ ggsave(
 #-------------------------------------------------------------
 # Clustering threshold analysis by Jae
 #-------------------------------------------------------------
+raw <- read_csv(here::here("data/input/seq-percentage_count_data.csv"))
+
 if (is.na(names(raw)[1]) || names(raw)[1] == "") {
   names(raw)[1] <- "Clustering"
 }
@@ -451,34 +463,26 @@ custom_colors <- c(
   "100%" = "#ABA300"
 )
 
-cluster_plot <- ggplot(
-  plot_df,
-  aes(x = Occurrence, y = Proportion, color = Clustering, group = Clustering)
-) +
-  geom_line(linewidth = 1.2) +
-  geom_point(size = 2) +
-  labs(
-    title = "Core OTU Sequence Proportions across Clustering and Occurrence Thresholds",
-    x = "Occurrence Threshold (%)",
-    y = "Proportion of Sequences (%)",
-    color = "Clustering\nThreshold"
-  ) +
-  scale_color_manual(values = custom_colors) +
-  scale_y_continuous(
-    limits = c(0, 100),
-    breaks = seq(0, 100, 10)
-  ) +
-  theme_bw(base_size = 13) +
-  theme(
-    plot.title = element_text(face = "bold", size = 20, hjust = 0.5),
-    axis.title.x = element_text(size = 16, face = "bold"),
-    axis.title.y = element_text(size = 16, face = "bold"),
-    axis.text.x = element_text(size = 14),
-    axis.text.y = element_text(size = 14),
-    legend.title = element_text(size = 16, face = "bold"),
-    legend.text = element_text(size = 14),
-    legend.position = "right"
-  )
+cluster_plot <- ggplot(plot_df,
+                       aes(
+                           x = Occurrence,
+                           y = Proportion,
+                           color = Clustering,
+                           group = Clustering
+                       )) +
+    geom_line(linewidth = 1.2) +
+    geom_point(size = 2) +
+    labs(
+        title = "Core OTU Sequence Proportions across Clustering and Occurrence Thresholds",
+        x = "Occurrence Threshold (%)",
+        y = "Proportion of \nSequences (%)",
+        color = "Clustering\nThreshold"
+    ) +
+    scale_color_manual(values = custom_colors) +
+    scale_y_continuous(limits = c(0, 100), breaks = seq(0, 100, 10)) +
+    scale_x_discrete(labels = function(x) gsub("%", "", x)) +
+    theme_bw(base_size = 13) +
+    title_size
 
 cluster_plot
 
@@ -506,6 +510,7 @@ box_2 <- ggpubr::ggarrange(
     common.legend = TRUE,
     legend = "bottom"
   ),
+  " ",
   # Third row
   ggpubr::ggarrange(
     cluster_plot,
@@ -516,7 +521,7 @@ box_2 <- ggpubr::ggarrange(
   ),
 
   nrow = 5,
-  heights = c(1.5, 0.1, 1, 0.1, 1),
+  heights = c(1.6, 0.1, 1.2, 0.1, 1.6),
   common.legend = FALSE,
   legend = "bottom"
 )
@@ -529,8 +534,9 @@ ggsave(
   plot = box_2,
   dpi = 300,
   width = 325,
-  height = 275,
-  units = "mm"
+  height = 300,
+  units = "mm",
+  bg = "white"
 )
 
 #-------------
