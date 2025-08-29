@@ -414,7 +414,7 @@ ggsave(
 #-------------------------------------------------------------
 # Clustering threshold analysis by Jae
 #-------------------------------------------------------------
-raw <- read_csv(here::here("data/input/seq-percentage_count_data.csv"))
+raw <- read_csv(here::here("data/output/sabr/seq-percentage_count_data.csv"))
 
 if (is.na(names(raw)[1]) || names(raw)[1] == "") {
   names(raw)[1] <- "Clustering"
