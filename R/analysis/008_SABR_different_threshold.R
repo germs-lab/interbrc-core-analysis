@@ -1,5 +1,5 @@
 #########################################################
-# Clustering Threshold Analyiss for SABR data
+# Clustering Threshold Analysis for SABR data
 #
 # Project:  Inter-BRC-Core-Microbiome
 # Authors: Jaejin Lee & Bolívar Aponte Rolón
