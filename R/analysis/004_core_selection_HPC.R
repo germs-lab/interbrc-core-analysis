@@ -51,7 +51,7 @@ invisible(lapply(
 ))
 
 source(
-    here::here("R/functions/extract_core_parallel.R")
+    here::here("R/functions/identify_core_parallel.R")
 )
 source(
     here::here("R/functions/parallel_helpers.R")
@@ -81,7 +81,7 @@ conflict_prefer("survival", "cluster")
 # plan(multisession, workers = 16)
 
 #--------------------------------------------------------
-# CORE EXTRACTION USING EXTRACT_CORE()
+# CORE EXTRACTION USING IDENTIFY_CORE()
 #--------------------------------------------------------
 # Ensure minimum sample quality
 filtered_phyloseq <- prune_samples(
@@ -90,7 +90,7 @@ filtered_phyloseq <- prune_samples(
 )
 # Extract core microbiome across all sites (with minimum 2% increase in Bray-Curtis)
 # Set .parallel = TRUE to use the future framework
-braycore_summary <- extract_core_parallel(
+braycore_summary <- identify_core_parallel(
     filtered_phyloseq,
     Var = "site",
     method = "increase",

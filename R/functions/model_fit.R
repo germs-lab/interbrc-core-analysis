@@ -1,6 +1,6 @@
 # Model fitting
 
-# NEUTRAL MODEL FUNCTION: This function fits the extracted core OTU table from ExtractCore to a neutral model, identifying taxa that are above or below the fitted model predictions. This provides insights into potential taxa that may be deterministically selected by the plant host.
+# NEUTRAL MODEL FUNCTION: This function fits the extracted core OTU table from identify_core to a neutral model, identifying taxa that are above or below the fitted model predictions. This provides insights into potential taxa that may be deterministically selected by the plant host.
 sncm.fit2 <- function(spp, pool = NULL, stats = TRUE, taxon = NULL) {
   # Calculate the number of individuals per community
   N <- mean(apply(spp, 1, sum))

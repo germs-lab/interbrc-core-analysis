@@ -9,7 +9,7 @@
 # DESCRIPTION:
 # This script identifies the core microbiome across samples for individual
 # BRCs using multiple approaches:
-# 1. extract_core() method based on Bray-Curtis dissimilarity
+# 1. identify_core() method based on Bray-Curtis dissimilarity
 # 2. Threshold-based approach
 
 #--------------------------------------------------------
@@ -33,7 +33,7 @@ physeq <- subset_samples(filtered_phyloseq, brc == BRC)
 # CORE MICROBIOME EXTRACTION
 #--------------------------------------------------------
 # Extract core microbiome using Bray-Curtis dissimilarity
-braycore_summary <- extract_core(
+braycore_summary <- identify_core(
   physeq,
   Var = "site",
   method = "increase",

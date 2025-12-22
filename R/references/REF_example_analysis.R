@@ -33,8 +33,8 @@ glbrc_phyloseq <- subset_samples(filtered_phyloseq, brc == "glbrc")
 # Subset the phyloseq to only include 'switchgrass' samples.
 glbrc_phyloseq_switchgrass <- subset_samples(glbrc_phyloseq, crop == "Switchgrass")
 
-# Extract the 'spatial' core microbiome across all sites. The 'Var' in the ExtractCore is 'site'.
-spatial_core <- ExtractCore(glbrc_phyloseq_switchgrass, 'site', 'increase') # Minimum seq depth was ~10,000 reads.
+# Extract the 'spatial' core microbiome across all sites. The 'Var' in the identify_core is 'site'.
+spatial_core <- identify_core(glbrc_phyloseq_switchgrass, 'site', 'increase') # Minimum seq depth was ~10,000 reads.
 
 # Plot Bray-Curtis Dissimilarity Curve:
 max <- 100 # Number of ranked-OTUs to plot

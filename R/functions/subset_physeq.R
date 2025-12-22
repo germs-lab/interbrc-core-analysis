@@ -1,7 +1,7 @@
 #' Subset phyloseq object based on core analysis results
 #'
 #' Filters a phyloseq object to retain only samples and taxa identified in a core microbiome analysis
-#' using `extract_core()`.
+#' using `identify_core()`.
 #' Returns both the subsetted phyloseq object and corresponding ASV matrix.
 #'
 #' @param core_obj A list object containing core microbiome analysis results.

@@ -74,7 +74,7 @@ if (params$BRC == "jbei") {
 }
 ```
 
-# Microbiome Core Selection via `extract_core()`
+# Microbiome Core Selection via `identify_core()`
 ```{r}
 #| label: process-data
 
@@ -89,8 +89,8 @@ filtered_phyloseq <- phyloseq::subset_samples(
   brc == "jbei"
 )
 
-# Extract the 'spatial' core microbiome across all sites. The 'Var' in the ExtractCore is 'site'.
-core_summary_lists <- extract_core(
+# Extract the 'spatial' core microbiome across all sites. The 'Var' in the identify_core is 'site'.
+core_summary_lists <- identify_core(
   filtered_phyloseq,
   Var = "site",
   method = "increase",

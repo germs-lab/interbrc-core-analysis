@@ -5,7 +5,7 @@
 # This pipeline is focused on calculating PCoA and NMDS for
 # the full ASV community. The distance matrices calculated are 
 # for thresholds (subsets) of the whole community, not core and non-core 
-# communities from extract_core().
+# communities from identify_core().
 #
 # This is a version of the 007_ordinations.R focused on performing an NMDS on the full dataset
 # using a Docker/Singularity container in Nova HPC at Iowa State

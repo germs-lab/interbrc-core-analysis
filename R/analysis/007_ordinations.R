@@ -1,7 +1,7 @@
 #########################################################
 # COMMUNITY ORDINATION ANALYSIS
 # NMDS and PCoA ordinations and dbRDA analysis and ordinations
-# of core and non-core communities from extract_core()
+# of core and non-core communities from identify_core()
 #
 # Project:  Inter-BRC-Core-Microbiome
 # Author: Bolívar Aponte Rolón
@@ -401,7 +401,7 @@ physeq <- subset_samples(filtered_phyloseq, brc == BRC)
 
 
 # Extract core microbiome using Bray-Curtis dissimilarity
-braycore_summary <- extract_core(
+braycore_summary <- identify_core(
   physeq,
   Var = "site",
   method = "increase",

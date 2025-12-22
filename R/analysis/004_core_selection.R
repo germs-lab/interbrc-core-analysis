@@ -10,7 +10,7 @@
 
 # DESCRIPTION:
 # This script identifies the core microbiome across samples using multiple approaches:
-# 1. extract_core() method based on Bray-Curtis dissimilarity
+# 1. identify_core() method based on Bray-Curtis dissimilarity
 # 2. Threshold-based approach
 # 3. Neutral model fitting for abundance-occupancy patterns
 
@@ -21,7 +21,7 @@ source("R/utils/000_setup.R")
 if (exists("phyloseq")) remove(phyloseq)
 
 #--------------------------------------------------------
-# CORE EXTRACTION USING EXTRACT_CORE()
+# CORE EXTRACTION USING IDENTIFY_CORE()
 #--------------------------------------------------------
 # Ensure minimum sample quality
 filtered_phyloseq <- prune_samples(
@@ -30,7 +30,7 @@ filtered_phyloseq <- prune_samples(
 )
 
 # Extract core microbiome across all sites (with minimum 2% increase in Bray-Curtis)
-braycore_summary <- extract_core(
+braycore_summary <- identify_core(
   filtered_phyloseq,
   Var = "site",
   method = "increase",
@@ -251,7 +251,7 @@ drought_jbei <- filter_taxa(
 )
 
 # Extract JBEI-specific core
-jbei_braycore_summary <- extract_core(
+jbei_braycore_summary <- identify_core(
   drought_jbei,
   Var = "treatment",
   method = "increase",

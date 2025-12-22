@@ -1,4 +1,4 @@
-#' Extract Core Microbial Taxa
+#' Identify Core Microbial Taxa
 #'
 #' Identifies core microbial taxa based on abundance-occupancy distributions and their contributions
 #' to Bray-Curtis dissimilarity. Core taxa are selected using either the "increase" or "elbow" method.
@@ -117,8 +117,8 @@
 #' # Add the taxonomy table to the esophagus dataset
 #' esophagus_with_tax <- merge_phyloseq(esophagus, tax_table, sample_data(sample_data))
 #'
-#' # Extract core taxa using the "increase" method
-#' core_result <- extract_core(
+#' # Identify core taxa using the "increase" method
+#' core_result <- identify_core(
 #'   physeq = esophagus_with_tax,
 #'   Var = "Group",
 #'   method = "increase",
@@ -132,7 +132,7 @@
 #' print(core_result)
 #' @export
 
-extract_core_parallel <- function(
+identify_core_parallel <- function(
     physeq,
     Var,
     method,

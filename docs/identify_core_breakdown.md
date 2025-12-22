@@ -12,11 +12,11 @@ Before the functions, several packages are loaded, including `phyloseq`, `vegan`
 
 ---
 
-## Function 1: `ExtractCore`
+## Function 1: `identify_core`
 
 ### Purpose
 
-The `ExtractCore` function extracts core microbial taxa from a phyloseq object. Core taxa are determined based on:
+The `identify_core` function extracts core microbial taxa from a phyloseq object. Core taxa are determined based on:
 - Their occupancy (the proportion of samples in which they appear)
 - Their mean relative abundance
 - Their contribution to overall Bray-Curtis dissimilarity
@@ -26,7 +26,7 @@ A threshold (default ~2% of variation, manipulated via the function’s logic) i
 ### Function Signature
 
 ```r
-ExtractCore <- function(physeq, Var, method, Group=NULL, Level=NULL)
+identify_core <- function(physeq, Var, method, Group=NULL, Level=NULL)
 ```
 
 
@@ -510,7 +510,7 @@ if(stats == TRUE){
 
 ## Final Remarks
 
-- **Expected Output from `ExtractCore`:**  
+- **Expected Output from `identify_core`:**  
     A list containing:
     
     1. A vector of core OTU identifiers.

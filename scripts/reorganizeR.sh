@@ -4,7 +4,7 @@
 mkdir -p R/functions R/analysis R/references R/utils
 
 # Move function scripts
-mv R/extract_core.R R/functions/
+mv R/identify_core.R R/functions/
 mv R/misc_functions.R R/functions/
 mv R/model_fit.R R/functions/
 

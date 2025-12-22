@@ -56,7 +56,7 @@ source(here::here("R/utils/000_setup.R"))
 if (exists("phyloseq")) remove(phyloseq)
 ```
 
-# Microbiome Core Selection via `extract_core()` in all BRCs
+# Microbiome Core Selection via `identify_core()` in all BRCs
 
 To obtain the microbial core determined by ASV's contribution to Bray-Curtis dissimilarity, we:
 
@@ -80,7 +80,7 @@ After which we:
 flowchart LR
     A[All BRCs Raw Data] --> B[DADA2 Pipeline]
     B --> C[filtered_phyloseq<br/>All BRCs Dataset]
-    C -->|extract_core| D[BC-core]
+    C -->|identify_core| D[BC-core]
     subgraph "Initial Processing"
         A
         B
@@ -99,7 +99,7 @@ flowchart LR
 #| label: process-BRC-data
 
 # Extract the core microbiome across all sites.
-# core_summary_lists <- extract_core(
+# core_summary_lists <- identify_core(
 #   filtered_phyloseq,
 #   Var = "site",
 #   method = "increase",
@@ -128,7 +128,7 @@ occ_abun_plot +
 ```
 
 
-# Microbiome Core Selection via `extract_core()` in JBEI dataset
+# Microbiome Core Selection via `identify_core()` in JBEI dataset
 
 Now let's looks at the JBEI dataset subsetted from the filtered_phyloseq which contains all BRCs and was submitted to DADA2 pipeline and filtered as one data set. *The result is a phyloseq object with 59,961 ASvs and 16 samples.*
 

@@ -1,6 +1,6 @@
 core_select_pipeline <- function(physeq_obj, .title, .subtitle) {
   # Core selection
-  core_summary_lists <- extract_core(
+  core_summary_lists <- identify_core(
     physeq_obj,
     Var = "site",
     method = "increase",
