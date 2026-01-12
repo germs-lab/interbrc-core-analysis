@@ -423,7 +423,7 @@ bc_noncore <- subset_physeq(braycore_summary, physeq, .var = "otu", type = "no")
 #--------------------------------------------------------
 # Transform data using Hellinger transformation
 hell_matrix <- decostand(
-  t(bc_core$asv_matrix),
+  t(asv_matrices$bc_core),
   method = "hellinger",
   MARGIN = 1
 )

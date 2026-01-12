@@ -50,12 +50,7 @@ invisible(lapply(
     character.only = TRUE
 ))
 
-source(
-    here::here("R/functions/extract_core_parallel.R")
-)
-source(
-    here::here("R/functions/parallel_helpers.R")
-)
+
 load(
     here::here("data/output/phyloseq_objects/filtered_phyloseq.rda")
 )
@@ -70,35 +65,38 @@ conflict_prefer("survival", "cluster")
 
 
 #--------------------------------------------------------
-# PARALLEL PROCESSING SETUP FOR HPC
-#--------------------------------------------------------
-
-# nCores <- as.integer(Sys.getenv("SLURM_CPUS_PER_TASK")) # https://research.it.iastate.edu/guides/pronto/r/#using-the-parallel-library
-# print(paste("nCores", nCores))
-# myCluster <- parallel::makeCluster(nCores)
-# doParallel::registerDoParallel(myCluster)
-
-# plan(multisession, workers = 16)
-
-#--------------------------------------------------------
-# CORE EXTRACTION USING EXTRACT_CORE()
+# CORE EXTRACTION USING IDENTIFY_CORE()
 #--------------------------------------------------------
 # Ensure minimum sample quality
 filtered_phyloseq <- prune_samples(
-  sample_sums(filtered_phyloseq) >= 100,
-  filtered_phyloseq
-)
-# Extract core microbiome across all sites (with minimum 2% increase in Bray-Curtis)
-# Set .parallel = TRUE to use the future framework
-braycore_summary <- extract_core_parallel(
-    filtered_phyloseq,
-    Var = "site",
-    method = "increase",
-    increase_value = 2,
-    .parallel = TRUE
+    sample_sums(filtered_phyloseq) >= 100,
+    filtered_phyloseq
 )
 
-# plan(sequential) # Close parallel processing
+# Perform multiple rarefaction
+interbrc_rarefied <- multi_rarefy(
+    physeq = filtered_phyloseq,
+    depth_level = 7000,
+    num_iter = 100,
+    threads = 4,
+    set_seed = 7642
+)
+
+# Update phyloseq object with rarefied data
+interbrc_rarefied <- update_otu_table(
+    physeq = filtered_phyloseq,
+    otu_rare = interbrc_rarefied
+)
+
+
+braycore_summary <- BRCore::identify_core(
+    filtered_phyloseq,
+    priority_var = "site",
+    increase_value = 0.02,
+    abundance_weight = 0,
+    seed = 7895
+)
+
 
 # Save results to avoid recomputation
 save(

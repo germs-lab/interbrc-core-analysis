@@ -27,7 +27,7 @@
 #' @param Level A character vector specifying the level(s) within the `Group` column to subset the data.
 #' @param trimOTUs A logical value indicating whether to trim OTUs with zero abundance.
 #' @param .parallel A logical value indicating whether to parallelize the calculations with `mcapply()` or not.
-#' @param ncores An integer specifying the number of CPU cores to use for parallel processing. Default is `detectCores() - 1`.
+#' @param ncores An integer specifying the number of CPU cores to use for parallel processing. Default is `get_available_cores()`.
 #'
 #' @return A list containing the following elements:
 #'   - `core_otus`: A vector of core OTU IDs.
