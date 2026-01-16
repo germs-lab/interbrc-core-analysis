@@ -3,12 +3,11 @@
 #
 # Project:  Inter-BRC-Core-Microbiome
 # Authors: Jaejin Lee & Bolívar Aponte Rolón
-# Last modified: 2025-08-29
+# Last modified: 2026-01-16
 #########################################################
 
-#--------------------------------------------------------
-# Setup
-#--------------------------------------------------------
+# Setup ----
+
 library(phyloseq)
 library(dplyr)
 library(tidyr)

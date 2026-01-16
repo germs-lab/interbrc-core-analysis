@@ -4,6 +4,7 @@
 # Project:  Inter-BRC-Core-Microbiome
 # Author: Bolívar Aponte Rolón
 # Date: 2025-05-08
+# Last modified: 2026-01-16
 #########################################################
 
 # DESCRIPTION:
@@ -12,15 +13,16 @@
 # 1. extract_core() method based on Bray-Curtis dissimilarity
 # 2. Threshold-based approach
 
-#--------------------------------------------------------
-# SETUP AND DEPENDENCIES
-#--------------------------------------------------------
-source("R/utils/000_setup.R")
-if (exists("phyloseq")) remove(phyloseq)
+# SETUP AND DEPENDENCIES ----
 
-#--------------------------------------------------------
-# BRC SELECTION AND PARAMETERS
-#--------------------------------------------------------
+source("R/utils/000_setup.R")
+if (exists("phyloseq")) {
+  remove(phyloseq)
+}
+
+
+# BRC SELECTION AND PARAMETERS ----
+
 # Define BRC of interest and output naming parameters
 BRC <- "cbi"
 CORE <- "bc_core"
@@ -29,9 +31,9 @@ NOCORE <- "bc_noncore"
 # Filter phyloseq object for the selected BRC
 physeq <- subset_samples(filtered_phyloseq, brc == BRC)
 
-#--------------------------------------------------------
-# CORE MICROBIOME EXTRACTION
-#--------------------------------------------------------
+
+# CORE MICROBIOME EXTRACTION ----
+
 # Extract core microbiome using Bray-Curtis dissimilarity
 braycore_summary <- extract_core(
   physeq,
@@ -44,9 +46,9 @@ braycore_summary <- extract_core(
 bc_core <- subset_physeq(braycore_summary, physeq, .var = "otu", type = "core")
 bc_noncore <- subset_physeq(braycore_summary, physeq, .var = "otu", type = "no")
 
-#--------------------------------------------------------
-# SAVE BRC-SPECIFIC PHYLOSEQ OBJECTS
-#--------------------------------------------------------
+
+# SAVE BRC-SPECIFIC PHYLOSEQ OBJECTS ----
+
 # Helper function to create and name phyloseq objects
 name_object <- function(brc, physeq, type) {
   obj_name <- stringr::str_glue("{brc}_{type}_phyloseq")

@@ -6,6 +6,7 @@
 # Project:  Inter-BRC-Core-Microbiome
 # Author: Bolívar Aponte Rolón
 # Date: 2025-05-08
+# Last modified: 2026-01-16
 #########################################################
 
 # DESCRIPTION:
@@ -15,17 +16,16 @@
 # microbial communities specifically for the JBEI dataset. It analyzes the influence
 # of environmental variables on community structure.
 
-#--------------------------------------------------------
-# SETUP AND DEPENDENCIES
-#--------------------------------------------------------
+# SETUP AND DEPENDENCIES ----
+
 source("R/utils/000_setup.R")
 if (exists("phyloseq")) {
   remove(phyloseq)
 }
 
-#--------------------------------------------------------
-# DATA TRANSFORMATION
-#--------------------------------------------------------
+
+# DATA TRANSFORMATION ----
+
 # Transform community matrices using Hellinger transformation
 hell_matrices <- purrr::map(
   asv_matrices,
@@ -57,9 +57,8 @@ save(distance_matrices, file = here::here("data/output/distance_matrices.rda"))
 
 # Note: Two dimensions keeps stress below 0.20 (from previous analysis)
 
-#--------------------------------------------------------
-# NMDS ANALYSIS: BC_CORE COMMUNITY
-#--------------------------------------------------------
+# NMDS ANALYSIS: BC_CORE COMMUNITY ----
+
 # Perform NMDS on BC_CORE COMMUNITY
 bc_core_nmds <- brc_nmds(
   asv_matrix = asv_matrices$bc_core,
@@ -95,9 +94,9 @@ bc_core_nmds_brc <- brc_gg_ordi(
     subtitle = "Core that contributes 2% to Bray-Curtis"
   )
 
-#--------------------------------------------------------
-# NMDS ANALYSIS: BC_NONCORE COMMUNITY
-#--------------------------------------------------------
+
+# NMDS ANALYSIS: BC_NONCORE COMMUNITY ----
+
 # Perform NMDS on BC_NONCORE COMMUNITY
 bc_noncore_nmds <- brc_nmds(
   asv_matrix = asv_matrices$bc_noncore,
@@ -128,9 +127,8 @@ bc_noncore_nmds_brc <- brc_gg_ordi(
   ggtitle("Non-core ASVs in BRC (100% samples)")
 
 
-#--------------------------------------------------------
-# NMDS ANALYSIS: THRESHOLD-BASED CORE
-#--------------------------------------------------------
+# NMDS ANALYSIS: THRESHOLD-BASED CORE ----
+
 # Perform NMDS on high-occupancy (threshold-based core) community
 high_occ_nmds <- brc_nmds(
   asv_matrix = asv_matrices$high_occ,
@@ -157,9 +155,9 @@ high_occ_nmds_brc <- brc_gg_ordi(
 ) +
   ggtitle("12 high prevalence ASVs in BRCs (>60% samples)")
 
-#--------------------------------------------------------
-# NMDS ANALYSIS: THRESHOLD-BASED NON-CORE
-#--------------------------------------------------------
+
+# NMDS ANALYSIS: THRESHOLD-BASED NON-CORE ----
+
 # Perform NMDS on low-occupancy (threshold-based non-core) community
 low_occ_nmds <- brc_nmds(
   asv_matrix = asv_matrices$low_occ,
@@ -188,9 +186,9 @@ low_occ_nmds_brc <- brc_gg_ordi(
 ) +
   ggtitle("Low prevalence ASVs in BRCs (<60% samples)")
 
-#--------------------------------------------------------
-# SAVE NMDS VISUALIZATIONS
-#--------------------------------------------------------
+
+# SAVE NMDS VISUALIZATIONS ----
+
 # Combine all NMDS plots and save to output directory
 nmds_plots <- list(
   bc_core_nmds_brc,
@@ -213,7 +211,9 @@ plot_names <- c(
   "low_occ_nmds_brc"
 )
 
-plot_paths <- str_glue(here::here("data/output/plots/{tolower(plot_names)}.png"))
+plot_paths <- str_glue(here::here(
+  "data/output/plots/{tolower(plot_names)}.png"
+))
 
 purrr::walk2(
   plot_paths,
@@ -230,9 +230,9 @@ purrr::walk2(
   }
 )
 
-#--------------------------------------------------------
-# PCOA ANALYSIS: BC_CORE COMMUNITY
-#--------------------------------------------------------
+
+# PCOA ANALYSIS: BC_CORE COMMUNITY ----
+
 # Perform PCoA on BC_CORE COMMUNITY
 bc_core_asv_pcoa <- brc_pcoa(
   distance_matrices$bc_core,
@@ -262,9 +262,9 @@ bc_core_pcoa_crops <- brc_gg_ordi(
     subtitle = "Core that contributes 2% to Bray-Curtis"
   )
 
-#--------------------------------------------------------
-# PCOA ANALYSIS: BC_NONCORE COMMUNITY
-#--------------------------------------------------------
+
+# PCOA ANALYSIS: BC_NONCORE COMMUNITY ----
+
 # Perform PCoA on BC_NONCORE COMMUNITY
 bc_noncore_asv_pcoa <- brc_pcoa(
   distance_matrices$bc_noncore,
@@ -288,9 +288,9 @@ bc_noncore_pcoa_crops <- brc_gg_ordi(
 ) +
   ggtitle("PCoA: Non-Core ASVs in BRC crops")
 
-#--------------------------------------------------------
-# PCOA ANALYSIS: THRESHOLD-BASED COMMUNITIES
-#--------------------------------------------------------
+
+# PCOA ANALYSIS: THRESHOLD-BASED COMMUNITIES ----
+
 # Perform PCoA on high-occupancy (threshold-based core) community
 high_asv_pcoa <- brc_pcoa(
   distance_matrices$high_occ,
@@ -339,9 +339,9 @@ low_occ_pcoa_crops <- brc_gg_ordi(
 ) +
   ggtitle("PCoA: Low prevalence ASVs in BRC crops")
 
-#--------------------------------------------------------
-# SAVE PCOA VISUALIZATIONS
-#--------------------------------------------------------
+
+# SAVE PCOA VISUALIZATIONS ----
+
 # Combine all PCoA plots and save to output directory
 pcoa_plots <- list(
   bc_core_pcoa_brc,
@@ -364,7 +364,9 @@ plot_names <- c(
   "low_occ_pcoa_brc"
 )
 
-plot_paths <- str_glue(here::here("data/output/plots/{tolower(plot_names)}.png"))
+plot_paths <- str_glue(here::here(
+  "data/output/plots/{tolower(plot_names)}.png"
+))
 
 purrr::walk2(
   plot_paths,
@@ -381,16 +383,15 @@ purrr::walk2(
   }
 )
 
-#--------------------------------------------------------
-# DISTANCE-BASED REDUNDANCY ANALYSIS
-#--------------------------------------------------------
+
+# DISTANCE-BASED REDUNDANCY ANALYSIS ----
 
 #########################################################
 # Ignore this section is performing for ALL BRCs
 # Script 005_core_selection_per_BRCs.R performs the same
-#--------------------------------------------------------
-# BRC SELECTION AND PARAMETERS
-#--------------------------------------------------------
+
+# BRC SELECTION AND PARAMETERS ----
+
 # Define BRC of interest and output naming parameters
 BRC <- "jbei"
 CORE <- "bc_core"
@@ -410,17 +411,14 @@ braycore_summary <- extract_core(
 
 ##########################################################
 
-#--------------------------------------------------------
-# Subset by "core" and "non-core" taxa
-#--------------------------------------------------------
+# Subset by "core" and "non-core" taxa ----
 
 bc_core <- subset_physeq(braycore_summary, physeq, .var = "otu", type = "core")
 bc_noncore <- subset_physeq(braycore_summary, physeq, .var = "otu", type = "no")
 
 
-#--------------------------------------------------------
-# dbRDA BC_CORE COMMUNITY ANALYSIS
-#--------------------------------------------------------
+# dbRDA BC_CORE COMMUNITY ANALYSIS ----
+
 # Transform data using Hellinger transformation
 hell_matrix <- decostand(
   t(asv_matrices$bc_core),
@@ -463,9 +461,9 @@ dbrda_02_bc_core <- dbrda(
   na.action = na.omit
 )
 
-#--------------------------------------------------------
-# dbRDA BC_NONCORE COMMUNITY ANALYSIS
-#--------------------------------------------------------
+
+# dbRDA BC_NONCORE COMMUNITY ANALYSIS ----
+
 # Transform non-core data using Hellinger transformation
 hell_matrix <- decostand(
   t(bc_noncore$asv_matrix),
@@ -508,9 +506,9 @@ dbrda_02_bc_noncore <- dbrda(
   na.action = na.omit
 )
 
-#--------------------------------------------------------
-# dbRDA STATISTICAL TESTING
-#--------------------------------------------------------
+
+# dbRDA STATISTICAL TESTING ----
+
 # Perform permutation tests on models
 set.seed(123)
 anova.cca(dbrda_02_bc_noncore, by = "margin", permutations = 999, parallel = 8)
@@ -518,9 +516,8 @@ anova(dbrda_02_bc_core, by = "axis")
 anova(dbrda_02_bc_core, by = "axis", perm.max = 500)
 
 
-#--------------------------------------------------------
-# dbRDA VISUALIZATION
-#--------------------------------------------------------
+# dbRDA VISUALIZATION ----
+
 # Generate ordination plots for core and non-core communities
 bc_core_dbrda_gg <- brc_flex_ordi(
   dbrda_02_bc_core,
@@ -546,9 +543,9 @@ save_gg <- list(bc_core_dbrda_gg, bc_noncore_dbrda_gg) %>%
 
 brc_ggsave(save_gg, here::here("data/output/plots/"))
 
-#--------------------------------------------------------
-# THRESHOLD-BASED ANALYSIS
-#--------------------------------------------------------
+
+# THRESHOLD-BASED ANALYSIS ----
+
 # Extract high and low occupancy communities from threshold-based core analysis
 high_occ <- subset_samples(prevalence_core$physeq_high_occ, brc == BRC)
 low_occ <- subset_samples(prevalence_core$physeq_low_occ, brc == BRC)

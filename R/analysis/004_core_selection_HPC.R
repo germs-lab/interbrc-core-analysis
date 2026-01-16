@@ -22,6 +22,7 @@
 #
 # Author: Bolívar Aponte Rolón
 # Date: 2025-05-16
+# Last modified: 2026-01-16
 # ==============================================================================
 
 #--------------------------------------------------------
@@ -78,19 +79,19 @@ interbrc_rarefied <- multi_rarefy(
     physeq = filtered_phyloseq,
     depth_level = 7000,
     num_iter = 100,
-    threads = 4,
+    threads = 8,
     set_seed = 7642
 )
 
 # Update phyloseq object with rarefied data
-interbrc_rarefied <- update_otu_table(
+new_interbrc_rarefied <- update_otu_table(
     physeq = filtered_phyloseq,
     otu_rare = interbrc_rarefied
 )
 
 
 braycore_summary <- BRCore::identify_core(
-    filtered_phyloseq,
+    new_interbrc_rarefied,
     priority_var = "site",
     increase_value = 0.02,
     abundance_weight = 0,

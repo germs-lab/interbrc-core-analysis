@@ -6,25 +6,25 @@
 # Original Author: Brandon Kristy
 # Modified by: Bolívar Aponte Rolón
 # Date: 2025-02-20
+# Last modified: 2026-01-16
 ##################################################################
 
 # DESCRIPTION:
 # This script identifies the core microbiome across samples using multiple approaches:
-# 1. extract_core() method based on Bray-Curtis dissimilarity
-# 2. Threshold-based approach
-# 3. Neutral model fitting for abundance-occupancy patterns
+# 1. identify_core() method based on Bray-Curtis dissimilarity
+# 2. Neutral model fitting for abundance-occupancy patterns
+# 3. Threshold-based approach
 
-#--------------------------------------------------------
 # SETUP AND DEPENDENCIES
-#--------------------------------------------------------
+
 source("R/utils/000_setup.R")
 if (exists("phyloseq")) {
   remove(phyloseq)
 }
 
-#--------------------------------------------------------
-# CORE EXTRACTION USING EXTRACT_CORE()
-#--------------------------------------------------------
+
+# CORE EXTRACTION USING IDENTIFY_CORE() ----
+
 # Ensure minimum sample quality
 filtered_phyloseq <- prune_samples(
   sample_sums(filtered_phyloseq) >= 100,
@@ -68,9 +68,8 @@ braycore_summary <- BRCore::identify_core(
 save(braycore_summary, file = here::here("data/output/braycore_summary.rda"))
 
 
-#--------------------------------------------------------
-# VISUALIZATION OF BRAY-CURTIS AND OCCUPANCY PATTERNS
-#--------------------------------------------------------
+# VISUALIZATION OF BRAY-CURTIS AND OCCUPANCY PATTERNS ----
+
 # Generate Bray-Curtis dissimilarity curve
 bray_curtis_curve <- brc_bc_curve(core_summary_list = braycore_summary)
 
@@ -90,9 +89,8 @@ ggsave(
   height = 4
 )
 
-#--------------------------------------------------------
-# NEUTRAL MODEL FITTING FOR ABUNDANCE-OCCUPANCY
-#--------------------------------------------------------
+
+# NEUTRAL MODEL FITTING FOR ABUNDANCE-OCCUPANCY ----
 
 braycore_summary_neutral_fit <- fit_neutral_model(
   otu_table = braycore_summary$otu_table,
@@ -100,18 +98,17 @@ braycore_summary_neutral_fit <- fit_neutral_model(
   abundance_occupancy = braycore_summary$abundance_occupancy
 )
 
-#--------------------------------------------------------
-# NEUTRAL MODEL VISUALIZATION
-#--------------------------------------------------------
+
+# NEUTRAL MODEL VISUALIZATION ----
+
 plot_neutral_fit <- plot_neutral_model(
   braycore_summary_neutral_fit
 )
 plot_neutral_fit
 
 
-#--------------------------------------------------------
-# THRESHOLD-BASED CORE SELECTION
-#--------------------------------------------------------
+# THRESHOLD-BASED CORE SELECTION ----
+
 # Extract core ASVs based on presence threshold (Jae's method)
 prevalence_core <- filter_core(
   filtered_phyloseq,
@@ -125,9 +122,9 @@ save(
   file = here::here("data/output/phyloseq_objects/prevalence_core.rda")
 )
 
-#--------------------------------------------------------
-# JBEI-SPECIFIC CORE ANALYSIS
-#--------------------------------------------------------
+
+# JBEI-SPECIFIC CORE ANALYSIS ----
+
 # Clean up JBEI metadata
 new_metadata <- drought_jbei %>%
   sample_data() %>%

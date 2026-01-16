@@ -7,13 +7,13 @@
 # We focus on PCoA for the publication
 #
 # Project:  Inter-BRC-Core-Microbiome
-# Modified by: Bolívar Aponte Rolón
+# Author: Bolívar Aponte Rolón
 # Date: 2025-05-13
+# Last modified: 2026-01-16
 #########################################################
 
-#--------------------------------------------------------
-# SETUP AND DEPENDENCIES
-#--------------------------------------------------------
+# SETUP AND DEPENDENCIES ----
+
 if (!require("pacman")) {
   install.packages("pacman")
 }
@@ -58,9 +58,9 @@ load(here::here("data/output/phyloseq_objects/braycurt_noncore.rda"))
 load(here::here("data/output/phyloseq_objects/prevalence_core.rda"))
 load(here::here("data/output/phyloseq_objects/filtered_phyloseq.rda"))
 
-#--------------------------------------------------------
-# GGTITLES & THEMES
-#--------------------------------------------------------
+
+# GGTITLES & THEMES ----
+
 title_size <- list(theme(
   title = element_text(size = 12),
   legend.title = element_text(size = 12, face = "bold"),
@@ -84,7 +84,10 @@ crop_labels <- c(
 
 
 scale_y_limits <- list(
-    scale_y_continuous(labels = scales::percent_format(suffix = ""), limits = c(0, 1))
+  scale_y_continuous(
+    labels = scales::percent_format(suffix = ""),
+    limits = c(0, 1)
+  )
 )
 
 core_50_crops <- list(
@@ -136,9 +139,7 @@ override_scale <- list(
 )
 
 
-#--------------------------------------------------------
-# Pre-processing
-#--------------------------------------------------------
+# Pre-processing ----
 
 # Perform PCoA on BC_CORE COMMUNITY
 bc_core_asv_pcoa <- brc_pcoa(
@@ -160,9 +161,7 @@ high_asv_pcoa <- brc_pcoa(
 )
 
 
-#--------------------------------------------------------
-# NMDS & PCoA: BRC BRAY-CURTIS CORE AND ASSOCIATED
-#--------------------------------------------------------
+# NMDS & PCoA: BRC BRAY-CURTIS CORE AND ASSOCIATED ----
 
 # Abundance/Occupancy curves
 core_abun_plot <- brc_occ_curve(
@@ -173,11 +172,11 @@ core_abun_plot <- brc_occ_curve(
   #geom_hline(yintercept = 0.1688, linetype = 2, linewidth = 1, color = "red") +
   ggtitle("ASVs contributing >2% to Bray-Curtis Dissimilarity") +
   title_size +
-    labs(y = "Occupancy (%)") +
+  labs(y = "Occupancy (%)") +
   guides(fill = "none") #guide_legend(title = "ASV Association"))
 
 #--------------------
-# NMDS & PCoA plots
+# NMDS & PCoA plots ----
 #--------------------
 
 core_nmds_pcoa_plots <- brc_paper_ordinations(
@@ -199,9 +198,8 @@ core_nmds_pcoa_plots <- brc_paper_ordinations(
 # core_nmds_pcoa_plots$pcoa$crops
 # core_nmds_pcoa_plots$pcoa$brc
 
-#--------------------------------------------------------
-# NMDS & PCoA: BRC CORES SELECTED BY THRESHOLD
-#--------------------------------------------------------
+# NMDS & PCoA: BRC CORES SELECTED BY THRESHOLD ----
+
 thres_core_60_curve <- filtered_phyloseq %>%
   brc_occore(.) %>%
   brc_occ_curve(
@@ -209,7 +207,7 @@ thres_core_60_curve <- filtered_phyloseq %>%
     color_values = NULL
   ) +
   override_scale +
-    labs(y = "Occupancy (%)") +
+  labs(y = "Occupancy (%)") +
   geom_hline(yintercept = 0.6, linetype = 2, linewidth = 1, color = "red") +
   threshold_60_core
 
@@ -233,9 +231,7 @@ high_nmds_pcoa_plots <- brc_paper_ordinations(
 # high_nmds_pcoa_plots$pcoa$crops
 # high_nmds_pcoa_plots$pcoa$brc
 
-#--------------------------------------------------------
-# NMDS & PCoA: FULL ASV COMMUNITY
-#--------------------------------------------------------
+# NMDS & PCoA: FULL ASV COMMUNITY ----
 
 thres_core_100_curve <- filtered_phyloseq %>%
   brc_occore(., threshold = 0) %>%
@@ -250,7 +246,7 @@ thres_core_100_curve <- filtered_phyloseq %>%
   ) +
   ggtitle("All ASVs Across Crops and BRCs") +
   title_size +
-    labs(y = "Occupancy (%)") +
+  labs(y = "Occupancy (%)") +
   guides(fill = guide_legend(title = "Individual ASVs"))
 
 
@@ -271,9 +267,7 @@ all_asv_nmds_pcoa_plots <- brc_paper_ordinations(
 
 # all_asv_nmds_pcoa_plots$pcoa$crops
 
-#--------------------------------------------------------
-# ARRANGEMENT
-#--------------------------------------------------------
+# ARRANGEMENT ----
 
 combined_multicores <- ggpubr::ggarrange(
   # First row - 2 plots
@@ -320,9 +314,9 @@ ggsave(
   units = "mm"
 )
 
-#---------------------------------------------------
-# Relative abundance visualization per BRC and Crop
-#---------------------------------------------------
+#-------------------------------------------------------
+# Relative abundance visualization per BRC and Crop ----
+#-------------------------------------------------------
 # Due to the size of the dataset, the following code needs to be executed in
 # machine with >32GB RAM.
 
@@ -376,9 +370,9 @@ rel_abund_vertical <- rel_abund +
       text_x = elem_list_text(face = "bold")
     )
   ) +
-    ggtitle("Relative Abundance of Bacterial Taxa across Samples") +
+  ggtitle("Relative Abundance of Bacterial Taxa across Samples") +
   title_size +
-    theme(axis.text.x = element_blank())
+  theme(axis.text.x = element_blank())
 
 # Horizontal faceted nested rapped plot
 rel_abund_horizon <- rel_abund +
@@ -411,10 +405,10 @@ ggsave(
   units = "mm"
 )
 
-#-------------------------------------------------------------
-# Clustering threshold analysis by Jae
-#-------------------------------------------------------------
-raw <- read_csv(here::here("data/output/sabr/seq-percentage_count_data.csv"))
+-----
+  # Clustering threshold analysis by Jae ----
+  -----raw
+<- read_csv(here::here("data/output/sabr/seq-percentage_count_data.csv"))
 
 if (is.na(names(raw)[1]) || names(raw)[1] == "") {
   names(raw)[1] <- "Clustering"
@@ -463,36 +457,37 @@ custom_colors <- c(
   "100%" = "#ABA300"
 )
 
-cluster_plot <- ggplot(plot_df,
-                       aes(
-                           x = Occurrence,
-                           y = Proportion,
-                           color = Clustering,
-                           group = Clustering
-                       )) +
-    geom_line(linewidth = 1.2) +
-    geom_point(size = 2) +
-    labs(
-        title = "Core OTU Sequence Proportions across Clustering and Occurrence Thresholds",
-        x = "Occurrence Threshold (%)",
-        y = "Proportion of \nSequences (%)",
-        color = "Clustering\nThreshold"
-    ) +
-    scale_color_manual(values = custom_colors) +
-    scale_y_continuous(limits = c(0, 100), breaks = seq(0, 100, 10)) +
-    scale_x_discrete(labels = function(x) gsub("%", "", x)) +
-    theme_bw(base_size = 13) +
-    title_size
+cluster_plot <- ggplot(
+  plot_df,
+  aes(
+    x = Occurrence,
+    y = Proportion,
+    color = Clustering,
+    group = Clustering
+  )
+) +
+  geom_line(linewidth = 1.2) +
+  geom_point(size = 2) +
+  labs(
+    title = "Core OTU Sequence Proportions across Clustering and Occurrence Thresholds",
+    x = "Occurrence Threshold (%)",
+    y = "Proportion of \nSequences (%)",
+    color = "Clustering\nThreshold"
+  ) +
+  scale_color_manual(values = custom_colors) +
+  scale_y_continuous(limits = c(0, 100), breaks = seq(0, 100, 10)) +
+  scale_x_discrete(labels = function(x) gsub("%", "", x)) +
+  theme_bw(base_size = 13) +
+  title_size
 
 cluster_plot
 
 
-#-------------------------------------------------------------
-# Combined Relative Abundance, Abundance/Occupancy Curves
-# & Clustering threshold analysis
-#-------------------------------------------------------------
-
-box_2 <- ggpubr::ggarrange(
+-----
+  # Combined Relative Abundance, Abundance/Occupancy Curves ----
+  # & Clustering threshold analysis
+  -----box_2
+<- ggpubr::ggarrange(
   ggpubr::ggarrange(
     rel_abund_vertical,
     ncol = 1,

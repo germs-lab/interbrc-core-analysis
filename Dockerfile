@@ -1,9 +1,11 @@
 # syntax=docker/dockerfile:1
 # see https://jnicolaus.com/tutorials/2022-04-23-renv-docker-singularity/
 # Template image
-FROM rocker/r-ubuntu:22.04 
+#FROM rocker/r-ubuntu:22.04
+FROM rocker/r-ver:4.4.3 
+# Based on Ubuntu Noble 24.04
 
-LABEL org.opencontainers.image.source = "https://github.com/germs-lab/interbrc-core-analysis"
+LABEL org.opencontainers.image.source="https://github.com/germs-lab/interbrc-core-analysis"
 
 # Install system dependencies 
 RUN apt-get update && apt-get install -y --no-install-recommends \
@@ -50,12 +52,14 @@ COPY R/ /opt/interbrc-core-analysis/R/
 # Install R packages using renv for better reproducibility
 RUN Rscript -e "install.packages('renv', repos='https://cloud.r-project.org/')" 
 RUN cd /opt/interbrc-core-analysis \
-    && Rscript -e "options(renv.config.pak.enabled = TRUE)" \
-    && Rscript -e "renv::install('pak@0.9.0')" \
+    && Rscript -e "options(renv.config.pak.enabled = TRUE, renv.config.ppm.enabled = TRUE)" \
+    && Rscript -e "renv::install('pak')" \
     && Rscript -e "renv::restore()" \
-    && mv $(Rscript -e "cat(paste0(renv::paths\$library()))") /opt/Rlibsymlinks \
+    && RENV_LIB=$(Rscript --vanilla -e "cat(paste0(renv::paths\$library()))") \
+    && echo "renv library path: $RENV_LIB" \
+    && if [ -d "$RENV_LIB" ]; then mv "$RENV_LIB" /opt/Rlibsymlinks; fi \
     && echo "R_LIBS=/opt/Rlibsymlinks" >> $(R RHOME)/etc/Renviron.site \
-    ldconfig 
+    && ldconfig 
     # Run ldconfig to update the shared library cache
 
 # Set permissions for the non-root user
