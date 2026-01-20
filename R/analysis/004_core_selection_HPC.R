@@ -78,8 +78,8 @@ filtered_phyloseq <- prune_samples(
 interbrc_rarefied <- multi_rarefy(
     physeq = filtered_phyloseq,
     depth_level = 7000,
-    num_iter = 100,
-    threads = 8,
+    num_iter = 50,
+    threads = 2,
     set_seed = 7642
 )
 

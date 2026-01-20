@@ -28,14 +28,18 @@
 #'   geom_point() +
 #'   brc_theme_title_size()
 brc_theme_title_size <- function(
-    title_size = 12,
-    legend_title_size = 12,
-    axis_title_size = 14,
-    axis_text_size = 12,
-    legend_text_size = 12) {
+  title_size = 12,
+  legend_title_size = 12,
+  axis_title_size = 14,
+  axis_text_size = 12,
+  legend_text_size = 12
+) {
   ggplot2::theme(
     title = ggplot2::element_text(size = title_size),
-    legend.title = ggplot2::element_text(size = legend_title_size, face = "bold"),
+    legend.title = ggplot2::element_text(
+      size = legend_title_size,
+      face = "bold"
+    ),
     axis.title.x = ggplot2::element_text(size = axis_title_size, face = "bold"),
     axis.title.y = ggplot2::element_text(size = axis_title_size, face = "bold"),
     axis.text.x = ggplot2::element_text(size = axis_text_size),
@@ -155,9 +159,10 @@ brc_full_labels <- function() {
 #'   geom_line() +
 #'   brc_scale_y_percent()
 brc_scale_y_percent <- function(
-    limits = c(0, 1),
-    breaks = ggplot2::waiver(),
-    suffix = "") {
+  limits = c(0, 1),
+  breaks = ggplot2::waiver(),
+  suffix = ""
+) {
   ggplot2::scale_y_continuous(
     labels = scales::percent_format(suffix = suffix),
     limits = limits,
@@ -206,9 +211,10 @@ brc_scale_color_crops <- function(labels = brc_crop_labels(), ...) {
 #'   geom_point(shape = 21, size = 3) +
 #'   brc_scale_fill_core()
 brc_scale_fill_core <- function(
-    core_color = "#377EB8",
-    noncore_color = "#E41A1C",
-    labels = c("Core", "Non-core")) {
+  core_color = "#E41A1C",
+  noncore_color = "#377EB8",
+  labels = c("Core", "Non-core")
+) {
   ggplot2::scale_fill_manual(
     labels = labels,
     values = c(core_color, noncore_color)
@@ -246,7 +252,6 @@ brc_theme_core50_brc <- function() {
 #' # For scripts, not packaged
 brc_theme_threshold60_core <- function() {
   list(
-    brc_scale_y_percent(),
     ggplot2::ggtitle("ASVs in >60% Samples Across Crops and BRCs"),
     ggplot2::guides(fill = ggplot2::guide_legend(title = "ASV Association")),
     brc_theme_title_size()
@@ -259,7 +264,6 @@ brc_theme_threshold60_core <- function() {
 #' # For scripts, not packaged
 brc_theme_threshold60_crops <- function() {
   list(
-    brc_scale_y_percent(),
     ggplot2::ggtitle("12 high prevalence ASVs in BRC crops"),
     brc_scale_color_crops(),
     brc_theme_title_size()
@@ -272,7 +276,6 @@ brc_theme_threshold60_crops <- function() {
 #' # For scripts, not packaged
 brc_theme_threshold60_brc <- function() {
   list(
-    brc_scale_y_percent(),
     ggplot2::ggtitle("12 high prevalence ASVs in BRCs"),
     brc_theme_title_size()
   )
@@ -284,7 +287,6 @@ brc_theme_threshold60_brc <- function() {
 #' # For scripts, not packaged
 brc_theme_threshold100_palette <- function() {
   list(
-    brc_scale_y_percent(),
     brc_scale_color_crops(),
     brc_theme_title_size()
   )
