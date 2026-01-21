@@ -206,7 +206,7 @@ save(
 
 
 # THRESHOLD-BASED CORE SELECTION ----
-filtered_phyloseq_50_20 <- filtered_phyloseq %>%
+filtered_phyloseq_500_20 <- filtered_phyloseq %>%
   prune_samples(
     sample_names(.) %in%
       rownames(filtered_asv_matrices$sample_reads_500_asv_reads_20),
@@ -219,7 +219,7 @@ filtered_phyloseq_50_20 <- filtered_phyloseq %>%
   )
 save(
   filtered_phyloseq_50_20,
-  file = here::here("data/output/phyloseq_objects/filtered_phyloseq_50_20.rda")
+  file = here::here("data/output/phyloseq_objects/filtered_phyloseq_500_20.rda")
 )
 
 # Extract core ASVs based on presence threshold (Jae's method)
@@ -235,54 +235,53 @@ save(
   file = here::here("data/output/phyloseq_objects/prevalence_core.rda")
 )
 
+# # JBEI-SPECIFIC CORE ANALYSIS ----
 
-# JBEI-SPECIFIC CORE ANALYSIS ----
+# # Clean up JBEI metadata
+# new_metadata <- drought_jbei %>%
+#   sample_data() %>%
+#   as_tibble() %>%
+#   janitor::clean_names() %>%
+#   mutate(
+#     across(brc, ~ str_to_lower(.)),
+#     across(everything(.), ~ as.character(.)),
+#     new_row = x_sample_id
+#   ) %>%
+#   column_to_rownames(., var = "new_row") %>%
+#   sample_data()
 
-# Clean up JBEI metadata
-new_metadata <- drought_jbei %>%
-  sample_data() %>%
-  as_tibble() %>%
-  janitor::clean_names() %>%
-  mutate(
-    across(brc, ~ str_to_lower(.)),
-    across(everything(.), ~ as.character(.)),
-    new_row = x_sample_id
-  ) %>%
-  column_to_rownames(., var = "new_row") %>%
-  sample_data()
+# # Update JBEI phyloseq object with cleaned metadata
+# sample_data(drought_jbei) <- new_metadata
 
-# Update JBEI phyloseq object with cleaned metadata
-sample_data(drought_jbei) <- new_metadata
+# # Filter JBEI samples for quality
+# drought_jbei <- prune_samples(
+#   sample_sums(drought_jbei) >= 100,
+#   drought_jbei
+# )
 
-# Filter JBEI samples for quality
-drought_jbei <- prune_samples(
-  sample_sums(drought_jbei) >= 100,
-  drought_jbei
-)
+# drought_jbei <- filter_taxa(
+#   drought_jbei,
+#   function(x) {
+#     sum(x > 100) > (0.00 * length(x)) # Results depend on this cut-off.
+#   },
+#   TRUE
+# )
 
-drought_jbei <- filter_taxa(
-  drought_jbei,
-  function(x) {
-    sum(x > 100) > (0.00 * length(x)) # Results depend on this cut-off.
-  },
-  TRUE
-)
+# # Extract JBEI-specific core
+# jbei_braycore_summary <- extract_core(
+#   drought_jbei,
+#   Var = "treatment",
+#   method = "increase",
+#   increase_value = 2
+# )
 
-# Extract JBEI-specific core
-jbei_braycore_summary <- extract_core(
-  drought_jbei,
-  Var = "treatment",
-  method = "increase",
-  increase_value = 2
-)
+# # Generate JBEI-specific visualizations
+# bray_curtis_curve <- brc_bc_curve(
+#   core_summary_list = jbei_braycore_summary,
+#   max_otus = 100,
+#   threshold = 1.02
+# )
+# bray_curtis_curve
 
-# Generate JBEI-specific visualizations
-bray_curtis_curve <- brc_bc_curve(
-  core_summary_list = jbei_braycore_summary,
-  max_otus = 100,
-  threshold = 1.02
-)
-bray_curtis_curve
-
-occ_abun_plot <- brc_bc_occ_curve(core_summary_list = jbei_braycore_summary)
-occ_abun_plot
+# occ_abun_plot <- brc_bc_occ_curve(core_summary_list = jbei_braycore_summary)
+# occ_abun_plot
