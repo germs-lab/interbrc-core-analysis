@@ -55,8 +55,9 @@ load(here::here("data/output/bc_core_nmds.rda"))
 load(here::here("data/output/bc_noncore_nmds.rda"))
 load(here::here("data/output/high_occ_nmds.rda"))
 load(here::here("data/output/low_occ_nmds.rda"))
-load(here::here("data/output/pcoa_results_filtered.rda"))
-load(here::here("data/output/nmds_result_filtered.rda"))
+load(here::here("data/output/hell_matrices_filtered.rda"))
+load(here::here("data/output/pcoa_results_filtered.rda")) # best filter: sample_reads_500_asv_reads_20
+load(here::here("data/output/nmds_result_filtered.rda")) #NMDS calculations for best filter: sample_reads_500_asv_reads_20
 load(here::here("data/output/core_summary_lists_old.rda"))
 load(here::here("data/output/distance_matrices.rda"))
 load(here::here("data/output/phyloseq_objects/braycurt_core.rda"))
@@ -164,7 +165,6 @@ high_nmds_pcoa_plots <- brc_paper_ordinations(
   crop_theme = threshold_60_crops,
   brc_theme = threshold_60_brc
 )
-#TODO: Fix y-axis
 
 # Individual plots accessible via:
 # high_nmds_pcoa_plots$nmds$crops

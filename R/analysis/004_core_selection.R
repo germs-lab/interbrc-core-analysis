@@ -90,28 +90,141 @@ ggsave(
 )
 
 
-# NEUTRAL MODEL FITTING FOR ABUNDANCE-OCCUPANCY ----
+# # NEUTRAL MODEL FITTING FOR ABUNDANCE-OCCUPANCY ----
 
-braycore_summary_neutral_fit <- fit_neutral_model(
-  otu_table = braycore_summary$otu_table,
-  core_set = braycore_summary$increase_core,
-  abundance_occupancy = braycore_summary$abundance_occupancy
+# braycore_summary_neutral_fit <- fit_neutral_model(
+#   otu_table = braycore_summary$otu_table,
+#   core_set = braycore_summary$increase_core,
+#   abundance_occupancy = braycore_summary$abundance_occupancy
+# )
+
+# # NEUTRAL MODEL VISUALIZATION ----
+
+# plot_neutral_fit <- plot_neutral_model(
+#   braycore_summary_neutral_fit
+# )
+# plot_neutral_fit
+
+# FILTERING PARAMETER OPTIMIZATION ----
+
+# Define thresholds for different filtering parameters
+min_sample_reads_thresholds <- c(500, 1000, 5000)
+min_asv_reads_thresholds <- c(20, 50, 100)
+
+filtered_results <- list()
+
+cat("Starting filtering optimization\n")
+
+# Loop through sample read and ASV thresholds
+for (sample_reads in min_sample_reads_thresholds) {
+  for (asv_reads in min_asv_reads_thresholds) {
+    # Create unique identifier for this combination
+    result_name <- paste0(
+      "sample_reads_",
+      sample_reads,
+      "_asv_reads_",
+      asv_reads
+    )
+
+    # Apply phyloseq filtering
+    tryCatch(
+      {
+        highly_filtered <- filter_phyloseq(
+          filtered_phyloseq,
+          min_sample_reads = sample_reads,
+          min_asv_reads = asv_reads
+        )
+
+        # Store results with dimensions info
+        filtered_results[[result_name]] <- list(
+          phyloseq = highly_filtered,
+          dimensions = c(
+            nsamples(highly_filtered),
+            ntaxa(highly_filtered)
+          ),
+          sample_threshold = sample_reads,
+          asv_threshold = asv_reads
+        )
+
+        cat(
+          "  ",
+          result_name,
+          ":",
+          nsamples(highly_filtered),
+          "samples,",
+          ntaxa(highly_filtered),
+          "ASVs\n"
+        )
+      },
+      error = function(e) {
+        cat("  Error with", result_name, ":", e$message, "\n")
+      }
+    )
+  }
+}
+
+
+# DATA TRANSFORMATION FOR FILTERED MATRICES ----
+
+cat("Start data transformations for filtered matrices\n")
+set.seed(54645)
+
+# Create ASV matrices from filtered phyloseq objects
+filtered_asv_matrices <- list()
+for (name in names(filtered_results)) {
+  phyloseq_obj <- filtered_results[[name]]$phyloseq
+
+  # Skip if no data
+  if (nsamples(phyloseq_obj) == 0 || ntaxa(phyloseq_obj) == 0) {
+    next
+  }
+
+  # Extract ASV matrix
+  filtered_asv_matrices[[name]] <- as.matrix(as.data.frame(t(otu_table(
+    phyloseq_obj,
+    taxa_are_rows = TRUE
+  ))))
+}
+
+save(
+  filtered_asv_matrices,
+  file = here::here("data/output/filtered_asv_matrices.rda")
 )
 
-
-# NEUTRAL MODEL VISUALIZATION ----
-
-plot_neutral_fit <- plot_neutral_model(
-  braycore_summary_neutral_fit
+# Transform community matrices using Hellinger transformation
+hell_matrices_filtered <- purrr::map(
+  filtered_asv_matrices,
+  ~ {
+    decostand(t(.x), method = "hellinger", MARGIN = 1)
+  }
 )
-plot_neutral_fit
+
+save(
+  hell_matrices_filtered,
+  file = here::here("data/output/hell_matrices_filtered.rda")
+)
 
 
 # THRESHOLD-BASED CORE SELECTION ----
+filtered_phyloseq_50_20 <- filtered_phyloseq %>%
+  prune_samples(
+    sample_names(.) %in%
+      rownames(filtered_asv_matrices$sample_reads_500_asv_reads_20),
+    .
+  ) %>%
+  prune_taxa(
+    taxa_names(.) %in%
+      colnames(filtered_asv_matrices$sample_reads_500_asv_reads_20),
+    .
+  )
+save(
+  filtered_phyloseq_50_20,
+  file = here::here("data/output/phyloseq_objects/filtered_phyloseq_50_20.rda")
+)
 
 # Extract core ASVs based on presence threshold (Jae's method)
 prevalence_core <- filter_core(
-  filtered_phyloseq,
+  filtered_phyloseq_50_20,
   threshold = 0.6,
   as = "rows"
 )

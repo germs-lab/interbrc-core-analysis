@@ -386,33 +386,7 @@ purrr::walk2(
 
 # DISTANCE-BASED REDUNDANCY ANALYSIS ----
 
-#########################################################
-# Ignore this section is performing for ALL BRCs
-# Script 005_core_selection_per_BRCs.R performs the same
-
-# BRC SELECTION AND PARAMETERS ----
-
-# Define BRC of interest and output naming parameters
-BRC <- "jbei"
-CORE <- "bc_core"
-NOCORE <- "bc_noncore"
-
-# Filter phyloseq object for the selected BRC
-physeq <- subset_samples(filtered_phyloseq, brc == BRC)
-
-
-# Extract core microbiome using Bray-Curtis dissimilarity
-braycore_summary <- extract_core(
-  physeq,
-  Var = "site",
-  method = "increase",
-  increase_value = 2
-)
-
-##########################################################
-
-# Subset by "core" and "non-core" taxa ----
-
+# Subset by "core" and "non-core" taxa
 bc_core <- subset_physeq(braycore_summary, physeq, .var = "otu", type = "core")
 bc_noncore <- subset_physeq(braycore_summary, physeq, .var = "otu", type = "no")
 
