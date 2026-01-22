@@ -325,6 +325,8 @@ high_occ_nmds <- brc_nmds(
   maxit = 999
 )
 
+save(high_occ_nmds, file = here::here("data/output/high_occ_nmds.rda"))
+
 # Generate crop-based and BRC-based visualizations
 high_occ_nmds_crops <- brc_gg_ordi(
   .data = high_occ_nmds$nmds_df,
