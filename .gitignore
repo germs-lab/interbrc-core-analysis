@@ -16,12 +16,9 @@ data/output/phyloseq_objects/filtered_phyloseq.rda
 data/output/distance_matrices.rda
 data/output/core_summary_lists.rda
 data/input/feature-table-modified.tsv 
-data/output/distance_matrices_filtered.rda
 data/output/distance_matrices.rda
-data/output/filtered_asv_matrices.rda
-data/output/hell_matrices_filtered.rda
-data/output/nmds_result_filtered.rda
-data/output/pcoa_results_filtered.rda
+data/output/nmds_results.rda
+data/output/pcoa_results.rda
 
 # Reports
 notebooks/brc_report_files/*

@@ -5,6 +5,7 @@
 # Project:  Inter-BRC-Core-Microbiome
 # Author: Bolívar Aponte Rolón
 # Date: 2025-05-08
+# Last modified: 2026-01-16
 #########################################################
 
 # DESCRIPTION:
@@ -12,17 +13,16 @@
 # objects and exports them as separate phyloseq objects and FASTA files for
 # downstream analyses.
 
-#--------------------------------------------------------
-# SETUP AND DEPENDENCIES
-#--------------------------------------------------------
+# SETUP AND DEPENDENCIES ----
+
 source("R/utils/000_setup.R")
 if (exists("phyloseq")) {
   remove(phyloseq)
 }
 
-#--------------------------------------------------------
-# EXTRACT CORE AND NON-CORE TAXA
-#--------------------------------------------------------
+
+# EXTRACT CORE AND NON-CORE TAXA ----
+
 # Get ASV identifiers for core and non-core taxa
 bc_core_asv_ids <- core_summary_lists[[4]] %>%
   dplyr::filter(., .$fill == "core") %>%
@@ -48,17 +48,16 @@ bc_noncore_matrix <- extract_matrix(
 bc_core_sample_ids <- rownames(bc_core_matrix)
 bc_noncore_sample_ids <- rownames(bc_noncore_matrix)
 
-#--------------------------------------------------------
-# COMMUNITY COMPOSITION SUMMARY
-#--------------------------------------------------------
+
+# COMMUNITY COMPOSITION SUMMARY ----
+
 # Note on community composition:
 # - Core dimensions: 50 ASVs out of a total of 23473 non-core ASVs in 1813 samples
 # - When non-zero sums samples are gathered, 50 core ASVs are present in 1733 samples
 # - Core ASVs are present in 1733/1813 samples (96%)
 
-#--------------------------------------------------------
-# CREATE PHYLOSEQ OBJECTS
-#--------------------------------------------------------
+# CREATE PHYLOSEQ OBJECTS ----
+
 # Create core and non-core phyloseq objects
 braycurt_core <- prune_samples(
   sort(sample_names(filtered_phyloseq)) %in% sort(bc_core_sample_ids),
@@ -76,9 +75,9 @@ braycurt_noncore <- prune_samples(
 # Verify proper filtering (should return all FALSE)
 rownames(braycurt_core@otu_table) %in% bc_noncore_sample_ids
 
-#--------------------------------------------------------
-# CREATE SUBSET PHYLOSEQS PER BRC
-#--------------------------------------------------------
+
+# CREATE SUBSET PHYLOSEQS PER BRC ----
+
 # Filter phyloseq object for the selected BRC
 # physeq <- subset_samples(filtered_phyloseq, brc == BRC)
 
@@ -88,9 +87,8 @@ rownames(braycurt_core@otu_table) %in% bc_noncore_sample_ids
 #   .[rowSums(.) > 0, ] %>% # Keep only samples with a non-zero sum
 #   as.matrix()
 
-#--------------------------------------------------------
-# SAVE PHYLOSEQ OBJECTS
-#--------------------------------------------------------
+# SAVE PHYLOSEQ OBJECTS ----
+
 # Save core and non-core phyloseq objects
 save(
   braycurt_core,
@@ -101,9 +99,9 @@ save(
   file = here::here("data/output/phyloseq_objects/braycurt_noncore.rda")
 )
 
-#--------------------------------------------------------
-# GENERATE FASTA FILES
-#--------------------------------------------------------
+
+# GENERATE FASTA FILES ----
+
 # Create FASTA files for core community
 subset_fasta(
   file = here::here("data/input/rep_asv_seqs.fasta"),
@@ -118,9 +116,9 @@ subset_fasta(
   out = here::here("data/output/fasta_files/braycurt_noncore_seqs.fasta")
 )
 
-#--------------------------------------------------------
-# THRESHOLD-BASED CORE SELECTION
-#--------------------------------------------------------
+
+# THRESHOLD-BASED CORE SELECTION ----
+
 # Extract high and low occupancy ASVs from threshold-based approach
 physeq_high_occ <- prevalence_core$physeq_high_occ
 physeq_low_occ <- prevalence_core$physeq_low_occ
@@ -152,9 +150,9 @@ subset_fasta(
   out = here::here("data/output/fasta_files/low_occ_seqs.fasta")
 )
 
-#--------------------------------------------------------
-# SAVE MATRICES FOR DOWNSTREAM ANALYSES
-#--------------------------------------------------------
+
+# SAVE MATRICES FOR DOWNSTREAM ANALYSES ----
+
 # Save all matrices as a single list object
 asv_matrices <- list(
   bc_core = bc_core_matrix,

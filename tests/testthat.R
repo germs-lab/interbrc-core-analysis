@@ -1,2 +1,5 @@
+# Test setup for testthat
 library(testthat)
-test_dir(here::here('tests/testthat/'), stop_on_failure = TRUE)
+library(phyloseq)
+
+test_check("interbrc-core-analysis")

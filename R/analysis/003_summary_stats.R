@@ -5,20 +5,20 @@
 # Project:  Inter-BRC-Core-Microbiome
 # Author: Bolívar Aponte Rolón
 # Date: 2025-02-18
+# Last modified: 2026-01-16
 #########################################################
 
 # DESCRIPTION:
 # This script generates summary statistics for filtered phyloseq objects
 # and exports the data as a CSV file for further analysis.
 
-#--------------------------------------------------------
-# SETUP AND DEPENDENCIES
-#--------------------------------------------------------
+# SETUP AND DEPENDENCIES ----
+
 source("R/utils/000_setup.R")
 
-#--------------------------------------------------------
-# GENERATE SUMMARY STATISTICS
-#--------------------------------------------------------
+
+# GENERATE SUMMARY STATISTICS ----
+
 # Basic phyloseq summary
 metagMisc::phyloseq_summary(filtered_phyloseq, more_stats = F, long = F)
 
@@ -34,9 +34,9 @@ percent_phyla_samples <- metagMisc::phyloseq_ntaxa_by_tax(
   group_by(phylum) |>
   summarise(occurance_in_samples = n())
 
-#--------------------------------------------------------
-# DATA EXPORT
-#--------------------------------------------------------
+
+# DATA EXPORT ----
+
 # Convert phyloseq object to dataframe and export as CSV
 metagMisc::phyloseq_to_df(
   filtered_phyloseq,

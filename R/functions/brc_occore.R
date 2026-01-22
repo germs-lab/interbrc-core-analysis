@@ -41,9 +41,9 @@ brc_occore <- function(physeq, threshold = 0.6, as = "rows") {
   }
 
   # Normal cases (threshold > 0)
-  threshold_asv <- BRCore::filter_core(physeq, threshold = threshold, as = as)
+  threshold_asv <- filter_core(physeq, threshold = threshold, as = as)
   occ_abun <- occ_calc()
-  
+
   # Get ASV IDs that passed the threshold filter
   high_occ_asvs <- rownames(threshold_asv$physeq_high_occ@otu_table)
 
