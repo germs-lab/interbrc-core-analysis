@@ -55,9 +55,7 @@ load(here::here("data/output/bc_core_nmds.rda"))
 load(here::here("data/output/bc_noncore_nmds.rda"))
 load(here::here("data/output/high_occ_nmds.rda"))
 load(here::here("data/output/low_occ_nmds.rda"))
-load(here::here("data/output/hell_matrices_filtered.rda"))
-load(here::here("data/output/pcoa_results_filtered.rda")) # best filter: sample_reads_500_asv_reads_20
-load(here::here("data/output/nmds_result_filtered.rda")) #NMDS calculations for best filter: sample_reads_500_asv_reads_20
+load(here::here("data/output/pcoa_results.rda"))
 load(here::here("data/output/core_summary_lists_old.rda"))
 load(here::here("data/output/distance_matrices.rda"))
 load(here::here("data/output/phyloseq_objects/braycurt_core.rda"))
@@ -83,28 +81,6 @@ threshold_100_palette <- brc_theme_threshold100_palette()
 override_scale <- brc_scale_override_single()
 
 
-# PRE-PROCESSING ----
-
-# Perform PCoA on BC_CORE COMMUNITY
-bc_core_asv_pcoa <- brc_pcoa(
-  distance_matrices$bc_core,
-  braycurt_core
-)
-
-# Perform PCoA on BC_NONCORE COMMUNITY
-bc_noncore_asv_pcoa <- brc_pcoa(
-  distance_matrices$bc_noncore,
-  braycurt_noncore
-)
-
-# Perform PCoA on high-occupancy (threshold-based core) community
-high_asv_pcoa <- brc_pcoa(
-  distance_matrices$high_occ,
-  prevalence_core$physeq_high_occ %>%
-    prune_samples(sample_sums(.) > 0, .)
-)
-
-
 # NMDS & PCoA: BRC BRAY-CURTIS CORE AND ASSOCIATED ----
 
 # Abundance/Occupancy curves
@@ -124,7 +100,7 @@ core_abun_plot <- brc_occ_curve(
 
 core_nmds_pcoa_plots <- brc_paper_ordinations(
   nmds_data = bc_core_nmds$nmds_df,
-  pcoa_data = bc_core_asv_pcoa$pcoa_df,
+  pcoa_data = pcoa_results$bc_core_asv_pcoa$pcoa_df,
   nmds_colors = c("#E7B800", "#FC4E07"),
   pcoa_colors = c("#E7B800", "#383961", "#FC4E07"),
   nmds_labels = c("CABBI", "GLBRC"),
@@ -157,7 +133,7 @@ thres_core_60_curve <- filtered_phyloseq %>%
 
 high_nmds_pcoa_plots <- brc_paper_ordinations(
   nmds_data = high_occ_nmds$nmds_df,
-  pcoa_data = high_asv_pcoa$pcoa_df,
+  pcoa_data = pcoa_results$high_asv_pcoa$pcoa_df,
   nmds_colors = c("#E7B800", "#FC4E07"),
   pcoa_colors = c("#E7B800", "#FC4E07"),
   pcoa_labels = c("CABBI", "GLBRC"),
@@ -192,8 +168,8 @@ thres_core_100_curve <- filtered_phyloseq %>%
 
 
 all_asv_nmds_pcoa_plots <- brc_paper_ordinations(
-  nmds_data = nmds_result_filtered$nmds_df,
-  pcoa_data = pcoa_results_filtered$sample_reads_500_asv_reads_20$pcoa_df,
+  nmds_data = high_occ_nmds$nmds_df, #PLACEHOLDER - REPLACE WITH ALL ASV NMDS
+  pcoa_data = pcoa_results$all_asv_pcoa$pcoa_df,
   nmds_colors = c("#E7B800", "#383961", "#FC4E07", "#1E692D"),
   pcoa_colors = c("#E7B800", "#383961", "#FC4E07", "#1E692D"),
   nmds_labels = c("CABBI", "CBI", "GLBRC", "JBEI"),
@@ -458,7 +434,7 @@ ggsave(
 )
 
 #-------------------------------------------------------
-# Additional visualizations (commented out from original) ----
+# Additional visualizations  ----
 #-------------------------------------------------------
 
 # Create the trans_venn object for visualization
@@ -483,15 +459,3 @@ ggsave(
 #
 # # Create a trans_upset object for UpSet plots
 # upset_obj <- trans_upset$new(micro_obj, group = "crop")
-
-#-------------------------------------------------------
-# REFACTORING SUMMARY ----
-#-------------------------------------------------------
-# Changes made:
-# 1. Fixed syntax errors on lines 408-411 (removed invalid "----raw" pattern)
-# 2. Fixed syntax errors on lines 486-489 (removed invalid "----box_2" pattern)
-# 3. Consolidated theme definitions using new brc_themes.R helpers
-# 4. Improved code organization and readability
-# 5. Added section headers for better navigation
-# 6. Maintained 100% backward compatibility - same outputs as original
-#-------------------------------------------------------
