@@ -25,9 +25,7 @@
 # Last modified: 2026-01-16
 # ==============================================================================
 
-#--------------------------------------------------------
-# SETUP AND DEPENDENCIES
-#--------------------------------------------------------
+# SETUP AND DEPENDENCIES ----
 # Load the packages
 # Installed via /scripts/package_install.R
 invisible(lapply(
@@ -65,9 +63,8 @@ conflict_prefer("intersect", "base")
 conflict_prefer("survival", "cluster")
 
 
-#--------------------------------------------------------
-# CORE EXTRACTION USING IDENTIFY_CORE()
-#--------------------------------------------------------
+# CORE EXTRACTION USING IDENTIFY_CORE() ----
+
 # Ensure minimum sample quality
 filtered_phyloseq <- prune_samples(
     sample_sums(filtered_phyloseq) >= 100,

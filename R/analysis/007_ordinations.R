@@ -24,48 +24,16 @@ if (exists("phyloseq")) {
 }
 
 
-# DATA TRANSFORMATION ----
-
-# Transform community matrices using Hellinger transformation
-hell_matrices <- purrr::map(
-  asv_matrices,
-  ~ {
-    decostand(t(.x), method = "hellinger", MARGIN = 1)
-  }
-)
-
-# Calculate distance matrices in parallel
-plan(multicore, workers = parallel::detectCores() - 1)
-
-distance_matrices <- hell_matrices %>%
-  future_map(
-    ~ vegdist(
-      t(.x),
-      method = "bray",
-      upper = FALSE,
-      binary = FALSE,
-      na.rm = TRUE
-    ),
-    .progress = TRUE,
-    .options = furrr_options(seed = TRUE)
-  ) %>%
-  purrr::set_names(names(hell_matrices))
-
-plan(sequential) # Close parallel processing
-
-save(distance_matrices, file = here::here("data/output/distance_matrices.rda"))
-
-# Note: Two dimensions keeps stress below 0.20 (from previous analysis)
-
 # NMDS ANALYSIS: BC_CORE COMMUNITY ----
 
 # Perform NMDS on BC_CORE COMMUNITY
 bc_core_nmds <- brc_nmds(
   asv_matrix = asv_matrices$bc_core,
   physeq = braycurt_core,
-  ncores = parallel::detectCores() - 1,
-  k = 3,
-  trymax = 9999
+  ncores = get_available_cores() - 1,
+  k = 2,
+  trymax = 100,
+  maxit = 999
 )
 
 save(bc_core_nmds, file = here::here("data/output/bc_core_nmds.rda"))
@@ -383,143 +351,137 @@ purrr::walk2(
   }
 )
 
-
 # DISTANCE-BASED REDUNDANCY ANALYSIS ----
 
-# Subset by "core" and "non-core" taxa
-bc_core <- subset_physeq(braycore_summary, physeq, .var = "otu", type = "core")
-bc_noncore <- subset_physeq(braycore_summary, physeq, .var = "otu", type = "no")
+# # Subset by "core" and "non-core" taxa
+# bc_core <- subset_physeq(braycore_summary, physeq, .var = "otu", type = "core")
+# bc_noncore <- subset_physeq(braycore_summary, physeq, .var = "otu", type = "no")
 
+# # dbRDA BC_CORE COMMUNITY ANALYSIS ----
 
-# dbRDA BC_CORE COMMUNITY ANALYSIS ----
+# # Transform data using Hellinger transformation
+# hell_matrix <- decostand(
+#   t(asv_matrices$bc_core),
+#   method = "hellinger",
+#   MARGIN = 1
+# )
 
-# Transform data using Hellinger transformation
-hell_matrix <- decostand(
-  t(asv_matrices$bc_core),
-  method = "hellinger",
-  MARGIN = 1
-)
+# # Prepare environmental data
+# dbrda_traits <- braycore_summary$sample_metadata %>%
+#   as.data.frame() %>%
+#   janitor::clean_names() %>%
+#   select(., c(drought, treatment, block, harvest, sample_id)) %>%
+#   dplyr::filter(rownames(.) %in% colnames(hell_matrix))
 
-# Prepare environmental data
-dbrda_traits <- braycore_summary$sample_metadata %>%
-  as.data.frame() %>%
-  janitor::clean_names() %>%
-  select(., c(drought, treatment, block, harvest, sample_id)) %>%
-  dplyr::filter(rownames(.) %in% colnames(hell_matrix))
+# # Build dbRDA models with different constraints
+# dbrda_00_bc_core <- dbrda(
+#   t(hell_matrix) ~ 1,
+#   distance = "bray",
+#   dfun = vegdist,
+#   data = dbrda_traits,
+#   parallel = 8,
+#   na.action = na.omit
+# )
 
-# Build dbRDA models with different constraints
-dbrda_00_bc_core <- dbrda(
-  t(hell_matrix) ~ 1,
-  distance = "bray",
-  dfun = vegdist,
-  data = dbrda_traits,
-  parallel = 8,
-  na.action = na.omit
-)
+# dbrda_01_bc_core <- dbrda(
+#   t(hell_matrix) ~ .,
+#   distance = "bray",
+#   dfun = vegdist,
+#   data = dbrda_traits,
+#   parallel = 8,
+#   na.action = na.omit
+# )
 
-dbrda_01_bc_core <- dbrda(
-  t(hell_matrix) ~ .,
-  distance = "bray",
-  dfun = vegdist,
-  data = dbrda_traits,
-  parallel = 8,
-  na.action = na.omit
-)
+# dbrda_02_bc_core <- dbrda(
+#   t(hell_matrix) ~ drought + block + harvest,
+#   distance = "bray",
+#   dfun = vegdist,
+#   data = dbrda_traits,
+#   parallel = 8,
+#   na.action = na.omit
+# )
 
-dbrda_02_bc_core <- dbrda(
-  t(hell_matrix) ~ drought + block + harvest,
-  distance = "bray",
-  dfun = vegdist,
-  data = dbrda_traits,
-  parallel = 8,
-  na.action = na.omit
-)
+# # dbRDA BC_NONCORE COMMUNITY ANALYSIS ----
 
+# # Transform non-core data using Hellinger transformation
+# hell_matrix <- decostand(
+#   t(bc_noncore$asv_matrix),
+#   method = "hellinger",
+#   MARGIN = 1
+# )
 
-# dbRDA BC_NONCORE COMMUNITY ANALYSIS ----
+# # Prepare environmental data for non-core analysis
+# dbrda_traits <- braycore_summary$sample_metadata %>%
+#   as.data.frame() %>%
+#   janitor::clean_names() %>%
+#   select(., c(drought, treatment, block, harvest, sample_id)) %>%
+#   dplyr::filter(rownames(.) %in% colnames(hell_matrix))
 
-# Transform non-core data using Hellinger transformation
-hell_matrix <- decostand(
-  t(bc_noncore$asv_matrix),
-  method = "hellinger",
-  MARGIN = 1
-)
+# # Build dbRDA models for non-core community
+# dbrda_00_bc_noncore <- dbrda(
+#   t(hell_matrix) ~ 1,
+#   distance = "bray",
+#   dfun = vegdist,
+#   data = dbrda_traits,
+#   parallel = 8,
+#   na.action = na.omit
+# )
 
-# Prepare environmental data for non-core analysis
-dbrda_traits <- braycore_summary$sample_metadata %>%
-  as.data.frame() %>%
-  janitor::clean_names() %>%
-  select(., c(drought, treatment, block, harvest, sample_id)) %>%
-  dplyr::filter(rownames(.) %in% colnames(hell_matrix))
+# dbrda_01_bc_nocore <- dbrda(
+#   t(hell_matrix) ~ .,
+#   distance = "bray",
+#   dfun = vegdist,
+#   data = dbrda_traits,
+#   parallel = 8,
+#   na.action = na.omit
+# )
 
-# Build dbRDA models for non-core community
-dbrda_00_bc_noncore <- dbrda(
-  t(hell_matrix) ~ 1,
-  distance = "bray",
-  dfun = vegdist,
-  data = dbrda_traits,
-  parallel = 8,
-  na.action = na.omit
-)
+# dbrda_02_bc_noncore <- dbrda(
+#   t(hell_matrix) ~ drought + block + harvest,
+#   distance = "bray",
+#   dfun = vegdist,
+#   data = dbrda_traits,
+#   parallel = 8,
+#   na.action = na.omit
+# )
 
-dbrda_01_bc_nocore <- dbrda(
-  t(hell_matrix) ~ .,
-  distance = "bray",
-  dfun = vegdist,
-  data = dbrda_traits,
-  parallel = 8,
-  na.action = na.omit
-)
+# # dbRDA STATISTICAL TESTING ----
 
-dbrda_02_bc_noncore <- dbrda(
-  t(hell_matrix) ~ drought + block + harvest,
-  distance = "bray",
-  dfun = vegdist,
-  data = dbrda_traits,
-  parallel = 8,
-  na.action = na.omit
-)
+# # Perform permutation tests on models
+# set.seed(123)
+# anova.cca(dbrda_02_bc_noncore, by = "margin", permutations = 999, parallel = 8)
+# anova(dbrda_02_bc_core, by = "axis")
+# anova(dbrda_02_bc_core, by = "axis", perm.max = 500)
 
+# # dbRDA VISUALIZATION ----
 
-# dbRDA STATISTICAL TESTING ----
+# # Generate ordination plots for core and non-core communities
+# bc_core_dbrda_gg <- brc_flex_ordi(
+#   dbrda_02_bc_core,
+#   dbrda_traits,
+#   color_var = "treatment",
+#   sample_id_col = "sample_id"
+# ) %>%
+#   +ggtitle(str_glue("All {BRC}: Bray-Curtis Core"))
 
-# Perform permutation tests on models
-set.seed(123)
-anova.cca(dbrda_02_bc_noncore, by = "margin", permutations = 999, parallel = 8)
-anova(dbrda_02_bc_core, by = "axis")
-anova(dbrda_02_bc_core, by = "axis", perm.max = 500)
+# bc_noncore_dbrda_gg <- brc_flex_ordi(
+#   dbrda_02_bc_noncore,
+#   dbrda_traits,
+#   color_var = "treatment",
+#   sample_id_col = "sample_id"
+# ) %>%
+#   +ggtitle(str_glue("All {BRC}s: Bray-Curtis Non-Core "))
 
+# # Save plots to output directory
+# save_gg <- list(bc_core_dbrda_gg, bc_noncore_dbrda_gg) %>%
+#   purrr::set_names(
+#     stringr::str_glue("brc_{c(CORE, NOCORE)}_dbrda")
+#   )
 
-# dbRDA VISUALIZATION ----
+# brc_ggsave(save_gg, here::here("data/output/plots/"))
 
-# Generate ordination plots for core and non-core communities
-bc_core_dbrda_gg <- brc_flex_ordi(
-  dbrda_02_bc_core,
-  dbrda_traits,
-  color_var = "treatment",
-  sample_id_col = "sample_id"
-) %>%
-  +ggtitle(str_glue("All {BRC}: Bray-Curtis Core"))
+# # THRESHOLD-BASED ANALYSIS ----
 
-bc_noncore_dbrda_gg <- brc_flex_ordi(
-  dbrda_02_bc_noncore,
-  dbrda_traits,
-  color_var = "treatment",
-  sample_id_col = "sample_id"
-) %>%
-  +ggtitle(str_glue("All {BRC}s: Bray-Curtis Non-Core "))
-
-# Save plots to output directory
-save_gg <- list(bc_core_dbrda_gg, bc_noncore_dbrda_gg) %>%
-  purrr::set_names(
-    stringr::str_glue("brc_{c(CORE, NOCORE)}_dbrda")
-  )
-
-brc_ggsave(save_gg, here::here("data/output/plots/"))
-
-
-# THRESHOLD-BASED ANALYSIS ----
-
-# Extract high and low occupancy communities from threshold-based core analysis
-high_occ <- subset_samples(prevalence_core$physeq_high_occ, brc == BRC)
-low_occ <- subset_samples(prevalence_core$physeq_low_occ, brc == BRC)
+# # Extract high and low occupancy communities from threshold-based core analysis
+# high_occ <- subset_samples(prevalence_core$physeq_high_occ, brc == BRC)
+# low_occ <- subset_samples(prevalence_core$physeq_low_occ, brc == BRC)
