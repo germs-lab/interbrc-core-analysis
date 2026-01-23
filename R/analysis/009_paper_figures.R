@@ -227,7 +227,7 @@ combined_multicores
 ## Need final legend arrangement in inkscape
 
 ggsave(
-  "data/output/plots/combined_multicores_pcoa.svg",
+  "data/output/plots/combined_multicores_pcoa_009.svg",
   plot = combined_multicores,
   dpi = 300,
   width = 375,
@@ -291,7 +291,7 @@ rel_abund_horizon <- rel_abund +
   )
 
 ggsave(
-  "data/output/plots/brc_crop_relabund_vertical.png",
+  "data/output/plots/brc_crop_relabund_vertical_009.png",
   plot = rel_abund_vertical,
   dpi = 300,
   width = 350,
@@ -300,7 +300,7 @@ ggsave(
 )
 
 ggsave(
-  "data/output/plots/brc_crop_relabund_horizon.png",
+  "data/output/plots/brc_crop_relabund_horizon_009.png",
   plot = rel_abund_horizon,
   dpi = 300,
   width = 300,
@@ -424,7 +424,7 @@ box_2 <- ggpubr::ggarrange(
 box_2
 
 ggsave(
-  "data/output/plots/box_2.png",
+  "data/output/plots/box_2_009.png",
   plot = box_2,
   dpi = 300,
   width = 325,

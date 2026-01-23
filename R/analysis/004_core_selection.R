@@ -84,7 +84,7 @@ occ_abun_plot
 
 # Save abundance-occupancy plot
 ggsave(
-  filename = "bray_curtis_abundance_occupancy.png",
+  filename = "bray_curtis_abundance_occupancy_004.png",
   occ_abun_plot,
   path = here::here("data/output/plots/"),
   dpi = 300,
@@ -116,6 +116,14 @@ prevalence_core <- filter_core(
   threshold = 0.6,
   as = "rows"
 )
+
+test <- filter_core(
+  filtered_phyloseq,
+  threshold = 0.99,
+  as = "rows"
+)
+# ASVs found in >=100% samples: 0
+# ℹ ASVs found in <100% samples: 59961
 
 # Save threshold-based core ASVs
 save(

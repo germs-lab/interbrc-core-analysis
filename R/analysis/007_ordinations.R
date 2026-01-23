@@ -213,7 +213,7 @@ plot_names <- c(
 )
 
 plot_paths <- str_glue(here::here(
-  "data/output/plots/{tolower(plot_names)}.png"
+  "data/output/plots/{tolower(plot_names)}_007.png"
 ))
 
 purrr::walk2(
@@ -418,7 +418,7 @@ plot_names <- c(
 )
 
 plot_paths <- str_glue(here::here(
-  "data/output/plots/{tolower(plot_names)}.png"
+  "data/output/plots/{tolower(plot_names)}_007.png"
 ))
 
 purrr::walk2(
