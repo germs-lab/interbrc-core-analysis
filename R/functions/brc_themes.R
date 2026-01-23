@@ -197,8 +197,8 @@ brc_scale_color_crops <- function(labels = brc_crop_labels(), ...) {
 #'
 #' Two-color fill scale for distinguishing core from non-core ASVs
 #'
-#' @param core_color Color for core ASVs (default: "#377EB8")
-#' @param noncore_color Color for non-core ASVs (default: "#E41A1C")
+#' @param core_color Color for core ASVs (default: "#E41A1C")
+#' @param noncore_color Color for non-core ASVs (default:  "#377EB8")
 #' @param labels Labels for legend (default: c("Core", "Non-core"))
 #'
 #' @return A ggplot2 scale object
@@ -223,72 +223,37 @@ brc_scale_fill_core <- function(
 
 # Pre-configured Theme Lists ----
 
-#' Pre-configured Theme List for 50 Core ASVs (Crops)
-#'
-#' @return A list of ggplot2 components
-#' # For scripts, not packaged
-brc_theme_core50_crops <- function() {
-  list(
-    ggplot2::ggtitle("50 core ASVs in BRC crops"),
-    brc_scale_color_crops(),
-    brc_theme_title_size()
-  )
-}
-
-#' Pre-configured Theme List for 50 Core ASVs (BRCs)
-#'
-#' @return A list of ggplot2 components
-#' # For scripts, not packaged
-brc_theme_core50_brc <- function() {
-  list(
-    ggplot2::ggtitle("50 core ASVs in BRCs"),
-    brc_theme_title_size()
-  )
-}
-
-#' Pre-configured Theme List for 60% Threshold Core
-#'
-#' @return A list of ggplot2 components
-#' # For scripts, not packaged
-brc_theme_threshold60_core <- function() {
-  list(
-    ggplot2::ggtitle("ASVs in >60% Samples Across Crops and BRCs"),
-    ggplot2::guides(fill = ggplot2::guide_legend(title = "ASV Association")),
-    brc_theme_title_size()
-  )
-}
-
-#' Pre-configured Theme List for 60% Threshold (Crops)
-#'
-#' @return A list of ggplot2 components
-#' # For scripts, not packaged
-brc_theme_threshold60_crops <- function() {
-  list(
-    ggplot2::ggtitle("12 high prevalence ASVs in BRC crops"),
-    brc_scale_color_crops(),
-    brc_theme_title_size()
-  )
-}
-
-#' Pre-configured Theme List for 60% Threshold (BRCs)
-#'
-#' @return A list of ggplot2 components
-#' # For scripts, not packaged
-brc_theme_threshold60_brc <- function() {
-  list(
-    ggplot2::ggtitle("12 high prevalence ASVs in BRCs"),
-    brc_theme_title_size()
-  )
-}
-
-#' Pre-configured Theme List for 100% Threshold (All ASVs)
-#'
-#' @return A list of ggplot2 components
-#' # For scripts, not packaged
-brc_theme_threshold100_palette <- function() {
-  list(
-    brc_scale_color_crops(),
-    brc_theme_title_size()
+brc_theme_target <- function(target = "core50_crops") {
+  switch(
+    target,
+    core50_crops = list(
+      ggplot2::ggtitle("50 core ASVs in BRC crops"),
+      brc_scale_color_crops(),
+      brc_theme_title_size()
+    ),
+    core50_brc = list(
+      ggplot2::ggtitle("50 core ASVs in BRCs"),
+      brc_theme_title_size()
+    ),
+    threshold60_core = list(
+      ggplot2::ggtitle("ASVs in >60% Samples Across Crops and BRCs"),
+      ggplot2::guides(fill = ggplot2::guide_legend(title = "ASV Association")),
+      brc_theme_title_size()
+    ),
+    threshold60_crops = list(
+      ggplot2::ggtitle("12 high prevalence ASVs in BRC crops"),
+      brc_scale_color_crops(),
+      brc_theme_title_size()
+    ),
+    threshold60_brc = list(
+      ggplot2::ggtitle("12 high prevalence ASVs in BRCs"),
+      brc_theme_title_size()
+    ),
+    threshold100_palette = list(
+      brc_scale_color_crops(),
+      brc_theme_title_size()
+    ),
+    stop("Unknown target theme: ", target)
   )
 }
 
@@ -304,7 +269,7 @@ brc_scale_override_single <- function() {
     brc_scale_y_percent(),
     ggplot2::scale_fill_manual(
       labels = c("Core", "Non-core"),
-      values = c("#377EB8", "#377EB8")
+      values = c("#E41A1C", "#377EB8")
     )
   )
 }

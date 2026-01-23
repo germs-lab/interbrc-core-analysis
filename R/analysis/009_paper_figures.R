@@ -72,12 +72,12 @@ load(here::here("data/output/phyloseq_objects/filtered_phyloseq_002.rda"))
 crop_labels <- brc_crop_labels()
 
 # Define plot-specific theme lists using new helpers
-core_50_crops <- brc_theme_core50_crops()
-core_50_brc <- brc_theme_core50_brc()
-threshold_60_core <- brc_theme_threshold60_core()
-threshold_60_crops <- brc_theme_threshold60_crops()
-threshold_60_brc <- brc_theme_threshold60_brc()
-threshold_100_palette <- brc_theme_threshold100_palette()
+core_50_crops <- brc_theme_target(target = "core50_crops")
+core_50_brc <- brc_theme_target(target = "core50_brc")
+threshold_60_core <- brc_theme_target(target = "threshold60_core")
+threshold_60_crops <- brc_theme_target(target = "threshold60_crops")
+threshold_60_brc <- brc_theme_target(target = "threshold60_brc")
+threshold_100_palette <- brc_theme_target(target = "threshold100_palette")
 override_scale <- brc_scale_override_single()
 
 
