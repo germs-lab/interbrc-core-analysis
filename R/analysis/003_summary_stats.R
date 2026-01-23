@@ -15,7 +15,9 @@
 # SETUP AND DEPENDENCIES ----
 
 source("R/utils/000_setup.R")
-
+if (exists("unfiltered_phyloseq")) {
+  remove(unfiltered_phyloseq)
+}
 
 # GENERATE SUMMARY STATISTICS ----
 
@@ -48,5 +50,5 @@ metagMisc::phyloseq_to_df(
   # rename(ASV = OTU) %>%
   write.csv(
     .,
-    file.path("data/output/phyloseq_objects/filtered_phyloseq_df.csv")
+    file.path("data/output/phyloseq_objects/filtered_phyloseq_df_003.csv")
   )

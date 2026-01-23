@@ -4,25 +4,34 @@ This directory contains the joint Bioenergy Research Center (BRC) data used for 
 
 ## Directory Structure
 
+Files have a provenance code at the end of their names (e.g., `_007`, `_004`) indicating the analysis step or script they correspond to. The directory is structured as follows:
+
 ```
 data/
 ├── input/
-│   ├── feature-table-modified.tsv       # Modified feature table for analysis
+│   ├── feature-table-modified.tsv      # Modified feature table for analysis
 │   ├── feature-table-modified.tsv.zip  # Compressed version of the feature table
-│   ├── metadata.tsv                     # Sample metadata file
-│   └── taxonomy.tsv                     # Taxonomic annotations for ASVs
+│   ├── metadata.tsv                    # Sample metadata file
+│   └── taxonomy.tsv                    # Taxonomic annotations for ASVs
 └── output/
-    ├── asv_matrices.rda                # ASV abundance matrices
-    ├── core_ext_nmds.rda               # NMDS results for core extended community
-    ├── core_summary_lists.rda          # Summary lists for core microbial community
-    ├── distance_matrices.rda           # Distance matrices for beta-diversity analyses
+    ├── asv_matrices_006.rda            # ASV abundance matrices
+    ├── bc_core_nmds_007.rda            # NMDS results: BC core identify_core() ASVs
+    ├── bc_noncore_nmds_007.rda         # NMDS results: BC non-core identify_core() ASVs
+    ├── braycore_summary_004.rda        # Results from identify_core() analysis
+    ├── core_summary_lists_old.rda      # OLD Results from identify_core() analysis
+    ├── distance_matrices_007.rda       # Distance matrices for beta-diversity analyses
     ├── fasta_files/                    # FASTA files for sequence data
-    ├── high_occ_nmds.rda               # NMDS results for high-occurrence ASVs
-    ├── low_occ_nmds.rda                # NMDS results for low-occurrence ASVs
+    ├── high_occ_nmds_007.rda           # NMDS results for high-occurrence ASVs
+    ├── low_occ_nmds_007.rda            # NMDS results for low-occurrence ASVs
+    ├── nmds_results_007.rda            # List of NMDS results for community subsets
+    ├── pcoa_results_007.rda            # List of PCoA results for community subsets
     ├── non_core_ext_nmds.rda           # NMDS results for non-core extended community
     ├── phyloseq_objects/               # Saved phyloseq objects for downstream analysis
-    ├── plots/                          # Visualizations and plots generated during analysis
+    ├── plots/                          # Visualizations generated during analysis
+    ├── sabr/                           # SABR-specific analysis results
     └── seq_processing_results/         # Results from sequence processing
+
+
 ```
 
 ## Purpose

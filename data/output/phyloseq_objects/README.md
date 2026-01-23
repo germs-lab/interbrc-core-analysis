@@ -9,7 +9,7 @@ The team evaluated multiple filtering strategies for our merged amplicon dataset
 1. **5% Sample Prevalence:**
     - Result: 1,849 ASVs
     - Note: Too restrictive given the diversity of crops and compartments.
-2. **20 Reads Minimum:**
+2. **20 ASV Reads Minimum and 100 reads per sample:**
     - Result: ~58,961 ASVs
     - Proposal: Adequate representation (observing an ASV at least 20 times is considered sufficient).
 3. **150 Reads Minimum:**
@@ -27,19 +27,7 @@ The team evaluated multiple filtering strategies for our merged amplicon dataset
 **Additional Resources:**
 
 - **Core Microbiome Functions:**  
-    Functions adapted from [Shade and Stopnisek (2019)](https://doi.org/10.1016/j.mib.2019.09.008) have been provided in the `core_microbiome_functions.R` script, available in the phyloseq folder.
+    Functions adapted from [Shade and Stopnisek (2019)](https://doi.org/10.1016/j.mib.2019.09.008) have been provided in the `R/functions/` subdirectory.
 
-To load the filtered phyloseq object in R, use:
 
-```r
-load("path/to/directory/filtered_phyloseq.rda")
-```
-
-### Removal of absolute paths
-*Changes by Bolívar Aponte Rolón 2025-02-14*
-
-Absolute paths were removed from:
-```
-R/
-└── phyloseq_import.R
-```
+- **For analysis details, please refer to the `docs/methods_for_paper.md` file.**

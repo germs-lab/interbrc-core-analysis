@@ -18,8 +18,8 @@
 # SETUP AND DEPENDENCIES
 
 source("R/utils/000_setup.R")
-if (exists("phyloseq")) {
-  remove(phyloseq)
+if (exists("unfiltered_phyloseq")) {
+  remove(unfiltered_phyloseq)
 }
 
 
@@ -65,7 +65,10 @@ braycore_summary <- BRCore::identify_core(
 
 
 # Save results to avoid recomputation
-save(braycore_summary, file = here::here("data/output/braycore_summary.rda"))
+save(
+  braycore_summary,
+  file = here::here("data/output/braycore_summary_004.rda")
+)
 
 
 # VISUALIZATION OF BRAY-CURTIS AND OCCUPANCY PATTERNS ----
@@ -117,7 +120,7 @@ prevalence_core <- filter_core(
 # Save threshold-based core ASVs
 save(
   prevalence_core,
-  file = here::here("data/output/phyloseq_objects/prevalence_core.rda")
+  file = here::here("data/output/phyloseq_objects/prevalence_core_004.rda")
 )
 
 # # JBEI-SPECIFIC CORE ANALYSIS ----

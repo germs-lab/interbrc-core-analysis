@@ -19,8 +19,8 @@
 # SETUP AND DEPENDENCIES ----
 
 source("R/utils/000_setup.R")
-if (exists("phyloseq")) {
-  remove(phyloseq)
+if (exists("unfiltered_phyloseq")) {
+  remove(unfiltered_phyloseq)
 }
 
 
@@ -53,7 +53,10 @@ distance_matrices <- hell_matrices %>%
 
 plan(sequential) # Close parallel processing
 
-save(distance_matrices, file = here::here("data/output/distance_matrices.rda"))
+save(
+  distance_matrices,
+  file = here::here("data/output/distance_matrices_007.rda")
+)
 
 # Note: Two dimensions keeps stress below 0.20 (from previous analysis)
 
@@ -185,7 +188,7 @@ pcoa_results <- list(
 
 save(
   pcoa_results,
-  file = here::here("data/output/pcoa_results.rda")
+  file = here::here("data/output/pcoa_results_007.rda")
 )
 # Combine all PCoA plots and save to output directory
 pcoa_plots <- list(
@@ -231,7 +234,7 @@ purrr::walk2(
 # NMDS ANALYSIS: BC_CORE COMMUNITY ----
 # Performs Hellinger transformation and vegdist internally
 
-# NMDS of all ASVs
+##  NMDS of all ASVs ----
 all_asv_nmds <- brc_nmds(
   asv_matrix = asv_matrices$full_asv_matrix,
   physeq = filtered_phyloseq,
@@ -241,7 +244,7 @@ all_asv_nmds <- brc_nmds(
   maxit = 999
 )
 
-save(all_asv_nmds, file = here::here("data/output/all_asv_nmds.rda"))
+save(all_asv_nmds, file = here::here("data/output/all_asv_nmds_007.rda"))
 
 # Perform NMDS on BC_CORE COMMUNITY
 bc_core_nmds <- brc_nmds(
@@ -253,7 +256,7 @@ bc_core_nmds <- brc_nmds(
   maxit = 999
 )
 
-save(bc_core_nmds, file = here::here("data/output/bc_core_nmds.rda"))
+save(bc_core_nmds, file = here::here("data/output/bc_core_nmds_007.rda"))
 
 
 # Generate crop-based and BRC-based visualizations
@@ -293,7 +296,7 @@ bc_noncore_nmds <- brc_nmds(
 )
 
 
-save(bc_noncore_nmds, file = here::here("data/output/bc_noncore_nmds.rda"))
+save(bc_noncore_nmds, file = here::here("data/output/bc_noncore_nmds_007.rda"))
 
 # Generate crop-based and BRC-based visualizations
 bc_noncore_nmds_crops <- brc_gg_ordi(
@@ -325,7 +328,7 @@ high_occ_nmds <- brc_nmds(
   maxit = 999
 )
 
-save(high_occ_nmds, file = here::here("data/output/high_occ_nmds.rda"))
+save(high_occ_nmds, file = here::here("data/output/high_occ_nmds_007.rda"))
 
 # Generate crop-based and BRC-based visualizations
 high_occ_nmds_crops <- brc_gg_ordi(
@@ -357,7 +360,7 @@ low_occ_nmds <- brc_nmds(
   maxit = 999
 )
 
-save(low_occ_nmds, file = here::here("data/output/low_occ_nmds.rda"))
+save(low_occ_nmds, file = here::here("data/output/low_occ_nmds_007.rda"))
 
 # Generate crop-based and BRC-based visualizations
 low_occ_nmds_crops <- brc_gg_ordi(
@@ -389,7 +392,7 @@ nmds_results <- list(
 
 save(
   nmds_results,
-  file = here::here("data/output/nmds_results.rda")
+  file = here::here("data/output/nmds_results_007.rda")
 )
 
 # Combine all NMDS plots and save to output directory

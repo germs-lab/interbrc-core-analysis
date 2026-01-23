@@ -61,10 +61,10 @@ OTU <- otu_table(feature.table.modified, taxa_are_rows = T)
 metadata <- sample_data(metadata)
 
 # Combine into single phyloseq object
-phyloseq <- phyloseq(OTU, TAX, metadata)
+unfiltered_phyloseq <- phyloseq(OTU, TAX, metadata)
 
 # Clean up column names
-colnames(sample_data(phyloseq)) <- phyloseq@sam_data |>
+colnames(sample_data(unfiltered_phyloseq)) <- unfiltered_phyloseq@sam_data |>
   janitor::clean_names() |>
   colnames()
 
@@ -72,8 +72,11 @@ colnames(sample_data(phyloseq)) <- phyloseq@sam_data |>
 # PHYLOSEQ FILTERING ----
 
 # Remove singletons
-phyloseq_removed_singletons <- prune_taxa(taxa_sums(phyloseq) > 1, phyloseq)
-tax.remove <- ntaxa(phyloseq) - ntaxa(phyloseq_removed_singletons) # 1,675 ASVs
+phyloseq_removed_singletons <- prune_taxa(
+  taxa_sums(unfiltered_phyloseq) > 1,
+  phyloseq
+)
+tax.remove <- ntaxa(unfiltered_phyloseq) - ntaxa(phyloseq_removed_singletons) # 1,675 ASVs
 
 # Remove plant contaminants (Eukaryota and unassigned)
 phyloseq_removed_singletons_plant <- subset_taxa(
@@ -115,6 +118,9 @@ filtered_phyloseq <- filter_taxa(
 # Save filtered and unfiltered phyloseq objects for further analysis
 save(
   filtered_phyloseq,
-  file = "data/output/phyloseq_objects/filtered_phyloseq.rda"
+  file = "data/output/phyloseq_objects/filtered_phyloseq_002.rda"
 )
-save(phyloseq, file = "data/output/phyloseq_objects/unfiltered_phyloseq.rda")
+save(
+  unfiltered_phyloseq,
+  file = "data/output/phyloseq_objects/unfiltered_phyloseq_002.rda"
+)

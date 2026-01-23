@@ -51,17 +51,17 @@ list.files(here::here("R/functions"), pattern = "brc_", full.names = TRUE) %>%
 
 # Load data
 # We only need these files
-load(here::here("data/output/bc_core_nmds.rda"))
-load(here::here("data/output/bc_noncore_nmds.rda"))
-load(here::here("data/output/high_occ_nmds.rda"))
-load(here::here("data/output/low_occ_nmds.rda"))
-load(here::here("data/output/pcoa_results.rda"))
+load(here::here("data/output/bc_core_nmds_007.rda"))
+load(here::here("data/output/bc_noncore_nmds_007.rda"))
+load(here::here("data/output/high_occ_nmds_007.rda"))
+load(here::here("data/output/low_occ_nmds_007.rda"))
+load(here::here("data/output/pcoa_results_007.rda"))
 load(here::here("data/output/core_summary_lists_old.rda"))
-load(here::here("data/output/distance_matrices.rda"))
-load(here::here("data/output/phyloseq_objects/braycurt_core.rda"))
-load(here::here("data/output/phyloseq_objects/braycurt_noncore.rda"))
-load(here::here("data/output/phyloseq_objects/prevalence_core.rda"))
-load(here::here("data/output/phyloseq_objects/filtered_phyloseq.rda"))
+load(here::here("data/output/distance_matrices_007.rda"))
+load(here::here("data/output/phyloseq_objects/braycurt_core_006.rda"))
+load(here::here("data/output/phyloseq_objects/braycurt_noncore_006.rda"))
+load(here::here("data/output/phyloseq_objects/prevalence_core_004.rda"))
+load(here::here("data/output/phyloseq_objects/filtered_phyloseq_002.rda"))
 
 
 # THEMES AND LABELS (now using brc_themes.R) ----

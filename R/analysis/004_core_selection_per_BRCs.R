@@ -16,8 +16,8 @@
 # SETUP AND DEPENDENCIES ----
 
 source("R/utils/000_setup.R")
-if (exists("phyloseq")) {
-  remove(phyloseq)
+if (exists("unfiltered_phyloseq")) {
+  remove(unfiltered_phyloseq)
 }
 
 

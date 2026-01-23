@@ -16,10 +16,9 @@
 # SETUP AND DEPENDENCIES ----
 
 source("R/utils/000_setup.R")
-if (exists("phyloseq")) {
-  remove(phyloseq)
+if (exists("unfiltered_phyloseq")) {
+  remove(unfiltered_phyloseq)
 }
-
 
 # EXTRACT CORE AND NON-CORE TAXA ----
 
@@ -92,11 +91,11 @@ rownames(braycurt_core@otu_table) %in% bc_noncore_sample_ids
 # Save core and non-core phyloseq objects
 save(
   braycurt_core,
-  file = here::here("data/output/phyloseq_objects/braycurt_core.rda")
+  file = here::here("data/output/phyloseq_objects/braycurt_core_006.rda")
 )
 save(
   braycurt_noncore,
-  file = here::here("data/output/phyloseq_objects/braycurt_noncore.rda")
+  file = here::here("data/output/phyloseq_objects/braycurt_noncore_006.rda")
 )
 
 
@@ -165,4 +164,4 @@ asv_matrices <- list(
   ))))
 )
 
-save(asv_matrices, file = here::here("data/output/asv_matrices.rda"))
+save(asv_matrices, file = here::here("data/output/asv_matrices_006.rda"))

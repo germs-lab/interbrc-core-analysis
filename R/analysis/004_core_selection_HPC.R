@@ -51,7 +51,7 @@ invisible(lapply(
 
 
 load(
-    here::here("data/output/phyloseq_objects/filtered_phyloseq.rda")
+    here::here("data/output/phyloseq_objects/filtered_phyloseq_002.rda")
 )
 
 # Solve known conflicts
@@ -99,5 +99,5 @@ braycore_summary <- BRCore::identify_core(
 # Save results to avoid recomputation
 save(
     braycore_summary,
-    file = here::here("data/output/braycore_summary_batch.rda")
+    file = here::here("data/output/braycore_summary_004.rda")
 )
